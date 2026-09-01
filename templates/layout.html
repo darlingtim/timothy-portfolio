@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{.Title}}</title>
+  <meta name="description" content="{{.MetaDesc}}">
+  <meta name="author" content="Timothy Ododo">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://timothyododo.onrender.com{{.CurrentPath}}">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://timothyododo.onrender.com{{.CurrentPath}}">
+  <meta property="og:title" content="{{.Title}}">
+  <meta property="og:description" content="{{.MetaDesc}}">
+  <meta property="og:site_name" content="Timothy Ododo Portfolio">
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{.Title}}">
+  <meta name="twitter:description" content="{{.MetaDesc}}">
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+
+  <!-- Typography: Inter & Space Grotesk -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css">
+
+  <!-- Structured Data: Person Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Timothy Ododo",
+    "jobTitle": "Technology Mentor & Advocate",
+    "description": "Multidisciplinary technology professional specializing in technical mentorship, developer advocacy, IT support, backend engineering, and cloud/DevOps.",
+    "url": "https://timothyododo.onrender.com",
+    "email": "mailto:timothyododo@gmail.com",
+    "sameAs": [
+      "https://github.com/timothyododo",
+      "https://linkedin.com/in/timothyododo"
+    ],
+    "knowsAbout": [
+      "Software Engineering",
+      "Go (Golang)",
+      "Python",
+      "MicroPython",
+      "Raspberry Pi Hardware Programming",
+      "IT Support",
+      "Linux System Administration",
+      "Cloud & DevOps",
+      "AI-Assisted Development"
+    ]
+  }
+  </script>
+
+  <!-- Prevent Flash of Unstyled Theme -->
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme_preference');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    })();
+  </script>
+</head>
+<body class="bg-canvas text-primary font-sans antialiased selection:bg-accent-light selection:text-accent-dark min-h-screen flex flex-col">
+
+  <!-- Skip to Content Accessible Link -->
+  <a href="#main-content" class="skip-link sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-accent focus:text-white focus:rounded-md focus:shadow-lg">
+    Skip to main content
+  </a>
+
+  <!-- Global Header Navigation -->
+  <header class="sticky top-0 z-40 w-full backdrop-blur-md bg-canvas/90 border-b border-border transition-colors duration-200" id="site-header">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
+      
+      <!-- Brand Logo & Identity -->
+      <a href="/" class="group flex items-center gap-3 focus-visible:outline-accent rounded-lg p-1" aria-label="Timothy Ododo Home">
+        <div class="w-10 h-10 rounded-xl bg-accent text-white font-mono font-bold text-lg flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+          TO
+        </div>
+        <div class="flex flex-col">
+          <span class="font-display font-bold text-lg tracking-tight group-hover:text-accent transition-colors leading-tight">
+            Timothy Ododo
+          </span>
+          <span class="text-xs text-secondary font-mono tracking-wide">
+            Technology Mentor & Advocate
+          </span>
+        </div>
+      </a>
+
+      <!-- Desktop Navigation Menu -->
+      <nav class="hidden md:flex items-center gap-1 lg:gap-2" aria-label="Main Navigation">
+        <a href="/" class="nav-link {{if eq .CurrentPath "/"}}nav-link-active{{end}}">Home</a>
+        <a href="/about" class="nav-link {{if eq .CurrentPath "/about"}}nav-link-active{{end}}">About</a>
+        <a href="/experience" class="nav-link {{if eq .CurrentPath "/experience"}}nav-link-active{{end}}">Experience</a>
+        <a href="/projects" class="nav-link {{if hasPrefix .CurrentPath "/projects"}}nav-link-active{{end}}">Projects</a>
+        <a href="/skills" class="nav-link {{if eq .CurrentPath "/skills"}}nav-link-active{{end}}">Skills</a>
+        <a href="/resume" class="nav-link {{if eq .CurrentPath "/resume"}}nav-link-active{{end}}">Resume</a>
+        <a href="/contact" class="btn-primary text-sm py-2 px-4 ml-2">Let's Connect</a>
+
+        <!-- Theme Switcher -->
+        <div class="relative ml-2" id="theme-menu-container">
+          <button id="theme-toggle-btn" class="p-2 rounded-lg border border-border hover:bg-muted text-secondary hover:text-primary transition-colors focus-visible:outline-accent" aria-label="Toggle visual theme" aria-expanded="false" title="Switch Theme">
+            <svg class="w-5 h-5 dark-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+            <svg class="w-5 h-5 light-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 9H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          </button>
+        </div>
+      </nav>
+
+      <!-- Mobile Menu Controls -->
+      <div class="flex items-center gap-2 md:hidden">
+        <button id="mobile-theme-btn" class="p-2 rounded-lg border border-border hover:bg-muted text-secondary" aria-label="Toggle Theme">
+          <svg class="w-5 h-5 dark-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+          <svg class="w-5 h-5 light-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 9H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        </button>
+
+        <button id="mobile-menu-btn" class="p-2 rounded-lg border border-border hover:bg-muted text-secondary focus-visible:outline-accent" aria-label="Open Mobile Menu" aria-expanded="false">
+          <svg class="w-6 h-6 menu-open-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          <svg class="w-6 h-6 menu-close-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Slide-out Menu -->
+    <div id="mobile-menu" class="hidden md:hidden border-b border-border bg-card px-4 pt-2 pb-6 space-y-2 shadow-xl animate-fade-in" aria-label="Mobile Navigation">
+      <a href="/" class="mobile-nav-link {{if eq .CurrentPath "/"}}mobile-nav-link-active{{end}}">Home</a>
+      <a href="/about" class="mobile-nav-link {{if eq .CurrentPath "/about"}}mobile-nav-link-active{{end}}">About</a>
+      <a href="/experience" class="mobile-nav-link {{if eq .CurrentPath "/experience"}}mobile-nav-link-active{{end}}">Experience</a>
+      <a href="/projects" class="mobile-nav-link {{if hasPrefix .CurrentPath "/projects"}}mobile-nav-link-active{{end}}">Projects</a>
+      <a href="/skills" class="mobile-nav-link {{if eq .CurrentPath "/skills"}}mobile-nav-link-active{{end}}">Skills</a>
+      <a href="/resume" class="mobile-nav-link {{if eq .CurrentPath "/resume"}}mobile-nav-link-active{{end}}">Resume & CV</a>
+      <a href="/contact" class="btn-primary w-full text-center mt-3 py-2.5">Let's Connect</a>
+    </div>
+  </header>
+
+  <!-- Main Content Body -->
+  <main id="main-content" class="flex-grow">
+    {{template "content" .}}
+  </main>
+
+  <!-- Global Footer -->
+  <footer class="mt-20 border-t border-border bg-card/60 backdrop-blur-sm py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
+        
+        <!-- Brand & Positioning Statement -->
+        <div class="md:col-span-2 space-y-3">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-lg bg-accent text-white font-mono font-bold flex items-center justify-center text-sm">TO</span>
+            <span class="font-display font-bold text-xl text-primary">Timothy Ododo</span>
+          </div>
+          <p class="text-sm font-medium text-accent">Technology Mentor & Advocate</p>
+          <p class="text-secondary text-sm max-w-md leading-relaxed">
+            Building technology. Supporting people. Sharing knowledge. Turning technical challenges into practical, human-centered solutions.
+          </p>
+          <div class="pt-2 flex items-center gap-4 text-xs font-mono text-secondary">
+            <span class="inline-flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              Open to Opportunities
+            </span>
+            <span>•</span>
+            <span>Learn2Earn Fellow 2026</span>
+          </div>
+        </div>
+
+        <!-- Quick Navigation -->
+        <div>
+          <h4 class="font-display font-semibold text-sm text-primary mb-3 uppercase tracking-wider">Explore</h4>
+          <ul class="space-y-2 text-sm text-secondary">
+            <li><a href="/about" class="hover:text-accent transition-colors">About & Story</a></li>
+            <li><a href="/experience" class="hover:text-accent transition-colors">Experience Timeline</a></li>
+            <li><a href="/projects" class="hover:text-accent transition-colors">Project Portfolio</a></li>
+            <li><a href="/skills" class="hover:text-accent transition-colors">Technical Skills</a></li>
+            <li><a href="/resume" class="hover:text-accent transition-colors">Curriculum Vitae</a></li>
+          </ul>
+        </div>
+
+        <!-- Connect & Links -->
+        <div>
+          <h4 class="font-display font-semibold text-sm text-primary mb-3 uppercase tracking-wider">Connect</h4>
+          <ul class="space-y-2 text-sm text-secondary">
+            <li>
+              <a href="mailto:timothyododo@gmail.com" class="hover:text-accent transition-colors flex items-center gap-2">
+                <span>Email</span>
+                <span class="text-xs font-mono text-muted-fg">timothyododo@gmail.com</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://linkedin.com/in/timothyododo" target="_blank" rel="noopener noreferrer" class="hover:text-accent transition-colors">
+                LinkedIn ↗
+              </a>
+            </li>
+            <li>
+              <a href="https://github.com/timothyododo" target="_blank" rel="noopener noreferrer" class="hover:text-accent transition-colors">
+                GitHub ↗
+              </a>
+            </li>
+            <li>
+              <a href="/contact" class="hover:text-accent transition-colors">
+                Contact Form
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-secondary">
+        <p>© 2026 Timothy Ododo. All rights reserved.</p>
+        <p class="flex items-center gap-1 font-mono">
+          Engineered with Go net/http & Semantic Web Standards
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/static/js/main.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+{{define "content"}}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 space-y-12">
+  
+  <!-- Header -->
+  <div class="space-y-4 border-b border-border pb-8">
+    <span class="text-xs font-mono uppercase tracking-widest text-accent font-semibold">Career &amp; Leadership</span>
+    <h1 class="font-display text-4xl sm:text-5xl font-bold text-primary tracking-tight">
+      Professional Experience
+    </h1>
+    <p class="text-lg sm:text-xl text-secondary max-w-3xl leading-relaxed">
+      A documented history of technical training, public sector digital advocacy, high-volume event support, and software engineering.
+    </p>
+  </div>
+
+  <!-- Timeline Cards -->
+  <div class="relative pl-6 sm:pl-8 border-l-2 border-border space-y-12 ml-2 sm:ml-4">
+    {{range .Experiences}}
+    <div class="relative group">
+      
+      <!-- Timeline Node Marker -->
+      <div class="absolute -left-[31px] sm:-left-[39px] top-1.5 w-4 h-4 rounded-full border-4 border-canvas bg-accent group-hover:scale-125 transition-transform"></div>
+
+      <div class="p-6 sm:p-8 rounded-xl border border-border bg-card hover:border-accent/40 transition-all shadow-sm space-y-5">
+        
+        <!-- Header Info -->
+        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+          <div>
+            <div class="inline-block text-xs font-mono font-semibold px-2.5 py-0.5 rounded bg-accent/10 text-accent mb-2">
+              {{.Type}}
+            </div>
+            <h2 class="font-display text-2xl font-bold text-primary">
+              {{.Role}}
+            </h2>
+            <div class="text-accent font-semibold text-base">
+              {{.Organization}}
+            </div>
+          </div>
+          <div class="font-mono text-xs text-secondary px-3 py-1.5 rounded-lg bg-muted border border-border self-start sm:self-auto">
+            {{.Period}} • {{.Location}}
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <p class="text-secondary text-base leading-relaxed">
+          {{.Summary}}
+        </p>
+
+        <!-- Detailed Bullet Highlights -->
+        <div class="space-y-2">
+          <h3 class="text-xs font-mono uppercase tracking-wider text-primary font-bold">Key Responsibilities &amp; Impact:</h3>
+          <ul class="space-y-2.5">
+            {{range .Highlights}}
+            <li class="flex items-start gap-3 text-sm text-secondary leading-relaxed">
+              <span class="text-accent font-bold mt-0.5">•</span>
+              <span>{{.}}</span>
+            </li>
+            {{end}}
+          </ul>
+        </div>
+
+        <!-- Technologies Used -->
+        <div class="pt-4 border-t border-border/80 flex flex-wrap items-center gap-2">
+          <span class="text-xs font-mono text-secondary mr-1">Skills:</span>
+          {{range .Technologies}}
+          <span class="text-xs font-mono px-2.5 py-1 rounded bg-canvas text-secondary border border-border">
+            {{.}}
+          </span>
+          {{end}}
+        </div>
+
+      </div>
+    </div>
+    {{end}}
+  </div>
+
+  <!-- Bottom Action -->
+  <div class="p-8 rounded-xl border border-border bg-card/60 flex flex-col sm:flex-row items-center justify-between gap-6">
+    <div>
+      <h3 class="font-display text-xl font-bold text-primary mb-1">Looking for a verified copy of my CV?</h3>
+      <p class="text-secondary text-sm">Review complete education, certifications, and technical proficiencies.</p>
+    </div>
+    <div class="flex gap-3">
+      <a href="/resume" class="btn-primary text-sm py-2.5 px-5">View Full Resume</a>
+      <a href="/contact" class="btn-outline text-sm py-2.5 px-5">Contact Timothy</a>
+    </div>
+  </div>
+
+</div>
+{{end}}

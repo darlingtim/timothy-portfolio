@@ -1,0 +1,411 @@
+{{define "content"}}
+<!-- Hero Section -->
+<section class="relative pt-12 pb-16 md:pt-20 md:pb-24 overflow-hidden border-b border-border">
+  <!-- Subtle Background Grid Pattern -->
+  <div class="absolute inset-0 bg-grid-pattern opacity-40 pointer-events-none" aria-hidden="true"></div>
+  
+  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl space-y-6">
+      
+      <!-- Status Badge -->
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-accent/20 bg-accent/5 text-accent text-xs font-mono font-medium">
+        <span class="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
+        Learn2Earn Fellow & Ambassador • Open to Roles
+      </div>
+
+      <!-- Main Heading & Title -->
+      <div class="space-y-2">
+        <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-primary">
+          Timothy Ododo
+        </h1>
+        <p class="text-xl sm:text-2xl font-display font-semibold text-accent tracking-tight">
+          Technology Mentor &amp; Advocate
+        </p>
+        <p class="text-sm sm:text-base font-mono text-secondary">
+          IT Support <span class="text-accent">•</span> Backend Engineering <span class="text-accent">•</span> Cloud &amp; DevOps <span class="text-accent">•</span> AI-enabled Technology
+        </p>
+      </div>
+
+      <!-- Concise Statement -->
+      <p class="text-lg sm:text-xl text-secondary leading-relaxed max-w-2xl font-normal">
+        I build, troubleshoot and explain technology — helping people and organisations turn technical challenges into practical solutions.
+      </p>
+
+      <!-- Action Buttons -->
+      <div class="pt-2 flex flex-wrap items-center gap-4">
+        <a href="/projects" class="btn-primary text-base py-3 px-6 shadow-sm">
+          View My Work
+        </a>
+        <a href="/contact" class="btn-secondary text-base py-3 px-6">
+          Let's Connect
+        </a>
+        <a href="/resume" class="btn-outline text-sm py-3 px-5 inline-flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          Download CV
+        </a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Impact Metrics Strip -->
+<section class="py-12 bg-card/80 border-b border-border" aria-label="Key Achievements & Impact">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+      {{range .Profile.ImpactMetrics}}
+      <div class="metric-card p-5 rounded-xl border border-border bg-canvas/60">
+        <div class="font-display text-3xl sm:text-4xl font-bold text-accent mb-1 tracking-tight">
+          {{.Value}}
+        </div>
+        <div class="font-semibold text-primary text-sm sm:text-base mb-1">
+          {{.Label}}
+        </div>
+        <p class="text-xs text-secondary leading-normal">
+          {{.Detail}}
+        </p>
+      </div>
+      {{end}}
+    </div>
+  </div>
+</section>
+
+<!-- Short Introduction Story -->
+<section class="py-16 md:py-20 border-b border-border bg-canvas">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+      <div class="lg:col-span-5 space-y-4">
+        <span class="text-xs font-mono uppercase tracking-widest text-accent font-semibold">About Timothy</span>
+        <h2 class="font-display text-3xl sm:text-4xl font-bold text-primary tracking-tight">
+          Bridging technical systems and the people who use them.
+        </h2>
+        <div class="w-12 h-1 bg-accent rounded-full"></div>
+      </div>
+      <div class="lg:col-span-7 space-y-5 text-secondary text-base sm:text-lg leading-relaxed">
+        <p>
+          I am an emerging technology professional with a multidisciplinary foundation spanning software development, IT support, cloud computing, technology education, community leadership, and AI-native development.
+        </p>
+        <p>
+          My work is grounded in a singular strength: <strong>the ability to learn technology rapidly, build dependable solutions, troubleshoot complex failures, and communicate technical concepts clearly</strong> to students, colleagues, and non-technical stakeholders.
+        </p>
+        <div class="pt-2">
+          <a href="/about" class="inline-flex items-center gap-2 text-accent font-semibold hover:underline text-base">
+            Read My Full Story &amp; Philosophy <span>→</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- What I Bring Section (6 Capability Cards) -->
+<section class="py-16 md:py-24 border-b border-border bg-card/40" id="capabilities">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mb-12 space-y-3">
+      <span class="text-xs font-mono uppercase tracking-widest text-accent font-semibold">Core Competencies</span>
+      <h2 class="font-display text-3xl sm:text-4xl font-bold text-primary tracking-tight">
+        What I Bring to Organisations &amp; Teams
+      </h2>
+      <p class="text-secondary text-base sm:text-lg">
+        A versatile blend of hands-on technical execution, structured troubleshooting, and empathetic communication.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {{range .Profile.Capabilities}}
+      <div class="capability-card p-6 rounded-xl border border-border bg-card hover:border-accent/40 transition-all">
+        <div class="w-12 h-12 rounded-lg bg-accent/10 text-accent flex items-center justify-center font-mono font-bold mb-5">
+          <span class="text-xl">#</span>
+        </div>
+        <h3 class="font-display text-xl font-bold text-primary mb-2.5">
+          {{.Title}}
+        </h3>
+        <p class="text-secondary text-sm leading-relaxed">
+          {{.Description}}
+        </p>
+      </div>
+      {{end}}
+    </div>
+  </div>
+</section>
+
+<!-- Featured Experience Timeline -->
+<section class="py-16 md:py-24 border-b border-border bg-canvas">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+      <div class="space-y-3 max-w-2xl">
+        <span class="text-xs font-mono uppercase tracking-widest text-accent font-semibold">Track Record</span>
+        <h2 class="font-display text-3xl sm:text-4xl font-bold text-primary tracking-tight">
+          Featured Experience
+        </h2>
+        <p class="text-secondary text-base">
+          Proven impact in engineering, public-sector tech advocacy, high-volume event operations, and technical training.
+        </p>
+      </div>
+      <a href="/experience" class="btn-outline self-start text-sm py-2 px-4">
+        View All Experience →
+      </a>
+    </div>
+
+    <div class="space-y-6">
+      {{range .Experiences}}
+      <div class="experience-card p-6 sm:p-8 rounded-xl border border-border bg-card hover:border-accent/30 transition-colors">
+        <div class="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 mb-3">
+          <div>
+            <h3 class="font-display text-xl font-bold text-primary">
+              {{.Role}}
+            </h3>
+            <div class="text-accent font-medium text-sm">
+              {{.Organization}}
+            </div>
+          </div>
+          <div class="font-mono text-xs text-secondary px-2.5 py-1 rounded bg-muted self-start sm:self-auto border border-border">
+            {{.Period}}
+          </div>
+        </div>
+
+        <p class="text-secondary text-sm sm:text-base leading-relaxed mb-4">
+          {{.Summary}}
+        </p>
+
+        <ul class="space-y-2 mb-5">
+          {{range .Highlights}}
+          <li class="flex items-start gap-2.5 text-sm text-secondary">
+            <span class="text-accent font-bold mt-0.5">•</span>
+            <span>{{.}}</span>
+          </li>
+          {{end}}
+        </ul>
+
+        <div class="flex flex-wrap gap-1.5 pt-2 border-t border-border/60">
+          {{range .Technologies}}
+          <span class="text-xs font-mono px-2.5 py-0.5 rounded-full bg-muted text-secondary border border-border">
+            {{.}}
+          </span>
+          {{end}}
+        </div>
+      </div>
+      {{end}}
+    </div>
+  </div>
+</section>
+
+<!-- Featured Projects Section -->
+<section class="py-16 md:py-24 border-b border-border bg-card/30">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+      <div class="space-y-3 max-w-2xl">
+        <span class="text-xs font-mono uppercase tracking-widest text-accent font-semibold">Case Studies</span>
+        <h2 class="font-display text-3xl sm:text-4xl font-bold text-primary tracking-tight">
+          Featured Projects &amp; Systems
+        </h2>
+        <p class="text-secondary text-base">
+          Practical applications demonstrating problem analysis, systems architecture, debugging, and real-world execution.
+        </p>
+      </div>
+      <a href="/projects" class="btn-outline self-start text-sm py-2 px-4">
+        Explore Full Portfolio →
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      {{range .Projects}}
+      <div class="project-card flex flex-col justify-between p-6 sm:p-8 rounded-xl border border-border bg-card hover:shadow-md hover:border-accent/40 transition-all">
+        <div>
+          <div class="flex items-center justify-between gap-2 mb-3">
+            <span class="text-xs font-mono px-2.5 py-1 rounded bg-accent/10 text-accent font-semibold">
+              {{.Category}}
+            </span>
+            <span class="text-xs font-mono text-secondary">
+              {{.Year}}
+            </span>
+          </div>
+
+          <h3 class="font-display text-2xl font-bold text-primary mb-2">
+            <a href="/projects/{{.Slug}}" class="hover:text-accent transition-colors">
+              {{.Name}}
+            </a>
+          </h3>
+
+          <p class="text-accent text-xs font-mono mb-3">
+            {{.Tagline}}
+          </p>
+
+          <p class="text-secondary text-sm leading-relaxed mb-6">
+            {{.ShortDescription}}
+          </p>
+
+          <!-- Problem & Solution Snapshot -->
+          <div class="space-y-2 mb-6 p-4 rounded-lg bg-canvas border border-border text-xs">
+            <div>
+              <span class="font-semibold text-primary">Problem:</span>
+              <span class="text-secondary">{{.Problem}}</span>
+            </div>
+            <div>
+              <span class="font-semibold text-primary">Solution:</span>
+              <span class="text-secondary">{{.Solution}}</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex flex-wrap gap-1.5 mb-6">
+            {{range .Technologies}}
+            <span class="text-xs font-mono px-2 py-0.5 rounded bg-muted text-secondary border border-border">
+              {{.}}
+            </span>
+            {{end}}
+          </div>
+
+          <div class="flex items-center justify-between pt-4 border-t border-border">
+            <a href="/projects/{{.Slug}}" class="text-sm font-semibold text-accent hover:underline inline-flex items-center gap-1">
+              Read Case Study <span>→</span>
+            </a>
+            {{if .GitHub}}
+            <a href="{{.GitHub}}" target="_blank" rel="noopener noreferrer" class="text-xs font-mono text-secondary hover:text-primary transition-colors flex items-center gap-1">
+              <span>GitHub</span> ↗
+            </a>
+            {{end}}
+          </div>
+        </div>
+      </div>
+      {{end}}
+    </div>
+  </div>
+</section>
+
+<!-- Education & Certifications -->
+<section class="py-16 md:py-24 border-b border-border bg-canvas">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+      
+      <!-- Education Block -->
+      <div class="lg:col-span-5 space-y-6">
+        <div>
+          <span class="text-xs font-mono uppercase tracking-widest text-accent font-semibold">Academic Foundation</span>
+          <h2 class="font-display text-3xl font-bold text-primary tracking-tight mt-1">
+            Education
+          </h2>
+        </div>
+
+        {{range .Education}}
+        <div class="p-6 rounded-xl border border-accent/30 bg-card relative overflow-hidden shadow-sm">
+          {{if .IsScholarship}}
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-mono font-semibold mb-3 border border-amber-500/30">
+            ★ {{.ScholarshipDetail}}
+          </div>
+          {{end}}
+          <h3 class="font-display text-xl font-bold text-primary mb-1">
+            {{.Degree}}
+          </h3>
+          <div class="text-accent font-medium text-sm mb-1">
+            {{.Institution}}
+          </div>
+          <div class="text-xs font-mono text-secondary mb-4">
+            {{.Location}} • {{.Period}}
+          </div>
+          <ul class="space-y-2 text-xs text-secondary leading-relaxed">
+            {{range .Highlights}}
+            <li class="flex items-start gap-2">
+              <span class="text-accent">•</span>
+              <span>{{.}}</span>
+            </li>
+            {{end}}
+          </ul>
+        </div>
+        {{end}}
+      </div>
+
+      <!-- Certifications Block -->
+      <div class="lg:col-span-7 space-y-6">
+        <div>
+          <span class="text-xs font-mono uppercase tracking-widest text-accent font-semibold">Credentials</span>
+          <h2 class="font-display text-3xl font-bold text-primary tracking-tight mt-1">
+            Professional Certifications
+          </h2>
+        </div>
+
+        <div class="space-y-4">
+          {{range .Certifications}}
+          <div class="p-5 rounded-xl border border-border bg-card">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2">
+              <h3 class="font-display text-base sm:text-lg font-bold text-primary">
+                {{.Name}}
+              </h3>
+              <span class="text-xs font-mono text-secondary px-2 py-0.5 rounded bg-muted border border-border self-start sm:self-auto">
+                {{.Year}}
+              </span>
+            </div>
+            <div class="text-xs font-semibold text-accent mb-2">
+              Issuer: {{.Issuer}}
+            </div>
+            <p class="text-xs text-secondary leading-relaxed mb-3">
+              {{.Description}}
+            </p>
+            <div class="flex flex-wrap gap-1.5">
+              {{range .SkillsCovered}}
+              <span class="text-xs font-mono px-2 py-0.5 rounded bg-canvas text-secondary border border-border/70">
+                {{.}}
+              </span>
+              {{end}}
+            </div>
+          </div>
+          {{end}}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Community Leadership Block -->
+<section class="py-16 md:py-20 border-b border-border bg-card/30">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mb-10 space-y-3">
+      <span class="text-xs font-mono uppercase tracking-widest text-accent font-semibold">Civic &amp; Social Impact</span>
+      <h2 class="font-display text-3xl font-bold text-primary tracking-tight">
+        Community Leadership &amp; Advocacy
+      </h2>
+      <p class="text-secondary text-base">
+        Active engagement in youth leadership, civic participation, and sustainable development.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {{range .Community}}
+      <div class="p-6 rounded-xl border border-border bg-card">
+        <span class="text-xs font-mono text-accent font-semibold block mb-1">
+          {{.Role}}
+        </span>
+        <h3 class="font-display text-lg font-bold text-primary mb-2">
+          {{.Organization}}
+        </h3>
+        <p class="text-xs text-secondary leading-relaxed">
+          {{.Summary}}
+        </p>
+      </div>
+      {{end}}
+    </div>
+  </div>
+</section>
+
+<!-- Call to Action Section -->
+<section class="py-20 bg-accent text-white relative overflow-hidden" id="cta">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6 relative z-10">
+    <h2 class="font-display text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">
+      Let's Build, Solve and Learn Together
+    </h2>
+    <p class="text-lg sm:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed">
+      Whether you're looking for a technology mentor, technical support professional, backend developer or someone who can bridge technology and people, I'd be glad to connect.
+    </p>
+    <div class="pt-4 flex flex-wrap justify-center gap-4">
+      <a href="/projects" class="px-6 py-3.5 rounded-lg bg-white text-accent font-bold hover:bg-white/90 transition-colors shadow-sm">
+        View My Work
+      </a>
+      <a href="/contact" class="px-6 py-3.5 rounded-lg border-2 border-white text-white font-bold hover:bg-white/10 transition-colors">
+        Contact Me
+      </a>
+    </div>
+  </div>
+</section>
+{{end}}

@@ -1,0 +1,158 @@
+{{define "content"}}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 space-y-12">
+  
+  <!-- Header -->
+  <div class="space-y-4 border-b border-border pb-8">
+    <span class="text-xs font-mono uppercase tracking-widest text-accent font-semibold">Get in Touch</span>
+    <h1 class="font-display text-4xl sm:text-5xl font-bold text-primary tracking-tight">
+      Let's Connect
+    </h1>
+    <p class="text-lg sm:text-xl text-secondary max-w-3xl leading-relaxed">
+      Interested in discussing an internship, technology mentorship, IT support, backend software engineering, or technical speaking? Send a message below.
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+    
+    <!-- Contact Info Cards -->
+    <div class="lg:col-span-5 space-y-6">
+      
+      <div class="p-6 rounded-xl border border-border bg-card space-y-4">
+        <h2 class="font-display text-xl font-bold text-primary">Direct Contact</h2>
+        
+        <div class="space-y-3 text-sm">
+          <div>
+            <span class="text-xs font-mono text-secondary block">Email</span>
+            <a href="mailto:timothyododo@gmail.com" class="font-semibold text-accent hover:underline">
+              timothyododo@gmail.com
+            </a>
+          </div>
+
+          <div>
+            <span class="text-xs font-mono text-secondary block">Location</span>
+            <span class="text-primary font-medium">Nigeria (Available for Remote / Hybrid / Relocation)</span>
+          </div>
+
+          <div>
+            <span class="text-xs font-mono text-secondary block">Status</span>
+            <span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              Open to Opportunities
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-6 rounded-xl border border-border bg-card space-y-4">
+        <h2 class="font-display text-xl font-bold text-primary">Professional Profiles</h2>
+        <div class="space-y-2 text-sm">
+          <a href="https://linkedin.com/in/timothyododo" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between p-3 rounded-lg bg-canvas border border-border hover:border-accent/40 transition-colors">
+            <span class="font-medium text-primary">LinkedIn Profile</span>
+            <span class="text-accent font-mono text-xs">Connect ↗</span>
+          </a>
+          <a href="https://github.com/timothyododo" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between p-3 rounded-lg bg-canvas border border-border hover:border-accent/40 transition-colors">
+            <span class="font-medium text-primary">GitHub Profile</span>
+            <span class="text-accent font-mono text-xs">Follow ↗</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Contact Form with Server Validation, Anti-Spam & AJAX Fallback -->
+    <div class="lg:col-span-7">
+      <div class="p-6 sm:p-8 rounded-xl border border-border bg-card shadow-sm space-y-6">
+        
+        <div>
+          <h2 class="font-display text-2xl font-bold text-primary mb-1">Send a Message</h2>
+          <p class="text-xs sm:text-sm text-secondary">Fill out this form and I will respond to your email promptly.</p>
+        </div>
+
+        {{if .FlashError}}
+        <div class="p-4 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-sm">
+          {{.FlashError}}
+        </div>
+        {{end}}
+
+        <form id="contact-form" action="/contact" method="POST" class="space-y-4">
+          
+          <!-- Anti-Spam Honeypot Field (Hidden from real users) -->
+          <div class="hidden" aria-hidden="true">
+            <label for="website">Website (leave empty)</label>
+            <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="name" class="block text-xs font-mono font-semibold uppercase text-primary">Your Name <span class="text-rose-500">*</span></label>
+            <input 
+              type="text" 
+              id="name" 
+              name="name" 
+              required 
+              minlength="2"
+              placeholder="e.g., Ada Lovelace" 
+              class="w-full px-4 py-2.5 rounded-lg border border-border bg-canvas text-primary text-sm focus:outline-none focus:border-accent"
+            >
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="email" class="block text-xs font-mono font-semibold uppercase text-primary">Your Email <span class="text-rose-500">*</span></label>
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              required 
+              placeholder="e.g., ada@example.com" 
+              class="w-full px-4 py-2.5 rounded-lg border border-border bg-canvas text-primary text-sm focus:outline-none focus:border-accent"
+            >
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="subject" class="block text-xs font-mono font-semibold uppercase text-primary">Subject <span class="text-rose-500">*</span></label>
+            <input 
+              type="text" 
+              id="subject" 
+              name="subject" 
+              required 
+              minlength="3"
+              placeholder="e.g., Learn2Earn Internship Matching / Project Inquiry" 
+              class="w-full px-4 py-2.5 rounded-lg border border-border bg-canvas text-primary text-sm focus:outline-none focus:border-accent"
+            >
+          </div>
+
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label for="message" class="block text-xs font-mono font-semibold uppercase text-primary">Message <span class="text-rose-500">*</span></label>
+              <span class="text-[11px] font-mono text-secondary" id="char-counter">0 / 2000</span>
+            </div>
+            <textarea 
+              id="message" 
+              name="message" 
+              rows="5" 
+              required 
+              minlength="10"
+              maxlength="2000"
+              placeholder="How can Timothy help your organisation or team?" 
+              class="w-full px-4 py-2.5 rounded-lg border border-border bg-canvas text-primary text-sm focus:outline-none focus:border-accent resize-y"
+            ></textarea>
+          </div>
+
+          <!-- Status Message Container for AJAX response -->
+          <div id="form-status" class="hidden p-3 rounded-lg text-xs font-medium"></div>
+
+          <button 
+            type="submit" 
+            id="contact-submit-btn" 
+            class="btn-primary w-full py-3 text-sm font-semibold flex items-center justify-center gap-2"
+          >
+            <span>Send Message</span>
+          </button>
+        </form>
+
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{{end}}

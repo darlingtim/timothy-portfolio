@@ -1,0 +1,46 @@
+[
+  {
+    "id": "google-it-support",
+    "name": "Google IT Support Professional Certificate",
+    "issuer": "Google",
+    "year": "2024",
+    "description": "Comprehensive 5-course professional certificate covering end-to-end enterprise IT support, hardware architecture, operating system configuration, networking protocols, system administration, and cybersecurity defence.",
+    "skillsCovered": [
+      "Computer Networking (TCP/IP, DNS, DHCP, Subnets)",
+      "Operating Systems (Linux & Windows Administration)",
+      "System Administration & IT Infrastructure Services",
+      "IT Security (Encryption, Authentication, Defense-in-Depth)",
+      "Customer Support & Root-Cause Troubleshooting"
+    ],
+    "credentialUrl": "https://coursera.org/verify/professional-cert/google-it-support"
+  },
+  {
+    "id": "3mtt-devops",
+    "name": "DevOps Engineering Certificate",
+    "issuer": "3MTT Nigeria (Federal Ministry of Communications, Innovation & Digital Economy)",
+    "year": "2024",
+    "description": "Rigorous practical training in modern DevOps principles, cloud computing foundations, Linux system administration, containerization, and collaborative community leadership as Cohort 2 Captain.",
+    "skillsCovered": [
+      "Linux System Administration & Shell Scripting",
+      "Docker & Container Workflows",
+      "Cloud Infrastructure Fundamentals",
+      "CI/CD Pipeline Principles",
+      "Collaborative Team Leadership"
+    ],
+    "credentialUrl": ""
+  },
+  {
+    "id": "learn2earn-fellowship",
+    "name": "Software Engineering & AI-Native Development Fellowship",
+    "issuer": "Learn2Earn NG",
+    "year": "2026",
+    "description": "Selected fellow and ambassador in an intensive, outcome-oriented software engineering fellowship focusing on high-performance backend development in Go, modern software craftsmanship, and AI-accelerated workflows.",
+    "skillsCovered": [
+      "Go (Golang) Systems & Backend Engineering",
+      "Clean Architecture & Structured Concurrency",
+      "AI-Native Development & Responsible LLM Integration",
+      "Technical Problem Solving & Peer Mentorship"
+    ],
+    "credentialUrl": ""
+  }
+]

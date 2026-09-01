@@ -1,0 +1,91 @@
+{
+  "categories": [
+    {
+      "id": "programming",
+      "name": "Programming Languages",
+      "description": "Core languages utilized for backend systems, scripting, automation, and full-stack development.",
+      "skills": [
+        { "name": "Go (Golang)", "level": "Practical Experience", "highlight": "Concurrency, net/http, stdlib, REST APIs, CLI tools", "tag": "Core" },
+        { "name": "Python", "level": "Strong", "highlight": "Scripting, MicroPython, automation, AI tooling, data structures", "tag": "Core" },
+        { "name": "JavaScript (ES6+)", "level": "Strong", "highlight": "Modern async DOM, vanilla UI, Node.js, REST integration", "tag": "Core" },
+        { "name": "PHP", "level": "Working Proficiency", "highlight": "Server-side rendering, Laravel framework architecture", "tag": "Backend" },
+        { "name": "SQL", "level": "Practical Experience", "highlight": "Relational schemas, queries, joins, indexing, migrations", "tag": "Database" }
+      ]
+    },
+    {
+      "id": "backend",
+      "name": "Backend Engineering & APIs",
+      "description": "Server-side architecture, HTTP services, API design, and web frameworks.",
+      "skills": [
+        { "name": "RESTful API Design", "level": "Strong", "highlight": "HTTP methods, status codes, payload validation, middleware", "tag": "Architecture" },
+        { "name": "Node.js & Express.js", "level": "Practical Experience", "highlight": "Asynchronous event loop, middleware pipelines, JWT auth", "tag": "Backend" },
+        { "name": "Laravel", "level": "Working Proficiency", "highlight": "MVC architecture, Eloquent ORM, routing, controllers", "tag": "Framework" },
+        { "name": "Structured Logging & Observability", "level": "Practical Experience", "highlight": "Go log/slog, error handling, health endpoints, telemetry", "tag": "Systems" }
+      ]
+    },
+    {
+      "id": "frontend",
+      "name": "Frontend & UI Design",
+      "description": "Accessible, responsive, high-performance user interfaces and modern web standards.",
+      "skills": [
+        { "name": "Semantic HTML5 & Accessibility", "level": "Strong", "highlight": "WCAG 2.2 AA, screen-reader semantics, keyboard navigation", "tag": "Accessibility" },
+        { "name": "Modern CSS3 & Tailwind CSS", "level": "Strong", "highlight": "Flexbox, CSS Grid, custom properties, responsive systems, animations", "tag": "UI/UX" },
+        { "name": "Vanilla JavaScript", "level": "Strong", "highlight": "Zero-dependency DOM manipulation, events, state, fetch API", "tag": "Frontend" },
+        { "name": "React & Next.js", "level": "Working Proficiency", "highlight": "Component architecture, hooks, client/server rendering", "tag": "Framework" }
+      ]
+    },
+    {
+      "id": "databases",
+      "name": "Databases & Storage",
+      "description": "Relational and document databases for transactional and analytical workloads.",
+      "skills": [
+        { "name": "PostgreSQL", "level": "Practical Experience", "highlight": "Relational modeling, indexing, connection pooling, transactions", "tag": "Relational" },
+        { "name": "MySQL", "level": "Practical Experience", "highlight": "CRUD queries, schema normalization, foreign key constraints", "tag": "Relational" },
+        { "name": "MongoDB", "level": "Working Proficiency", "highlight": "Document schemas, aggregation pipelines, BSON data", "tag": "NoSQL" }
+      ]
+    },
+    {
+      "id": "cloud-infrastructure",
+      "name": "Cloud, DevOps & Infrastructure",
+      "description": "Cloud hosting, containerisation, operating systems, and networking fundamentals.",
+      "skills": [
+        { "name": "Linux & CLI Administration", "level": "Strong", "highlight": "Bash, permissions, systemd, process management, SSH, logging", "tag": "Systems" },
+        { "name": "Docker & Containerisation", "level": "Practical Experience", "highlight": "Multi-stage Dockerfiles, image optimization, Docker Compose", "tag": "DevOps" },
+        { "name": "Microsoft Azure", "level": "Working Proficiency", "highlight": "App Services, VMs, Azure networking, cloud fundamentals", "tag": "Cloud" },
+        { "name": "Google Cloud Platform", "level": "Working Proficiency", "highlight": "Cloud Run, Cloud Storage, IAM, container deployment", "tag": "Cloud" },
+        { "name": "Computer Networking", "level": "Strong", "highlight": "TCP/IP, DNS, DHCP, routing, subnets, HTTP/HTTPS, firewalls", "tag": "Networking" },
+        { "name": "DevOps & CI/CD Fundamentals", "level": "Practical Experience", "highlight": "GitHub Actions, automated build pipelines, container registries", "tag": "DevOps" }
+      ]
+    },
+    {
+      "id": "it-support",
+      "name": "IT Support & Systems Administration",
+      "description": "Enterprise technical support, hardware troubleshooting, operating systems, and user assistance.",
+      "skills": [
+        { "name": "Hardware & OS Troubleshooting", "level": "Strong", "highlight": "Component diagnostics, boot sequences, Windows & Linux repair", "tag": "Support" },
+        { "name": "Technical User Support", "level": "Strong", "highlight": "Ticket triage, clear communication, remote desktop, root-cause analysis", "tag": "Support" },
+        { "name": "System Security & Administration", "level": "Practical Experience", "highlight": "User provisioning, patch management, access control, backup strategies", "tag": "Security" }
+      ]
+    },
+    {
+      "id": "developer-tools",
+      "name": "Developer Tools & AI Workflows",
+      "description": "Modern tooling for version control, productivity, and AI-accelerated engineering.",
+      "skills": [
+        { "name": "Git & GitHub", "level": "Strong", "highlight": "Branching, PRs, code reviews, rebasing, merge conflict resolution", "tag": "Tooling" },
+        { "name": "VS Code & Terminal Environments", "level": "Strong", "highlight": "Debugging configurations, extensions, remote development", "tag": "Tooling" },
+        { "name": "AI-Assisted Development", "level": "Strong", "highlight": "Prompt engineering, LLM-based refactoring, AI debugging & research", "tag": "AI-Native" }
+      ]
+    },
+    {
+      "id": "hardware",
+      "name": "Hardware & Physical Computing",
+      "description": "Embedded microcontrollers, physical computing, and STEM education.",
+      "skills": [
+        { "name": "Raspberry Pi Pico / Pico H", "level": "Practical Experience", "highlight": "RP2040 microcontroller, GPIO pinning, hardware interfaces", "tag": "Embedded" },
+        { "name": "Python Hardware Programming", "level": "Practical Experience", "highlight": "MicroPython, PWM, ADC analog sensors, I2C, SPI communication", "tag": "Embedded" },
+        { "name": "Physical Computing Pedagogy", "level": "Strong", "highlight": "Teaching hardware logic, circuit design, and troubleshooting to learners", "tag": "Education" }
+      ]
+    }
+  ]
+}

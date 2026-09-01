@@ -1,0 +1,140 @@
+{{define "content"}}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 space-y-16">
+  
+  <!-- Header -->
+  <div class="space-y-4 border-b border-border pb-8">
+    <span class="text-xs font-mono uppercase tracking-widest text-accent font-semibold">Background &amp; Philosophy</span>
+    <h1 class="font-display text-4xl sm:text-5xl font-bold text-primary tracking-tight">
+      About Timothy Ododo
+    </h1>
+    <p class="text-xl text-secondary leading-relaxed font-medium">
+      Technology Mentor, Systems Troubleshooter, and Backend Software Practitioner.
+    </p>
+  </div>
+
+  <!-- Multidisciplinary Story -->
+  <section class="space-y-6 text-secondary text-base sm:text-lg leading-relaxed">
+    <h2 class="font-display text-2xl sm:text-3xl font-bold text-primary">
+      Where Technology Meets People
+    </h2>
+    <p>
+      I operate at the intersection of technical systems, education, and community advocacy. Rather than viewing engineering as an isolated craft, I believe that building software, diagnosing computer networks, and mentoring students are complementary expressions of the same core principle: <strong>making complex technology accessible, reliable, and useful for people</strong>.
+    </p>
+    <p>
+      My journey began with deep curiosity about how computer hardware and networks function, which led me to earn the <strong>Google IT Support Professional Certificate</strong> and master core systems administration, TCP/IP networking, and operating system diagnostics. That foundational curiosity expanded into software engineering, where I specialize in <strong>Go (Golang)</strong>, building clean REST services, containerised microservices, and physical computing solutions with microcontrollers.
+    </p>
+  </section>
+
+  <!-- The Three Core Pillars -->
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+    <div class="p-6 rounded-xl border border-border bg-card space-y-3">
+      <div class="w-10 h-10 rounded-lg bg-accent/10 text-accent font-mono font-bold flex items-center justify-center text-sm">
+        01
+      </div>
+      <h3 class="font-display text-lg font-bold text-primary">Learn Rapidly</h3>
+      <p class="text-xs sm:text-sm text-secondary leading-relaxed">
+        Proven ability to adopt unfamiliar technologies under pressure — such as mastering Raspberry Pi Pico hardware architecture in three days to deliver a multi-week secondary school bootcamp.
+      </p>
+    </div>
+
+    <div class="p-6 rounded-xl border border-border bg-card space-y-3">
+      <div class="w-10 h-10 rounded-lg bg-accent/10 text-accent font-mono font-bold flex items-center justify-center text-sm">
+        02
+      </div>
+      <h3 class="font-display text-lg font-bold text-primary">Build &amp; Support</h3>
+      <p class="text-xs sm:text-sm text-secondary leading-relaxed">
+        Writing idiomatic Go backend services, automating diagnostics, troubleshooting Tier 1/2 hardware/network failures, and providing responsive support for high-stakes public digital events.
+      </p>
+    </div>
+
+    <div class="p-6 rounded-xl border border-border bg-card space-y-3">
+      <div class="w-10 h-10 rounded-lg bg-accent/10 text-accent font-mono font-bold flex items-center justify-center text-sm">
+        03
+      </div>
+      <h3 class="font-display text-lg font-bold text-primary">Teach &amp; Advocate</h3>
+      <p class="text-xs sm:text-sm text-secondary leading-relaxed">
+        Trained 200+ students in programming, led 3MTT DevOps cohort pods, and championed digital skilling and youth empowerment across civic and governmental platforms.
+      </p>
+    </div>
+  </section>
+
+  <!-- Education & Distinction -->
+  <section class="space-y-6 pt-4 border-t border-border">
+    <h2 class="font-display text-2xl sm:text-3xl font-bold text-primary">
+      Academic Foundation
+    </h2>
+    {{range .Education}}
+    <div class="p-6 sm:p-8 rounded-xl border border-accent/40 bg-card/60 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <span class="inline-block px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-mono font-semibold mb-2 border border-amber-500/30">
+            ★ {{.ScholarshipDetail}}
+          </span>
+          <h3 class="font-display text-2xl font-bold text-primary">
+            {{.Degree}}
+          </h3>
+          <div class="text-accent font-medium text-sm">
+            {{.Institution}} ({{.Location}})
+          </div>
+        </div>
+        <div class="text-xs font-mono text-secondary px-3 py-1 rounded bg-muted border border-border self-start sm:self-auto">
+          {{.Period}}
+        </div>
+      </div>
+      <ul class="space-y-2 text-sm text-secondary leading-relaxed">
+        {{range .Highlights}}
+        <li class="flex items-start gap-2">
+          <span class="text-accent font-bold">•</span>
+          <span>{{.}}</span>
+        </li>
+        {{end}}
+      </ul>
+    </div>
+    {{end}}
+  </section>
+
+  <!-- Professional Progression -->
+  <section class="space-y-6 pt-4 border-t border-border">
+    <h2 class="font-display text-2xl sm:text-3xl font-bold text-primary">
+      Professional Progression
+    </h2>
+    <div class="p-6 rounded-xl border border-border bg-card space-y-4 text-secondary text-sm sm:text-base leading-relaxed font-mono">
+      <div class="flex items-center gap-3">
+        <span class="w-6 h-6 rounded-full bg-accent/20 text-accent flex items-center justify-center text-xs font-bold">1</span>
+        <span>Technology Learner &amp; Systems Enthusiast</span>
+      </div>
+      <div class="pl-3 border-l-2 border-accent/30 ml-3 py-1">↓</div>
+      <div class="flex items-center gap-3">
+        <span class="w-6 h-6 rounded-full bg-accent/20 text-accent flex items-center justify-center text-xs font-bold">2</span>
+        <span>Technology Trainer &amp; Hardware Instructor (Buildathon Camp)</span>
+      </div>
+      <div class="pl-3 border-l-2 border-accent/30 ml-3 py-1">↓</div>
+      <div class="flex items-center gap-3">
+        <span class="w-6 h-6 rounded-full bg-accent/20 text-accent flex items-center justify-center text-xs font-bold">3</span>
+        <span>Technology Advocate &amp; Support Specialist (Solution Innovation District)</span>
+      </div>
+      <div class="pl-3 border-l-2 border-accent/30 ml-3 py-1">↓</div>
+      <div class="flex items-center gap-3">
+        <span class="w-6 h-6 rounded-full bg-accent/20 text-accent flex items-center justify-center text-xs font-bold">4</span>
+        <span>Community Leader &amp; DevOps Pod Captain (3MTT Nigeria)</span>
+      </div>
+      <div class="pl-3 border-l-2 border-accent/30 ml-3 py-1">↓</div>
+      <div class="flex items-center gap-3">
+        <span class="w-6 h-6 rounded-full bg-accent text-white flex items-center justify-center text-xs font-bold">5</span>
+        <span class="font-bold text-primary">Learn2Earn Fellow, Software Engineer &amp; AI-Enabled Practitioner</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <div class="pt-8 flex flex-wrap gap-4">
+    <a href="/experience" class="btn-primary text-sm py-3 px-6">
+      Explore My Experience Timeline →
+    </a>
+    <a href="/contact" class="btn-secondary text-sm py-3 px-6">
+      Get in Touch
+    </a>
+  </div>
+
+</div>
+{{end}}

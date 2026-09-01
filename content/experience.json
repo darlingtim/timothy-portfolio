@@ -1,0 +1,69 @@
+[
+  {
+    "id": "learn2earn",
+    "role": "Fellow & Ambassador",
+    "organization": "Learn2Earn NG",
+    "period": "February 2026 – Present",
+    "location": "Nigeria / Remote",
+    "type": "Fellowship & Leadership",
+    "isFeatured": true,
+    "summary": "Selected for the competitive Learn2Earn NG Fellowship focusing on software engineering, Go backend development, AI-native workflows, and peer technology advocacy.",
+    "highlights": [
+      "Building high-performance backend systems and microservices using Go, structured logging, and robust API architecture.",
+      "Advocating AI-assisted developer workflows and modern software engineering practices across peer cohorts.",
+      "Leading collaborative problem-solving, code reviews, and structured debugging sessions with engineering peers.",
+      "Serving as an active ambassador championing technological excellence and practical workforce readiness."
+    ],
+    "technologies": ["Go (Golang)", "REST APIs", "Docker", "Git/GitHub", "AI-Native Development", "DevOps"]
+  },
+  {
+    "id": "sid-tech-advocate",
+    "role": "Technology Advocate / Techies4Solution Ambassador",
+    "organization": "Solution Innovation District (SID) — Anambra State Government",
+    "period": "2024 – Present",
+    "location": "Anambra State, Nigeria",
+    "type": "Public Sector Innovation & Community",
+    "isFeatured": true,
+    "summary": "Represented and supported the ICT and Innovation arm of the Anambra State Government, driving regional digital transformation and providing technical event execution support.",
+    "highlights": [
+      "Supported 1,000+ participants and contestants through online registration, technical enquiries, and event-day operational assistance for Anambra Innovation Week 2024.",
+      "Facilitated ICT quiz competitions and digital empowerment sessions, stimulating technical interest across youth demographics.",
+      "Conducted technical troubleshooting for participant onboarding platforms and communication channels.",
+      "Engaged grassroots communities to promote government-backed digital skilling and innovation opportunities."
+    ],
+    "technologies": ["Technical Support", "Event Systems", "Community Coordination", "Digital Literacy", "Public Speaking"]
+  },
+  {
+    "id": "buildathon-trainer",
+    "role": "Technology Trainer — Hardware Programming & Creative Computing",
+    "organization": "Buildathon Holiday Camp",
+    "period": "August – September 2024",
+    "location": "Anambra State, Nigeria",
+    "type": "Technical Education & Hardware",
+    "isFeatured": true,
+    "summary": "Lead technical trainer for a multi-track computing boot camp supported by Raspberry Pi and MTN in collaboration with government educational initiatives.",
+    "highlights": [
+      "Trained 200+ secondary-school students in embedded systems, hardware programming, and creative computing.",
+      "Mastered Raspberry Pi Pico / Pico H microcontroller architecture and MicroPython hardware programming within 3 days prior to camp launch to deliver the Senior Secondary curriculum.",
+      "Instructed Junior Secondary track in Scratch computational thinking, event-driven animation, and logic constructs.",
+      "Guided students from zero hardware experience to building working sensor-actuator projects and automated prototypes."
+    ],
+    "technologies": ["Raspberry Pi Pico / Pico H", "Python / MicroPython", "Scratch", "Physical Computing", "STEM Pedagogy"]
+  },
+  {
+    "id": "3mtt-captain",
+    "role": "Anambra Cohort 2 Captain",
+    "organization": "3MTT Nigeria (3 Million Technical Talent Initiative)",
+    "period": "2024",
+    "location": "Anambra State, Nigeria",
+    "type": "Community Leadership & DevOps",
+    "isFeatured": true,
+    "summary": "Served as Cohort Captain coordinating learning pods, peer accountability, and hands-on DevOps and cloud engineering exercises under the Federal Ministry of Communications, Innovation & Digital Economy.",
+    "highlights": [
+      "Coordinated learning activities and collaborative study groups for fellow DevOps and Cloud engineering fellows.",
+      "Facilitated peer troubleshooting on Linux administration, containerisation concepts, and CI/CD pipelines.",
+      "Acted as primary liaison between programme coordinators and cohort members, ensuring high retention and task completion rates."
+    ],
+    "technologies": ["Linux", "Cloud Fundamentals", "Docker", "DevOps Concepts", "Peer Mentoring", "Community Leadership"]
+  }
+]

@@ -1,0 +1,197 @@
+[
+  {
+    "slug": "go-portfolio-service",
+    "name": "Timothy Ododo Professional Portfolio & API Service",
+    "tagline": "Production-ready Go net/http web service and portfolio with zero-dependency architecture",
+    "shortDescription": "Engineered a high-performance Go web application and REST API adhering to idiomatic standards, sub-millisecond response times, and production deployment on Render.",
+    "category": "Go",
+    "categories": ["Go", "Backend", "Web"],
+    "isFeatured": true,
+    "year": "2026",
+    "technologies": ["Go", "net/http", "html/template", "Docker", "Render", "Vanilla JS", "CSS3"],
+    "github": "https://github.com/timothyododo/portfolio-service",
+    "liveUrl": "https://timothyododo.onrender.com",
+    "overview": "A robust, lightweight, and clean personal website and API engine designed to demonstrate idiomatic Go engineering principles, structured logging, secure header middlewares, and zero-framework frontend rendering for maximum speed and accessibility.",
+    "problem": "Many developer portfolios rely on heavy client-side JavaScript frameworks (React/Next.js) resulting in slow initial load times on restricted mobile networks, excessive hydration overhead, and opaque backend mechanics that fail to showcase actual systems programming skill.",
+    "solution": "Built a clean Go web service using only the Go Standard Library (net/http, html/template, embed, log/slog, encoding/json). All static assets and structured JSON models are compiled and served with sub-5ms latency, complete with secure headers, health monitoring endpoints, and responsive vanilla web views.",
+    "keyFeatures": [
+      "Zero external runtime framework dependencies — 100% Go Standard Library.",
+      "Embedded file systems and dynamic template caching with live environment hot-reloads.",
+      "Comprehensive /health monitoring endpoint and sanitized JSON contact validation endpoint.",
+      "Accessible WCAG 2.2 AA compliant UI with persistent light/dark/system theming.",
+      "Fully containerised with multi-stage Docker build producing a sub-20MB production image."
+    ],
+    "architecture": "Layered architecture featuring decoupled handlers, models, and service abstractions. The entry point (cmd/web/main.go) initialises structured slog logging, sets read/write timeouts, attaches HTTP middleware (compression, security headers, rate limiting, request logging), and registers clean REST routes.",
+    "stack": {
+      "Backend": "Go 1.22+, net/http, log/slog, html/template",
+      "Frontend": "Semantic HTML5, Modular CSS3, Vanilla ES6+ JavaScript",
+      "Infrastructure": "Docker (Alpine multi-stage), Render Web Service, GitHub Actions CI"
+    },
+    "challenges": "Handling custom dynamic routes such as /projects/{slug} using Go's standard ServeMux while ensuring strict path validation, proper 404/500 graceful degradation, and cross-platform template resolution across local dev and containerised environments.",
+    "solutionApproach": "Leveraged Go 1.22 enhanced routing patterns (GET /projects/{slug}) alongside dedicated content service lookup functions that cache JSON data in memory on startup with thread-safe reads.",
+    "learnings": "Gained deep appreciation for Go's stdlib performance, memory footprint efficiency, and the ergonomics of log/slog for structured observability without third-party loggers.",
+    "futureImprovements": "Add webhook notifications for contact messages and automated sitemap generation upon content updates."
+  },
+  {
+    "slug": "pico-creative-lab",
+    "name": "Raspberry Pi Pico Physical Computing Lab",
+    "tagline": "MicroPython hardware lab & sensor integration curriculum for 200+ students",
+    "shortDescription": "Designed and deployed embedded hardware demonstrations, sensor drivers, and interactive physical computing exercises for secondary school students at Buildathon Holiday Camp.",
+    "category": "Education",
+    "categories": ["Education", "Python", "Hardware", "Tools"],
+    "isFeatured": true,
+    "year": "2024",
+    "technologies": ["Python", "MicroPython", "Raspberry Pi Pico", "Pico H", "GPIO", "Sensors"],
+    "github": "https://github.com/timothyododo/pico-creative-lab",
+    "liveUrl": "",
+    "overview": "Curriculum codebases, hardware diagrams, and interactive MicroPython modules developed for training over 200 secondary school students in embedded electronics and physical computing.",
+    "problem": "Introducing hardware programming to beginners often hits barriers due to complex C/C++ toolchains, fragile wiring setups, and abstract documentation that discourages young learners.",
+    "solution": "Developed modular, self-contained MicroPython scripts covering GPIO input/output, PWM LED dimming, ultrasonic distance sensing, and buzzer melodies with clear visual wiring schematics and guided debugging checklists.",
+    "keyFeatures": [
+      "Plug-and-play MicroPython modules with instant visual and auditory feedback.",
+      "Clear step-by-step breadboard wiring guides tested for classroom environments.",
+      "Defensive coding practices in MicroPython to prevent hardware hangs and short circuits.",
+      "Classroom-tested debugging routines enabling students to diagnose their own wiring errors."
+    ],
+    "architecture": "Structured educational scripts with clear separation of hardware initialization (pin mapping), sensor polling loops, and event-driven reactions.",
+    "stack": {
+      "Hardware": "Raspberry Pi Pico / Pico H (RP2040 microcontroller)",
+      "Language": "MicroPython, Python 3",
+      "Tooling": "Thonny IDE, Linux Serial Terminal"
+    },
+    "challenges": "Mastering the Pico microcontroller ecosystem, GPIO electrical characteristics, and MicroPython libraries from scratch within 3 days prior to camp deployment, then adapting the content for high schoolers.",
+    "solutionApproach": "Created an intensive 72-hour prototyping schedule: built test circuits for every lab module, documented common learner failure points, and developed visual analogies for voltage, resistance, and digital vs. analog signals.",
+    "learnings": "Proved that rapid technical adaptability combined with strong communication skills enables immediate impact in demanding technical education environments.",
+    "futureImprovements": "Publish open-source interactive web simulators for breadboard circuit planning."
+  },
+  {
+    "slug": "system-diagnostics-cli",
+    "name": "SysInspect: Cross-Platform IT Diagnostics CLI",
+    "tagline": "Automated system triage & network diagnostic tool for IT support technicians",
+    "shortDescription": "Built a command-line diagnostic utility in Python and Go that automates system hardware audits, network connectivity checks, disk health analysis, and log aggregation.",
+    "category": "Tools",
+    "categories": ["Tools", "Go", "Python", "Backend"],
+    "isFeatured": true,
+    "year": "2025",
+    "technologies": ["Go", "Python", "Linux CLI", "Networking", "Bash", "System Administration"],
+    "github": "https://github.com/timothyododo/sysinspect-cli",
+    "liveUrl": "",
+    "overview": "A fast diagnostic CLI tool created to streamline Tier 1 & 2 IT support triage by executing multi-point health checks across OS processes, memory limits, DNS resolution, and hardware interfaces.",
+    "problem": "Manual workstation and server troubleshooting requires executing dozens of disparate commands (ping, netstat, df, journalctl, dmesg, ipconfig), consuming valuable support time and leading to inconsistent issue logging.",
+    "solution": "Created an automated CLI tool that executes concurrent health probes, generates structured Markdown/JSON diagnostic reports, and flags anomalies (packet loss, high disk utilization, failing DNS servers, stale services).",
+    "keyFeatures": [
+      "Concurrent network interface verification and DNS latency benchmarking.",
+      "OS kernel log scanner highlighting memory leaks, drive SMART errors, and network disconnects.",
+      "One-click diagnostic summary exportable to JSON or terminal-formatted tables.",
+      "Cross-platform support for Linux distributions (Debian/Ubuntu/CentOS) and Windows."
+    ],
+    "architecture": "CLI pipeline built with modular diagnostic probes running concurrently via worker goroutines, aggregating metrics into a centralized inspection struct.",
+    "stack": {
+      "Core": "Go & Python 3",
+      "Libraries": "Standard net, os/exec, runtime",
+      "Output": "ANSI terminal tables, JSON reports"
+    },
+    "challenges": "Ensuring deterministic execution across systems without root/administrator privileges while handling platform-specific socket and filesystem disparities.",
+    "solutionApproach": "Implemented graceful capability fallbacks: probing unprivileged sockets and /proc filesystems when superuser privileges are absent.",
+    "learnings": "Solidified practical systems administration and network diagnostic workflows learned throughout the Google IT Support Professional certificate.",
+    "futureImprovements": "Add remote agent telemetry reporting over secure gRPC or HTTPS."
+  },
+  {
+    "slug": "event-registration-support-engine",
+    "name": "SID Event Onboarding & Inquiry Assistant",
+    "tagline": "High-volume inquiry triage and participant verification engine for Anambra Innovation Week",
+    "shortDescription": "Created an automated registration validation and attendee inquiry support toolkit helping manage 1,000+ participants during Anambra Innovation Week 2024.",
+    "category": "Web Application",
+    "categories": ["Web", "Backend", "AI", "Tools"],
+    "isFeatured": true,
+    "year": "2024",
+    "technologies": ["Node.js", "Express.js", "REST APIs", "PostgreSQL", "AI Assistance", "Support Tooling"],
+    "github": "https://github.com/timothyododo/event-support-engine",
+    "liveUrl": "",
+    "overview": "A support operations toolkit built to handle high-traffic participant inquiries, verify registration credentials in real time, and triage support tickets for the Solution Innovation District.",
+    "problem": "During large government innovation events with thousands of attendees, support teams face inundation from duplicate questions, invalid credential submissions, and slow manual lookup processes.",
+    "solution": "Developed a lightweight attendee lookup service with automated email confirmation verifiers and categorized FAQ matching powered by AI-assisted classification scripts.",
+    "keyFeatures": [
+      "Sub-second participant verification by ticket ID, email, or phone number.",
+      "Automated FAQ routing system reducing repetitive inquiries by over 60%.",
+      "Audit logging for credential issuance and check-in status updates.",
+      "Responsive mobile-friendly dashboard for onsite event staff volunteers."
+    ],
+    "architecture": "Node.js REST API connected to a normalized relational database with query caching for instant lookups during peak registration surges.",
+    "stack": {
+      "Backend": "Node.js, Express.js",
+      "Database": "PostgreSQL",
+      "Frontend": "Tailwind CSS, Vanilla JS",
+      "Integration": "Event webhook listeners, AI text categoriser"
+    },
+    "challenges": "Managing concurrent read spikes during morning event check-in without degraded database connection pool performance.",
+    "solutionApproach": "Optimised database indexing on attendee identifier columns and implemented in-memory caching for frequently validated badge codes.",
+    "learnings": "Understood the critical link between user support empathy, resilient backend architecture, and high-stakes operational execution.",
+    "futureImprovements": "Incorporate offline QR code cryptographic verification for low-connectivity event halls."
+  },
+  {
+    "slug": "cloud-devops-sandbox",
+    "name": "Microservices Cloud & CI/CD Deployment Blueprint",
+    "tagline": "Dockerised multi-service environment with automated GitHub Actions & Azure deployment",
+    "shortDescription": "Engineered an end-to-end containerized microservices blueprint featuring automated CI/CD pipeline, health checks, reverse proxy routing, and cloud hosting.",
+    "category": "Cloud",
+    "categories": ["Cloud", "Backend", "Go", "Tools"],
+    "isFeatured": false,
+    "year": "2025",
+    "technologies": ["Docker", "Microsoft Azure", "Google Cloud", "GitHub Actions", "Nginx", "Go", "Linux"],
+    "github": "https://github.com/timothyododo/cloud-devops-sandbox",
+    "liveUrl": "",
+    "overview": "A hands-on reference implementation demonstrating modern DevOps workflows: containerizing Go backend APIs, orchestrating with Docker Compose, and deploying through continuous integration.",
+    "problem": "Transitioning applications from local development machines to scalable cloud instances frequently suffers from 'it works on my machine' configuration drift.",
+    "solution": "Built automated build pipelines utilizing multi-stage Docker builds, environment secret injection, linting, and zero-downtime deployment triggers.",
+    "keyFeatures": [
+      "Optimised multi-stage Dockerfiles achieving minimal final image sizes.",
+      "Automated GitHub Actions workflows with linting, unit testing, and vulnerability scanning.",
+      "Nginx reverse proxy configuration with TLS/SSL headers and rate-limiting rules.",
+      "Infrastructure setup documentation for Azure App Services and Google Cloud Run."
+    ],
+    "architecture": "Client requests flow through an Nginx reverse proxy gateway to stateless Go container instances with centralized logging and health checks.",
+    "stack": {
+      "Cloud": "Microsoft Azure, Google Cloud Platform",
+      "Containers": "Docker, Docker Compose",
+      "CI/CD": "GitHub Actions",
+      "Services": "Go REST API, Nginx"
+    },
+    "challenges": "Minimising build artifact sizes and secrets exposure in CI/CD pipeline runs.",
+    "solutionApproach": "Used Alpine Linux scratch layers for Go binaries and configured secure GitHub repository secret scoping.",
+    "learnings": "Direct application of principles gained during the 3MTT DevOps cohort and independent cloud engineering projects.",
+    "futureImprovements": "Add Terraform infrastructure-as-code manifests for automated cloud resource provisioning."
+  },
+  {
+    "slug": "ai-code-companion",
+    "name": "PromptCraft: AI-Assisted Code Refactoring & Doc Engine",
+    "tagline": "Developer utility for automated documentation generation & code explanation",
+    "shortDescription": "Built a developer tool that ingests code files, parses AST tokens, and generates structured explanations, docstrings, and test cases using AI models.",
+    "category": "AI",
+    "categories": ["AI", "Tools", "Python", "Go"],
+    "isFeatured": false,
+    "year": "2026",
+    "technologies": ["Go", "Python", "AI APIs", "AST Parsing", "CLI"],
+    "github": "https://github.com/timothyododo/promptcraft-engine",
+    "liveUrl": "",
+    "overview": "A developer productivity utility that leverages LLMs responsibly to accelerate code comprehension, documentation generation, and unit test scaffolding.",
+    "problem": "Writing comprehensive documentation and boilerplate test suites for legacy codebases is time-consuming and often neglected in fast-moving developer workflows.",
+    "solution": "Created an intelligent CLI and API pipeline that analyzes code functions, generates docstrings following language conventions, and suggests edge-case unit tests.",
+    "keyFeatures": [
+      "Context-aware prompt orchestration with strict temperature and token controls.",
+      "Multi-language support for Go, Python, JavaScript, and PHP.",
+      "Generates idiomatic unit test templates matching project structure.",
+      "Privacy-first design ensuring local file sanitization before prompt dispatch."
+    ],
+    "architecture": "Pipeline parser extracts function signatures and doc comments, formats structured prompts to LLM endpoints, and writes validated responses back to source files.",
+    "stack": {
+      "Core": "Go & Python",
+      "AI Engine": "Gemini API & LLM Tooling",
+      "Formatters": "gofmt, black, prettier"
+    },
+    "challenges": "Preventing hallucinated function signatures and ensuring generated tests strictly match actual function contracts.",
+    "solutionApproach": "Injected language AST schemas into system prompts and ran syntax validation linters on model outputs before presenting to developers.",
+    "learnings": "Mastered techniques for AI-native development: treating AI as an intelligent assistant while maintaining strict human-in-the-loop verification.",
+    "futureImprovements": "Develop a lightweight VS Code extension wrapper."
+  }
+]

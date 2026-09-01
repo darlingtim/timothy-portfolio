@@ -1,0 +1,26 @@
+# Render Blueprint Specification for Timothy Ododo Portfolio
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: timothy-portfolio
+    runtime: go
+    plan: free
+    region: oregon
+    branch: main
+    buildCommand: go build -v -o bin/web ./cmd/web
+    startCommand: ./bin/web
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: APP_ENV
+        value: production
+      - key: CONTACT_EMAIL
+        value: timothyododo@gmail.com
+      - key: CONTENT_DIR
+        value: content
+      - key: TEMPLATES_DIR
+        value: templates
+      - key: STATIC_DIR
+        value: static

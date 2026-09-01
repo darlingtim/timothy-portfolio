@@ -1,0 +1,154 @@
+{{define "content"}}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 space-y-12">
+  
+  <!-- Header -->
+  <div class="space-y-4 border-b border-border pb-8">
+    <span class="text-xs font-mono uppercase tracking-widest text-accent font-semibold">Engineering Portfolio</span>
+    <h1 class="font-display text-4xl sm:text-5xl font-bold text-primary tracking-tight">
+      Projects &amp; Case Studies
+    </h1>
+    <p class="text-lg sm:text-xl text-secondary max-w-3xl leading-relaxed">
+      A collection of backend systems, diagnostic CLI tools, educational hardware labs, and full-stack applications built to solve concrete technical problems.
+    </p>
+  </div>
+
+  <!-- Interactive Controls: Category Filter Buttons & Live Search -->
+  <div class="space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      
+      <!-- Filter Buttons -->
+      <div class="flex flex-wrap gap-2" id="project-filter-buttons" role="tablist" aria-label="Filter projects by category">
+        <button class="filter-btn filter-btn-active" data-filter="all" role="tab" aria-selected="true">
+          All Projects
+        </button>
+        <button class="filter-btn" data-filter="go" role="tab" aria-selected="false">
+          Go
+        </button>
+        <button class="filter-btn" data-filter="backend" role="tab" aria-selected="false">
+          Backend
+        </button>
+        <button class="filter-btn" data-filter="python" role="tab" aria-selected="false">
+          Python
+        </button>
+        <button class="filter-btn" data-filter="web" role="tab" aria-selected="false">
+          Web Application
+        </button>
+        <button class="filter-btn" data-filter="ai" role="tab" aria-selected="false">
+          AI
+        </button>
+        <button class="filter-btn" data-filter="education" role="tab" aria-selected="false">
+          Education &amp; Hardware
+        </button>
+        <button class="filter-btn" data-filter="tools" role="tab" aria-selected="false">
+          Tools &amp; DevOps
+        </button>
+      </div>
+
+      <!-- Quick Search Input -->
+      <div class="relative w-full sm:w-64">
+        <input 
+          type="text" 
+          id="project-search-input" 
+          placeholder="Search projects..." 
+          class="w-full px-3.5 py-2 text-sm rounded-lg border border-border bg-card text-primary placeholder:text-muted-fg focus:outline-none focus:border-accent"
+          aria-label="Search projects by name or technology"
+        >
+      </div>
+
+    </div>
+
+    <!-- Active Filter Counter -->
+    <div class="text-xs font-mono text-secondary" id="filter-counter">
+      Showing all projects
+    </div>
+  </div>
+
+  <!-- Projects Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8" id="projects-container">
+    {{range .Projects}}
+    <article 
+      class="project-item flex flex-col justify-between p-6 rounded-xl border border-border bg-card hover:border-accent/40 hover:shadow-md transition-all"
+      data-category="{{.Category | lower}}"
+      data-categories="{{range .Categories}}{{. | lower}} {{end}}"
+      data-name="{{.Name | lower}}"
+      data-tech="{{range .Technologies}}{{. | lower}} {{end}}"
+    >
+      <div>
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <span class="text-xs font-mono px-2.5 py-0.5 rounded bg-accent/10 text-accent font-semibold">
+            {{.Category}}
+          </span>
+          <span class="text-xs font-mono text-secondary">
+            {{.Year}}
+          </span>
+        </div>
+
+        <h2 class="font-display text-xl font-bold text-primary mb-1">
+          <a href="/projects/{{.Slug}}" class="hover:text-accent transition-colors">
+            {{.Name}}
+          </a>
+        </h2>
+
+        <p class="text-xs font-mono text-accent mb-3">
+          {{.Tagline}}
+        </p>
+
+        <p class="text-xs sm:text-sm text-secondary leading-relaxed mb-4">
+          {{.ShortDescription}}
+        </p>
+
+        <!-- Problem / Solution Callout -->
+        <div class="p-3 rounded-lg bg-canvas border border-border/80 text-xs space-y-1.5 mb-5">
+          <div>
+            <span class="font-semibold text-primary">Problem:</span>
+            <span class="text-secondary line-clamp-2">{{.Problem}}</span>
+          </div>
+          <div>
+            <span class="font-semibold text-primary">Solution:</span>
+            <span class="text-secondary line-clamp-2">{{.Solution}}</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <!-- Tech Badges -->
+        <div class="flex flex-wrap gap-1 mb-5">
+          {{range .Technologies}}
+          <span class="text-xs font-mono px-2 py-0.5 rounded bg-muted text-secondary border border-border">
+            {{.}}
+          </span>
+          {{end}}
+        </div>
+
+        <!-- Links -->
+        <div class="flex items-center justify-between pt-4 border-t border-border">
+          <a href="/projects/{{.Slug}}" class="text-sm font-semibold text-accent hover:underline inline-flex items-center gap-1">
+            Read Case Study <span>→</span>
+          </a>
+          <div class="flex items-center gap-3">
+            {{if .GitHub}}
+            <a href="{{.GitHub}}" target="_blank" rel="noopener noreferrer" class="text-xs font-mono text-secondary hover:text-primary transition-colors flex items-center gap-1" title="View Source on GitHub">
+              <span>Code</span> ↗
+            </a>
+            {{end}}
+            {{if .LiveURL}}
+            <a href="{{.LiveURL}}" target="_blank" rel="noopener noreferrer" class="text-xs font-mono text-accent hover:underline flex items-center gap-1" title="Open Live Deployment">
+              <span>Demo</span> ↗
+            </a>
+            {{end}}
+          </div>
+        </div>
+      </div>
+    </article>
+    {{end}}
+  </div>
+
+  <!-- Empty State for Search -->
+  <div id="no-projects-message" class="hidden p-12 text-center border border-dashed border-border rounded-xl space-y-3">
+    <p class="font-display font-semibold text-lg text-primary">No matching projects found</p>
+    <p class="text-secondary text-sm">Try adjusting your search query or selecting a different category filter.</p>
+    <button id="reset-filter-btn" class="btn-outline text-xs py-2 px-4 mt-2">Reset Filters</button>
+  </div>
+
+</div>
+{{end}}

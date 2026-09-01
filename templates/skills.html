@@ -1,0 +1,90 @@
+{{define "content"}}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 space-y-12">
+  
+  <!-- Header -->
+  <div class="space-y-4 border-b border-border pb-8">
+    <span class="text-xs font-mono uppercase tracking-widest text-accent font-semibold">Technical Matrix</span>
+    <h1 class="font-display text-4xl sm:text-5xl font-bold text-primary tracking-tight">
+      Skills &amp; Capabilities
+    </h1>
+    <p class="text-lg sm:text-xl text-secondary max-w-3xl leading-relaxed">
+      Categorized technical proficiencies across backend engineering, cloud infrastructure, IT support, physical computing, and developer tooling.
+    </p>
+  </div>
+
+  <!-- Legend / Proficiency Note -->
+  <div class="p-4 rounded-xl border border-border bg-card/60 flex flex-wrap items-center justify-between gap-4 text-xs font-mono text-secondary">
+    <div class="flex items-center gap-2">
+      <span class="font-semibold text-primary">Proficiency Indicators:</span>
+    </div>
+    <div class="flex flex-wrap gap-4">
+      <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Strong (Deep Hands-On)</span>
+      <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-sky-500"></span> Practical Experience</span>
+      <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Working Proficiency</span>
+      <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-purple-500"></span> Developing</span>
+    </div>
+  </div>
+
+  <!-- Skill Categories Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    {{range .SkillsData.Categories}}
+    <div class="p-6 sm:p-8 rounded-xl border border-border bg-card hover:border-accent/30 transition-all space-y-6">
+      
+      <div class="space-y-1">
+        <h2 class="font-display text-2xl font-bold text-primary">
+          {{.Name}}
+        </h2>
+        <p class="text-xs sm:text-sm text-secondary">
+          {{.Description}}
+        </p>
+      </div>
+
+      <div class="space-y-3">
+        {{range .Skills}}
+        <div class="p-3.5 rounded-lg bg-canvas border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div class="space-y-0.5">
+            <div class="flex items-center gap-2">
+              <span class="font-display font-semibold text-sm text-primary">{{.Name}}</span>
+              <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-muted text-secondary border border-border">{{.Tag}}</span>
+            </div>
+            <p class="text-xs text-secondary">{{.Highlight}}</p>
+          </div>
+          <div class="self-start sm:self-auto">
+            <span class="text-xs font-mono font-medium px-2.5 py-1 rounded 
+              {{if eq .Level "Strong"}}bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20
+              {{else if eq .Level "Practical Experience"}}bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20
+              {{else if eq .Level "Working Proficiency"}}bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20
+              {{else}}bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20{{end}}">
+              {{.Level}}
+            </span>
+          </div>
+        </div>
+        {{end}}
+      </div>
+
+    </div>
+    {{end}}
+  </div>
+
+  <!-- Certifications Overview -->
+  <div class="pt-8 border-t border-border space-y-6">
+    <div class="space-y-2">
+      <span class="text-xs font-mono uppercase tracking-widest text-accent font-semibold">Verified Credentials</span>
+      <h2 class="font-display text-2xl sm:text-3xl font-bold text-primary">
+        Certifications &amp; Training
+      </h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {{range .Certifications}}
+      <div class="p-6 rounded-xl border border-border bg-card space-y-3">
+        <span class="text-xs font-mono text-accent font-semibold">{{.Year}} • {{.Issuer}}</span>
+        <h3 class="font-display text-lg font-bold text-primary">{{.Name}}</h3>
+        <p class="text-xs text-secondary leading-relaxed">{{.Description}}</p>
+      </div>
+      {{end}}
+    </div>
+  </div>
+
+</div>
+{{end}}

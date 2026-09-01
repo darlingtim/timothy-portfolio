@@ -1,0 +1,72 @@
+{
+  "name": "Timothy Ododo",
+  "title": "Technology Mentor & Advocate",
+  "subtitle": "IT Support Professional | Backend Engineer | Cloud & DevOps Practitioner | AI-enabled Technology Professional",
+  "tagline": "I build, troubleshoot and explain technology — helping people and organisations turn technical challenges into practical solutions.",
+  "location": "Nigeria / Remote",
+  "email": "timothyododo@gmail.com",
+  "github": "https://github.com/timothyododo",
+  "linkedin": "https://linkedin.com/in/timothyododo",
+  "bio": "Multidisciplinary technology professional with demonstrated ability in software development, technical mentorship, systems troubleshooting, cloud infrastructure, and community leadership. Experienced in training hundreds of students in computing and hardware programming, supporting large-scale public sector digital events, and building robust backend services with Go and modern cloud technologies.",
+  "status": "Open to Learn2Earn internship matching, Software Engineering, Developer Advocacy, IT Support, and Cloud/DevOps roles.",
+  "impactMetrics": [
+    {
+      "value": "200+",
+      "label": "Students Trained",
+      "detail": "Secondary school students trained in Python, Raspberry Pi hardware & creative computing"
+    },
+    {
+      "value": "1,000+",
+      "label": "Participants Supported",
+      "detail": "Direct technical & registration assistance for Anambra Innovation Week 2024 via SID"
+    },
+    {
+      "value": "3 Days",
+      "label": "Rapid Hardware Mastery",
+      "detail": "Learned Raspberry Pi Pico/Pico H hardware programming before deployment as lead trainer"
+    },
+    {
+      "value": "2026",
+      "label": "Learn2Earn Fellow",
+      "detail": "Software Engineering & AI-Native Technology Development Fellow & Ambassador"
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "mentorship",
+      "title": "Technology Mentorship",
+      "icon": "graduation-cap",
+      "description": "Teaching programming, computational thinking, and hardware concepts to learners of all levels with patience and clarity."
+    },
+    {
+      "id": "advocacy",
+      "title": "Technology Advocacy",
+      "icon": "megaphone",
+      "description": "Engaging developer communities, driving digital literacy, and helping organisations adopt modern technical tools and practices."
+    },
+    {
+      "id": "it-support",
+      "title": "IT Support & Systems",
+      "icon": "life-buoy",
+      "description": "Diagnosing and resolving hardware, software, operating system (Linux/Windows), and networking issues with structured troubleshooting."
+    },
+    {
+      "id": "backend",
+      "title": "Backend Engineering",
+      "icon": "server",
+      "description": "Designing clean, scalable RESTful APIs and server applications using Go (Golang), Python, Node.js, and SQL databases."
+    },
+    {
+      "id": "cloud-devops",
+      "title": "Cloud & DevOps",
+      "icon": "cloud",
+      "description": "Deploying and managing workloads on Microsoft Azure and Google Cloud, containerising with Docker, and applying CI/CD principles."
+    },
+    {
+      "id": "ai-development",
+      "title": "AI-Assisted Development",
+      "icon": "cpu",
+      "description": "Leveraging generative AI and LLM tools responsibly for rapid research, code generation, debugging, and productivity enhancements."
+    }
+  ]
+}
