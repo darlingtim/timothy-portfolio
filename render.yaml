@@ -4,12 +4,11 @@
 services:
   - type: web
     name: timothy-portfolio
-    runtime: go
+    runtime: docker
     plan: free
     region: oregon
     branch: main
-    buildCommand: go build -v -o bin/web ./cmd/web
-    startCommand: ./bin/web
+    dockerfilePath: ./Dockerfile
     healthCheckPath: /health
     envVars:
       - key: PORT
@@ -20,7 +19,3 @@ services:
         value: timothyododo@gmail.com
       - key: CONTENT_DIR
         value: content
-      - key: TEMPLATES_DIR
-        value: templates
-      - key: STATIC_DIR
-        value: static

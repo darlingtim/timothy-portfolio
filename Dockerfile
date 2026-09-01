@@ -1,54 +1,52 @@
 # =========================================================================
-# Multi-Stage Dockerfile for Timothy Ododo Go Portfolio Service
+# Multi-Stage Dockerfile for Timothy Ododo Portfolio
+# The app serves the modern React UI via a Go binary, with the legacy template site removed.
 # =========================================================================
 
-# Stage 1: Build binary
-FROM golang:1.22-alpine AS builder
-
+# Stage 1: Build the React frontend
+FROM node:22-alpine AS frontend-builder
 WORKDIR /app
 
-# Install ca-certificates and build tools
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+RUN npm run build
+
+# Stage 2: Build the Go backend binary
+FROM golang:1.22-alpine AS go-builder
+WORKDIR /app
+
 RUN apk add --no-cache git ca-certificates tzdata
 
-# Copy Go module manifests
 COPY go.mod go.sum* ./
 RUN go mod download
 
-# Copy application source
 COPY . .
+COPY --from=frontend-builder /app/dist ./dist
 
-# Build statically linked binary without debug symbols for minimal size
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -ldflags="-w -s" \
     -o /app/bin/web ./cmd/web
 
-# Stage 2: Minimal runtime image
+# Stage 3: Runtime image
 FROM alpine:3.19 AS runner
-
 WORKDIR /app
 
-# Install root CA certificates for outbound HTTPS
 RUN apk --no-cache add ca-certificates tzdata
-
-# Create non-root user for security compliance
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-# Copy compiled binary and necessary assets from builder
-COPY --from=builder /app/bin/web /app/web
-COPY --from=builder /app/content /app/content
-COPY --from=builder /app/templates /app/templates
-COPY --from=builder /app/static /app/static
+COPY --from=go-builder /app/bin/web /app/web
+COPY --from=go-builder /app/content /app/content
+COPY --from=go-builder /app/dist /app/dist
 
 RUN chown -R appuser:appgroup /app
 
 USER appuser
 
-# Configure Default Environment
 ENV PORT=8080 \
     APP_ENV=production \
-    CONTENT_DIR=/app/content \
-    TEMPLATES_DIR=/app/templates \
-    STATIC_DIR=/app/static
+    CONTENT_DIR=/app/content
 
 EXPOSE 8080
 

@@ -78,50 +78,28 @@ func main() {
 	// 6. Register Routes with ServeMux
 	mux := http.NewServeMux()
 
-	// Prefer the React build for the active app. The legacy Go/template site is intentionally removed.
+	// The legacy Go template site has been removed. The React app is the only UI served by this service.
 	distDir := filepath.Join(".", "dist")
-	if _, err := os.Stat(distDir); err == nil {
-		logger.Info("serving compiled React app from dist directory", "dist_dir", distDir)
-		mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir(filepath.Join(distDir, "assets")))))
-		mux.Handle("/images/", http.StripPrefix("/images/", http.FileServer(http.Dir(filepath.Join(distDir, "images")))))
-		mux.HandleFunc("/health", h.Health)
-		mux.HandleFunc("/api/contact", h.HandleContactSubmit)
-		mux.HandleFunc("/api/projects", h.APIProjects)
-		mux.HandleFunc("/robots.txt", h.RobotsTxt)
-		mux.HandleFunc("/sitemap.xml", h.SitemapXML)
-		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-			if r.Method != http.MethodGet && r.Method != http.MethodHead {
-				http.NotFound(w, r)
-				return
-			}
-			serveSinglePageApp(w, r, distDir)
-		})
-	} else {
-		// Fallback to the legacy template site only when the compiled SPA is not available.
-		fileServer := http.FileServer(http.Dir(staticDir))
-		mux.Handle("/static/", http.StripPrefix("/static/", fileServer))
-
-		mux.HandleFunc("/", h.Home)
-		mux.HandleFunc("/about", h.About)
-		mux.HandleFunc("/experience", h.Experience)
-		mux.HandleFunc("/projects", h.Projects)
-		mux.HandleFunc("/projects/", h.ProjectDetail)
-		mux.HandleFunc("/skills", h.Skills)
-		mux.HandleFunc("/resume", h.Resume)
-		mux.HandleFunc("/contact", func(w http.ResponseWriter, r *http.Request) {
-			if r.Method == http.MethodPost {
-				h.HandleContactSubmit(w, r)
-			} else {
-				h.Contact(w, r)
-			}
-		})
-
-		mux.HandleFunc("/api/contact", h.HandleContactSubmit)
-		mux.HandleFunc("/api/projects", h.APIProjects)
-		mux.HandleFunc("/health", h.Health)
-		mux.HandleFunc("/robots.txt", h.RobotsTxt)
-		mux.HandleFunc("/sitemap.xml", h.SitemapXML)
+	if _, err := os.Stat(distDir); err != nil {
+		logger.Error("dist directory missing; the modern React UI must be built before startup", "dist_dir", distDir)
+		os.Exit(1)
 	}
+
+	logger.Info("serving compiled React app from dist directory", "dist_dir", distDir)
+	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir(filepath.Join(distDir, "assets")))))
+	mux.Handle("/images/", http.StripPrefix("/images/", http.FileServer(http.Dir(filepath.Join(distDir, "images")))))
+	mux.HandleFunc("/health", h.Health)
+	mux.HandleFunc("/api/contact", h.HandleContactSubmit)
+	mux.HandleFunc("/api/projects", h.APIProjects)
+	mux.HandleFunc("/robots.txt", h.RobotsTxt)
+	mux.HandleFunc("/sitemap.xml", h.SitemapXML)
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet && r.Method != http.MethodHead {
+			http.NotFound(w, r)
+			return
+		}
+		serveSinglePageApp(w, r, distDir)
+	})
 
 	// 7. Attach Global Middleware Pipeline
 	handler := loggingMiddleware(logger, securityHeadersMiddleware(mux))
