@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -89,6 +90,16 @@ func main() {
 	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir(filepath.Join(distDir, "assets")))))
 	mux.Handle("/images/", http.StripPrefix("/images/", http.FileServer(http.Dir(filepath.Join(distDir, "images")))))
 	mux.HandleFunc("/health", h.Health)
+	mux.HandleFunc("/api/data", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handlePortfolioDataGet(w, r, contentDir)
+		case http.MethodPost:
+			handlePortfolioDataPost(w, r, contentDir)
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
 	mux.HandleFunc("/api/contact", h.HandleContactSubmit)
 	mux.HandleFunc("/api/projects", h.APIProjects)
 	mux.HandleFunc("/robots.txt", h.RobotsTxt)
@@ -140,6 +151,78 @@ func main() {
 }
 
 // loggingMiddleware logs HTTP request execution times and metadata
+func handlePortfolioDataGet(w http.ResponseWriter, r *http.Request, contentDir string) {
+	dataPath := filepath.Join(contentDir, "portfolio_data.json")
+	data, err := os.ReadFile(dataPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(map[string]any{"success": true, "data": map[string]any{}})
+			return
+		}
+		http.Error(w, "failed to read portfolio data", http.StatusInternalServerError)
+		return
+	}
+
+	var parsed any
+	if len(data) == 0 {
+		parsed = map[string]any{}
+	} else if err := json.Unmarshal(data, &parsed); err != nil {
+		http.Error(w, "invalid portfolio data", http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(map[string]any{"success": true, "data": parsed})
+}
+
+func handlePortfolioDataPost(w http.ResponseWriter, r *http.Request, contentDir string) {
+	if r.Body == nil {
+		http.Error(w, "request body required", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	var payload map[string]any
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		http.Error(w, "invalid JSON body", http.StatusBadRequest)
+		return
+	}
+
+	dataPath := filepath.Join(contentDir, "portfolio_data.json")
+	var existing map[string]any
+	if existingBytes, err := os.ReadFile(dataPath); err == nil {
+		if len(existingBytes) > 0 {
+			if err := json.Unmarshal(existingBytes, &existing); err != nil {
+				http.Error(w, "existing portfolio data is invalid", http.StatusInternalServerError)
+				return
+			}
+		}
+	}
+	if existing == nil {
+		existing = map[string]any{}
+	}
+	for key, value := range payload {
+		existing[key] = value
+	}
+	if err := os.MkdirAll(contentDir, 0o755); err != nil {
+		http.Error(w, "failed to create content directory", http.StatusInternalServerError)
+		return
+	}
+	output, err := json.MarshalIndent(existing, "", "  ")
+	if err != nil {
+		http.Error(w, "failed to encode portfolio data", http.StatusInternalServerError)
+		return
+	}
+	if err := os.WriteFile(dataPath, output, 0o644); err != nil {
+		http.Error(w, "failed to persist portfolio data", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(map[string]any{"success": true, "message": "Portfolio data saved", "data": existing})
+}
+
 func serveSinglePageApp(w http.ResponseWriter, r *http.Request, distDir string) {
 	indexPath := filepath.Join(distDir, "index.html")
 	if _, err := os.Stat(indexPath); err != nil {
