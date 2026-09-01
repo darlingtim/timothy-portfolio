@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   FolderGit2, 
   CheckCircle2, 
@@ -7,16 +7,18 @@ import {
   ExternalLink, 
   Copy, 
   Check, 
-  Terminal, 
   Play, 
   ShieldCheck, 
-  ArrowUpRight, 
   GitCommit, 
   FileCode, 
-  Zap,
-  Server
+  KeyRound,
+  Sparkles
 } from 'lucide-react';
-import { getStored, saveStored } from '../../data';
+import { 
+  testGitHubRepoConnection, 
+  commitFileToGitHub, 
+  GitHubRepoInfo 
+} from '../../utils/githubSync';
 
 interface GitDeployManagerProps {
   portfolioData: any;
@@ -37,7 +39,7 @@ export const GitDeployManager: React.FC<GitDeployManagerProps> = ({
   const [connectionStatus, setConnectionStatus] = useState<{
     success: boolean;
     message: string;
-    details?: any;
+    details?: GitHubRepoInfo;
   } | null>(null);
 
   const [committing, setCommitting] = useState(false);
@@ -74,7 +76,7 @@ export const GitDeployManager: React.FC<GitDeployManagerProps> = ({
     showToast('Git deployment configuration saved.');
   };
 
-  // Test GitHub Connection
+  // Test GitHub Connection (Direct to GitHub REST API)
   const handleTestConnection = async () => {
     if (!owner.trim() || !repo.trim()) {
       setConnectionStatus({
@@ -87,86 +89,78 @@ export const GitDeployManager: React.FC<GitDeployManagerProps> = ({
     setTestingConnection(true);
     setConnectionStatus(null);
 
-    try {
-      const res = await fetch('/api/git/test-connection', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          owner: owner.trim(),
-          repo: repo.trim(),
-          token: token.trim(),
-          branch: branch.trim(),
-        }),
+    const result = await testGitHubRepoConnection(owner, repo, token);
+    if (result.success && result.repository) {
+      setConnectionStatus({
+        success: true,
+        message: `Successfully connected to ${result.repository.fullName}!`,
+        details: result.repository,
       });
-
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setConnectionStatus({
-          success: true,
-          message: `Connected to ${data.repository?.fullName || `${owner}/${repo}`} successfully!`,
-          details: data.repository,
-        });
-        showToast('✓ GitHub repository connection verified.');
-      } else {
-        setConnectionStatus({
-          success: false,
-          message: data.error || 'Failed to connect to GitHub repository.',
-        });
-      }
-    } catch (err: any) {
+      showToast('✓ GitHub repository connection verified.');
+    } else {
       setConnectionStatus({
         success: false,
-        message: err.message || 'Network error connecting to GitHub API endpoint.',
+        message: result.error || 'Failed to connect to GitHub repository.',
       });
-    } finally {
-      setTestingConnection(false);
     }
+    setTestingConnection(false);
   };
 
   // Trigger Git Commit & Auto Deploy
   const handleTriggerCommit = async () => {
-    if (!owner.trim() || !repo.trim() || !token.trim()) {
+    if (!owner.trim() || !repo.trim()) {
       setConnectionStatus({
         success: false,
-        message: 'A GitHub Personal Access Token (PAT) with repo permissions is required to commit directly.',
+        message: 'GitHub repository owner and name are required.',
       });
       return;
     }
 
-    setCommitting(true);
-    try {
-      const res = await fetch('/api/git/commit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          owner: owner.trim(),
-          repo: repo.trim(),
-          branch: branch.trim(),
-          token: token.trim(),
-          data: portfolioData,
-          commitMessage: `chore(cms): update portfolio content [${new Date().toISOString()}]`,
-        }),
+    if (!token.trim()) {
+      setConnectionStatus({
+        success: false,
+        message: 'A GitHub Personal Access Token (PAT) with "repo" permissions is required to commit directly.',
       });
-
-      const data = await res.json();
-      if (res.ok && data.success) {
-        const commitInfo = {
-          sha: data.commit?.sha || 'HEAD',
-          url: data.commit?.htmlUrl || `https://github.com/${owner}/${repo}/commit/${data.commit?.sha}`,
-          message: data.commit?.message || 'Portfolio update from CMS',
-          time: new Date().toLocaleTimeString(),
-        };
-        setLastCommit(commitInfo);
-        localStorage.setItem('git_last_commit', JSON.stringify(commitInfo));
-        showToast('🚀 Changes committed to GitHub! CI/CD auto-deploy triggered.');
-      } else {
-        showToast(`Commit failed: ${data.error || 'Unknown error'}`);
-      }
-    } catch (err: any) {
-      showToast(`Commit failed: ${err.message}`);
-    } finally {
-      setCommitting(false);
+      showToast('Please provide a GitHub Personal Access Token (PAT)');
+      return;
     }
+
+    setCommitting(true);
+    const contentString = JSON.stringify(portfolioData, null, 2);
+    const commitMessage = `chore(cms): update portfolio content [${new Date().toISOString().split('T')[0]}]`;
+
+    const result = await commitFileToGitHub(
+      owner,
+      repo,
+      token,
+      'content/portfolio_data.json',
+      contentString,
+      commitMessage,
+      branch
+    );
+
+    if (result.success) {
+      const commitInfo = {
+        sha: result.sha || 'HEAD',
+        url: result.htmlUrl || `https://github.com/${owner.trim()}/${repo.trim()}/commit/${result.sha}`,
+        message: commitMessage,
+        time: new Date().toLocaleTimeString(),
+      };
+      setLastCommit(commitInfo);
+      localStorage.setItem('git_last_commit', JSON.stringify(commitInfo));
+      setConnectionStatus({
+        success: true,
+        message: `Committed successfully (${result.sha?.substring(0, 7) || 'HEAD'})! CI/CD auto-deploy triggered.`,
+      });
+      showToast('🚀 Changes committed directly to GitHub repo! CI/CD auto-deploy triggered.');
+    } else {
+      setConnectionStatus({
+        success: false,
+        message: result.error || 'Commit failed. Check your token permissions.',
+      });
+      showToast(`Commit failed: ${result.error || 'Unknown error'}`);
+    }
+    setCommitting(false);
   };
 
   // Simulate local test suite verification
