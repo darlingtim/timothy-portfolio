@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log/slog"
 	"net/http"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -36,6 +37,16 @@ func New(cfg *config.Config, contentSvc services.ContentService, templatesDir st
 		tmplCache:    make(map[string]*template.Template),
 		templatesDir: templatesDir,
 		logger:       logger,
+	}
+
+	if templatesDir == "" {
+		logger.Warn("templates directory is empty; skipping legacy template initialization")
+		return h, nil
+	}
+
+	if _, err := os.Stat(templatesDir); err != nil {
+		logger.Warn("templates directory not found; skipping legacy template initialization", "templates_dir", templatesDir, "err", err)
+		return h, nil
 	}
 
 	if err := h.loadTemplates(); err != nil {
@@ -78,9 +89,22 @@ func (h *Handler) loadTemplates() error {
 	}
 
 	layoutPath := filepath.Join(h.templatesDir, "layout.html")
+	if _, err := os.Stat(layoutPath); err != nil {
+		if os.IsNotExist(err) {
+			h.logger.Warn("legacy layout not found; skipping template cache creation", "layout_path", layoutPath)
+			return nil
+		}
+		return err
+	}
 
 	for _, page := range pages {
 		pagePath := filepath.Join(h.templatesDir, page)
+		if _, err := os.Stat(pagePath); err != nil {
+			if os.IsNotExist(err) {
+				continue
+			}
+			return err
+		}
 		tmpl, err := template.New(page).Funcs(templateFuncs()).ParseFiles(layoutPath, pagePath)
 		if err != nil {
 			return err
