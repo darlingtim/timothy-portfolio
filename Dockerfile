@@ -4,6 +4,7 @@
 # =========================================================================
 
 # Stage 1: Build the React frontend
+# Use a current supported LTS version above 20 to match modern Vite and Node compatibility.
 FROM node:22-alpine AS frontend-builder
 WORKDIR /app
 
