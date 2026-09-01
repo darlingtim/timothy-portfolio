@@ -48,8 +48,9 @@ func New(cfg *config.Config, contentSvc services.ContentService, templatesDir st
 // Template functions
 func templateFuncs() template.FuncMap {
 	return template.FuncMap{
-		"join": strings.Join,
+		"join":      strings.Join,
 		"hasPrefix": strings.HasPrefix,
+		"lower":     strings.ToLower,
 		"safeHTML": func(s string) template.HTML {
 			return template.HTML(s)
 		},
@@ -149,11 +150,11 @@ func (h *Handler) About(w http.ResponseWriter, r *http.Request) {
 	community, _ := h.contentSvc.GetCommunity()
 
 	data := &models.PageData{
-		Title:       "About Timothy Ododo — Professional Journey & Philosophy",
-		MetaDesc:    "Learn about Timothy Ododo's multidisciplinary background across technology mentorship, systems troubleshooting, backend engineering, and community leadership.",
-		Profile:     profile,
-		Education:   edu,
-		Community:   community,
+		Title:     "About Timothy Ododo — Professional Journey & Philosophy",
+		MetaDesc:  "Learn about Timothy Ododo's multidisciplinary background across technology mentorship, systems troubleshooting, backend engineering, and community leadership.",
+		Profile:   profile,
+		Education: edu,
+		Community: community,
 	}
 
 	h.render(w, r, "about.html", data)
@@ -181,11 +182,11 @@ func (h *Handler) Projects(w http.ResponseWriter, r *http.Request) {
 	categories, _ := h.contentSvc.GetProjectCategories()
 
 	data := &models.PageData{
-		Title:       "Project Portfolio & Case Studies — Timothy Ododo",
-		MetaDesc:    "Explore software, backend engineering, hardware labs, and developer tooling case studies built by Timothy Ododo.",
-		Profile:     profile,
-		Projects:    projects,
-		Categories:  categories,
+		Title:      "Project Portfolio & Case Studies — Timothy Ododo",
+		MetaDesc:   "Explore software, backend engineering, hardware labs, and developer tooling case studies built by Timothy Ododo.",
+		Profile:    profile,
+		Projects:   projects,
+		Categories: categories,
 	}
 
 	h.render(w, r, "projects.html", data)
@@ -210,10 +211,10 @@ func (h *Handler) ProjectDetail(w http.ResponseWriter, r *http.Request) {
 	profile, _ := h.contentSvc.GetProfile()
 
 	data := &models.PageData{
-		Title:       project.Name + " — Case Study | Timothy Ododo",
-		MetaDesc:    project.ShortDescription,
-		Profile:     profile,
-		Project:     project,
+		Title:    project.Name + " — Case Study | Timothy Ododo",
+		MetaDesc: project.ShortDescription,
+		Profile:  profile,
+		Project:  project,
 	}
 
 	h.render(w, r, "project.html", data)
@@ -410,11 +411,11 @@ func (h *Handler) RobotsTxt(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) SitemapXML(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/xml")
 	urls := []string{"", "about", "experience", "projects", "skills", "resume", "contact"}
-	
+
 	var sb strings.Builder
 	sb.WriteString(`<?xml version="1.0" encoding="UTF-8"?>` + "\n")
 	sb.WriteString(`<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">` + "\n")
-	
+
 	baseURL := "https://timothyododo.onrender.com"
 	for _, u := range urls {
 		loc := baseURL + "/" + u

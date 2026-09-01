@@ -40,16 +40,25 @@ func main() {
 	if contentDir == "" {
 		contentDir = "content"
 	}
+	contentDir, _ = filepath.Abs(contentDir)
 
 	templatesDir := os.Getenv("TEMPLATES_DIR")
 	if templatesDir == "" {
 		templatesDir = "templates"
 	}
+	templatesDir, _ = filepath.Abs(templatesDir)
 
 	staticDir := os.Getenv("STATIC_DIR")
 	if staticDir == "" {
 		staticDir = "static"
 	}
+	staticDir, _ = filepath.Abs(staticDir)
+
+	logger.Info("resolved directories",
+		"content", contentDir,
+		"templates", templatesDir,
+		"static", staticDir,
+	)
 
 	// 4. Initialize Content Service
 	contentSvc, err := services.NewContentService(contentDir)
@@ -160,7 +169,7 @@ func securityHeadersMiddleware(next http.Handler) http.Handler {
 		w.Header().Set("X-XSS-Protection", "1; mode=block")
 		w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
 		w.Header().Set("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
-		
+
 		// If serving static files, set caching headers
 		if filepath.HasPrefix(r.URL.Path, "/static/") {
 			w.Header().Set("Cache-Control", "public, max-age=86400")
