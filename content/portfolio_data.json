@@ -1,0 +1,1145 @@
+{
+  "profile": {
+    "name": "Timothy Ododo",
+    "title": "IT Professional • Software Developer • Tech Mentor • Innovator",
+    "subtitle": "I work at the intersection of technology, education, and impact.",
+    "tagline": "I build technology solutions, support people in using technology effectively, and mentor young people to develop the skills they need to thrive in the digital economy.",
+    "location": "Nigeria / Remote",
+    "email": "timothyododo@gmail.com",
+    "github": "https://github.com/timothyododo",
+    "linkedin": "https://linkedin.com/in/timothyododo",
+    "twitter": "https://x.com/timothyododo",
+    "bio": "Multidisciplinary technology professional and mentor with demonstrated ability in software development, technical education, IT systems management, and community leadership. Experienced in training hundreds of young people in computing and hardware programming, organizing state-level hackathons, and developing performant applications with Go, Python, and modern cloud technologies.",
+    "status": "Available for Software Engineering, Developer Mentorship, IT Systems & Innovation Projects",
+    "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80",
+    "impactMetrics": [
+      {
+        "value": "50+",
+        "label": "Learners Mentored",
+        "detail": "Young students and aspiring engineers mentored in software development, computational thinking, and hardware",
+        "icon": "users",
+        "color": "blue"
+      },
+      {
+        "value": "10+",
+        "label": "Projects Completed",
+        "detail": "Production backend services, educational platforms, diagnostic CLI tools, and web applications",
+        "icon": "code",
+        "color": "green"
+      },
+      {
+        "value": "5+",
+        "label": "Years of Experience",
+        "detail": "Demonstrated track record in IT infrastructure, programming, tech education, and community advocacy",
+        "icon": "calendar",
+        "color": "purple"
+      },
+      {
+        "value": "15+",
+        "label": "Programs & Workshops",
+        "detail": "High-impact bootcamps, Raspberry Pi workshops, government innovation events, and tech webinars",
+        "icon": "trophy",
+        "color": "amber"
+      }
+    ],
+    "capabilities": [
+      {
+        "id": "software-dev",
+        "title": "Software Development",
+        "icon": "code",
+        "description": "Building web and mobile applications using modern technologies.",
+        "color": "blue",
+        "ctaText": "View Projects",
+        "ctaLink": "/projects"
+      },
+      {
+        "id": "it-support",
+        "title": "IT Support & Infrastructure",
+        "icon": "shield",
+        "description": "Providing technical support, troubleshooting and managing IT systems.",
+        "color": "green",
+        "ctaText": "Learn More",
+        "ctaLink": "/experience"
+      },
+      {
+        "id": "mentoring",
+        "title": "Mentoring & Training",
+        "icon": "users",
+        "description": "Teaching and mentoring young people in tech and digital skills.",
+        "color": "purple",
+        "ctaText": "See Impact",
+        "ctaLink": "/mentoring"
+      },
+      {
+        "id": "innovation",
+        "title": "Innovation & Impact",
+        "icon": "sparkles",
+        "description": "Leading initiatives that drive innovation and create positive change.",
+        "color": "amber",
+        "ctaText": "Explore Initiatives",
+        "ctaLink": "/about"
+      }
+    ]
+  },
+  "projects": [
+    {
+      "slug": "a1pal-ai-study-companion",
+      "name": "A1Pal - AI Study Companion",
+      "tagline": "Intelligent adaptive learning & exam preparation assistant for students",
+      "shortDescription": "An AI-powered web platform that converts curriculum notes and textbooks into interactive quizzes, flashcards, and personalized study schedules.",
+      "category": "AI & Web",
+      "categories": [
+        "AI",
+        "Full Stack",
+        "TypeScript",
+        "Python"
+      ],
+      "isFeatured": true,
+      "year": "2026",
+      "technologies": [
+        "React",
+        "TypeScript",
+        "Python",
+        "Gemini API",
+        "TailwindCSS",
+        "PostgreSQL"
+      ],
+      "github": "https://github.com/timothyododo/a1pal-ai",
+      "liveUrl": "https://a1pal.example.com",
+      "status": "Published",
+      "dateAdded": "2026-02-15",
+      "imageUrl": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80",
+      "overview": "A1Pal was built to empower students facing resource shortages with an always-available, conversational study tutor that generates practice questions based on their exact syllabus.",
+      "problem": "Students frequently struggle to synthesize vast curricula and lack immediate feedback when practicing past exam questions independently.",
+      "solution": "Engineered an intelligent study engine with document parsing, spaced repetition flashcard generation, and step-by-step Socratic explanations.",
+      "keyFeatures": [
+        "Upload PDF/Word syllabus documents to instantly generate structured quizzes",
+        "Adaptive difficulty calibration that focuses on learner weak spots",
+        "Step-by-step Socratic hints instead of giving direct answers away",
+        "Offline-friendly mobile responsiveness for low-bandwidth environments"
+      ],
+      "architecture": "Decoupled Next.js client with Python FastAPI backend worker managing asynchronous document embeddings and LLM prompts.",
+      "stack": {
+        "Frontend": "React 19, TailwindCSS, TypeScript",
+        "Backend": "FastAPI, Python 3.11, LangChain",
+        "Database": "PostgreSQL, pgvector",
+        "Deployment": "Docker, Cloud Run"
+      },
+      "challenges": "Minimizing latency on mobile networks and maintaining high factual accuracy across STEM subjects.",
+      "solutionApproach": "Implemented prompt grounding with local retrieval and cached common curriculum embeddings in Redis.",
+      "learnings": "Deepened expertise in prompt engineering, vector retrieval, and user-centric educational UX.",
+      "futureImprovements": "Add offline voice synthesis for auditory learners."
+    },
+    {
+      "slug": "quiz-platform-organizations",
+      "name": "Quiz Platform for Organizations",
+      "tagline": "Scalable multi-tenant assessment & competition system for schools and enterprises",
+      "shortDescription": "High-concurrency live quiz and evaluation platform supporting timed contests, real-time scoreboards, and instant leaderboards.",
+      "category": "Full Stack",
+      "categories": [
+        "Go",
+        "WebSockets",
+        "Full Stack",
+        "Education"
+      ],
+      "isFeatured": true,
+      "year": "2025",
+      "technologies": [
+        "Go (Golang)",
+        "WebSockets",
+        "React",
+        "PostgreSQL",
+        "Redis"
+      ],
+      "github": "https://github.com/timothyododo/org-quiz-platform",
+      "liveUrl": "https://quizhub.example.com",
+      "status": "Published",
+      "dateAdded": "2025-11-20",
+      "imageUrl": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=800&q=80",
+      "overview": "A multi-tenant assessment engine designed for organizations to create, moderate, and broadcast live timed quizzes with sub-second answer verification.",
+      "problem": "Traditional LMS quiz tools cannot handle hundreds of simultaneous contestants with live leaderboards and dynamic stage projection.",
+      "solution": "Designed an event-driven Go backend utilizing WebSockets and Redis sorted sets to deliver millisecond-level score synchronization.",
+      "keyFeatures": [
+        "Multi-tenant hierarchy for schools, companies, and community leagues",
+        "Live buzzer mode with anti-cheat duplicate suppression",
+        "Real-time spectator scoreboard with customizable broadcast themes",
+        "Automated PDF result certification with verification QR codes"
+      ],
+      "architecture": "Hexagonal Go architecture with WebSocket hub distributing state diffs and transactional Postgres persistence.",
+      "stack": {
+        "Backend": "Go 1.23, Gorilla WebSocket, pgx pool",
+        "Cache": "Redis Cluster for live leaderboards",
+        "Frontend": "React, TailwindCSS, Lucide"
+      },
+      "challenges": "Handling network jitter and race conditions when dozens of participants submit answers within the same millisecond.",
+      "solutionApproach": "Implemented server-side NTP timestamping and atomic Redis Lua scripts.",
+      "learnings": "Mastered distributed locks, concurrency primitives in Go, and WebSocket connection lifecycle management.",
+      "futureImprovements": "Add WebRTC live video proctoring support."
+    },
+    {
+      "slug": "sentinel-cli-tool",
+      "name": "Sentinel CLI Tool",
+      "tagline": "Automated IT systems health, network triage, and diagnostic utility",
+      "shortDescription": "Cross-platform terminal utility for IT support engineers to instantly audit OS health, open ports, memory leaks, and network connectivity.",
+      "category": "CLI / DevOps",
+      "categories": [
+        "Go",
+        "DevOps",
+        "IT Support",
+        "Tools"
+      ],
+      "isFeatured": true,
+      "year": "2025",
+      "technologies": [
+        "Go",
+        "Cobra CLI",
+        "Linux",
+        "Networking",
+        "Bash"
+      ],
+      "github": "https://github.com/timothyododo/sentinel-cli",
+      "liveUrl": "",
+      "status": "Published",
+      "dateAdded": "2025-08-12",
+      "imageUrl": "https://images.unsplash.com/photo-1629654297299-c8506221ca97?auto=format&fit=crop&w=800&q=80",
+      "overview": "Sentinel is a zero-dependency CLI written in Go that runs deep diagnostics on Linux and Windows machines, generating actionable remediation reports in seconds.",
+      "problem": "IT support teams waste valuable minutes running repetitive manual terminal checks during outages and workstation maintenance.",
+      "solution": "Consolidated disk, RAM, DNS, latency, firewall, and service checks into a single binary with rich colorized terminal outputs and JSON exports.",
+      "keyFeatures": [
+        "Single static binary with zero runtime dependencies across Linux, macOS, and Windows",
+        "Network routing and DNS resolution performance benchmark with visual traceroute",
+        "Automated zombie process detector and disk space exhaustion warnings",
+        "Exportable markdown and HTML triage reports for ticketing systems"
+      ],
+      "architecture": "Modular Cobra CLI structure with independent probe collectors reporting through an output formatter interface.",
+      "stack": {
+        "Language": "Go 1.22",
+        "Libraries": "spf13/cobra, fatih/color, gopsutil",
+        "Target": "Cross-compiled AMD64 & ARM64 binaries"
+      },
+      "challenges": "Abstracting low-level OS API differences between Linux procfs and Windows WMI.",
+      "solutionApproach": "Wrote platform-specific Go build tags (`// +build linux`, `// +build windows`) to cleanly isolate system calls.",
+      "learnings": "Enhanced understanding of OS internals, memory layout, and systems diagnostics.",
+      "futureImprovements": "Integrate automatic Slack and Jira webhook reporting."
+    },
+    {
+      "slug": "pico-creative-lab",
+      "name": "Raspberry Pi Pico Physical Computing Lab",
+      "tagline": "MicroPython hardware lab & sensor integration curriculum for 200+ students",
+      "shortDescription": "Interactive physical computing and embedded systems laboratory curriculum created and taught during Buildathon Holiday Camp.",
+      "category": "Education",
+      "categories": [
+        "Education",
+        "Python",
+        "Hardware",
+        "MicroPython"
+      ],
+      "isFeatured": true,
+      "year": "2024",
+      "technologies": [
+        "Python",
+        "MicroPython",
+        "Raspberry Pi Pico",
+        "Pico H",
+        "GPIO",
+        "Sensors"
+      ],
+      "github": "https://github.com/timothyododo/pico-creative-lab",
+      "liveUrl": "",
+      "status": "Published",
+      "dateAdded": "2024-09-05",
+      "imageUrl": "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80",
+      "overview": "Curriculum codebases, hardware schematics, and interactive MicroPython modules developed to introduce secondary school students to physical computing.",
+      "problem": "Hardware programming can intimidate youth learners due to complex syntax, fragile wiring, and abstract theory.",
+      "solution": "Created hands-on laboratory exercises with instant visual feedback—such as traffic light simulations, burglar alarms with ultrasonic sensors, and musical buzzers.",
+      "keyFeatures": [
+        "Plug-and-play MicroPython modules with clear step-by-step breadboard diagrams",
+        "Defensive coding practices to avoid short circuits and classroom hardware lockouts",
+        "Graduated difficulty from simple LED blinks to multi-sensor automation",
+        "Taught to 200+ students with 100% project completion rate"
+      ],
+      "architecture": "Event-driven MicroPython loops with non-blocking timer interrupts.",
+      "stack": {
+        "Hardware": "Raspberry Pi Pico / Pico H (RP2040)",
+        "Language": "MicroPython, Python 3",
+        "Software": "Thonny IDE"
+      },
+      "challenges": "Mastering the Pico microcontroller ecosystem in 72 hours prior to leading the camp.",
+      "solutionApproach": "Built 12 working circuits in 3 days, document all common failure patterns, and created child-friendly debugging guides.",
+      "learnings": "Proved that rapid self-directed learning and strong communication create massive impact in youth education.",
+      "futureImprovements": "Publish open-source Web-based breadboard simulator."
+    },
+    {
+      "slug": "go-portfolio-service",
+      "name": "Timothy Ododo Professional Portfolio & API Service",
+      "tagline": "High-performance Go web service and portfolio with zero-dependency architecture",
+      "shortDescription": "Engineered a production-ready Go web application and REST API adhering to idiomatic standards, sub-millisecond response times, and Docker containerization.",
+      "category": "Go",
+      "categories": [
+        "Go",
+        "Backend",
+        "Web",
+        "DevOps"
+      ],
+      "isFeatured": true,
+      "year": "2026",
+      "technologies": [
+        "Go",
+        "net/http",
+        "html/template",
+        "Docker",
+        "Render",
+        "Vanilla JS"
+      ],
+      "github": "https://github.com/timothyododo/portfolio-service",
+      "liveUrl": "https://timothyododo.onrender.com",
+      "status": "Published",
+      "dateAdded": "2026-01-10",
+      "imageUrl": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80",
+      "overview": "A lightweight, robust web service and API showcasing idiomatic Go architecture, structured logging with log/slog, and secure HTTP middleware.",
+      "problem": "Modern portfolios often suffer from bloated client bundles and fragile multi-layer stacks when a clean compiled binary offers unmatched reliability and speed.",
+      "solution": "Constructed using only the Go Standard Library with embedded assets, security headers, rate limiting, and sub-5ms response latency.",
+      "keyFeatures": [
+        "Zero external runtime dependencies — pure Go Standard Library",
+        "Embedded file systems and dynamic template caching",
+        "Sanitized contact validation endpoint and health check probe",
+        "Sub-20MB production Docker image"
+      ],
+      "architecture": "Clean layered design with separated handlers, domain models, and service interfaces.",
+      "stack": {
+        "Backend": "Go 1.22+, net/http, log/slog",
+        "Container": "Docker Alpine multi-stage build",
+        "Hosting": "Render Cloud"
+      },
+      "challenges": "Implementing dynamic RESTful routes with strict path validation in Go stdlib.",
+      "solutionApproach": "Utilized Go 1.22 enhanced route pattern matching with type-safe parameter extractors.",
+      "learnings": "Reinforced mastery of Go standard library idioms and lightweight container deployments.",
+      "futureImprovements": "Add OpenTelemetry tracing integration."
+    },
+    {
+      "slug": "anambra-innovation-portal",
+      "name": "Anambra Innovation Week Participant Portal",
+      "tagline": "High-traffic registration and event coordination system for state innovation summit",
+      "shortDescription": "Web portal facilitating participant registration, technical enquiries, and schedule coordination for 1,000+ attendees at Anambra Innovation Week.",
+      "category": "Web & Systems",
+      "categories": [
+        "Web",
+        "IT Support",
+        "Public Sector",
+        "Community"
+      ],
+      "isFeatured": true,
+      "year": "2024",
+      "technologies": [
+        "JavaScript",
+        "Node.js",
+        "REST APIs",
+        "Cloud Infrastructure",
+        "Technical Support"
+      ],
+      "github": "https://github.com/timothyododo/innovation-week-portal",
+      "liveUrl": "https://innovation.anambrastate.gov.ng",
+      "status": "Published",
+      "dateAdded": "2024-11-28",
+      "imageUrl": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80",
+      "overview": "Provided frontline technical support, system troubleshooting, and participant onboarding for one of southeastern Nigeria's largest tech innovation gatherings.",
+      "problem": "Coordinating 1,000+ innovators, startups, judges, and government dignitaries required reliable, rapid technical support and participant tracking.",
+      "solution": "Built support workflows, diagnostic dashboards, and coordinated real-time troubleshooting teams to ensure zero downtime throughout the event.",
+      "keyFeatures": [
+        "Supported 1,000+ attendees with online registration and badge validation",
+        "Live support ticketing system for resolving attendee technical questions",
+        "Facilitated state-wide ICT quizzes and youth digital empowerment tracks",
+        "Coordinated with Solution Innovation District (SID) leadership for seamless execution"
+      ],
+      "architecture": "Responsive web client with cloud-hosted API backends and real-time helpdesk integration.",
+      "stack": {
+        "Frontend": "Responsive Web, JavaScript",
+        "Operations": "Cloud Helpdesk, Technical Triage",
+        "Partners": "Solution Innovation District (SID)"
+      },
+      "challenges": "Managing sudden traffic spikes on registration opening day while maintaining rapid support response times.",
+      "solutionApproach": "Optimized static asset delivery via CDN and prepared structured FAQ macros for instant attendee guidance.",
+      "learnings": "Developed deep appreciation for large-scale public sector tech operations and high-stakes event coordination.",
+      "futureImprovements": "Incorporate automated AI chatbot for instant attendee answers."
+    }
+  ],
+  "experiences": [
+    {
+      "id": "learn2earn",
+      "role": "Fellow & Ambassador",
+      "organization": "Learn2Earn NG",
+      "period": "February 2026 – Present",
+      "location": "Nigeria / Remote",
+      "type": "Fellowship & Leadership",
+      "isFeatured": true,
+      "summary": "Selected for the competitive Learn2Earn NG Fellowship focusing on software engineering, Go backend development, AI-native workflows, and peer technology advocacy.",
+      "highlights": [
+        "Building high-performance backend services using Go, structured logging, and robust RESTful API architecture.",
+        "Advocating AI-assisted developer workflows and modern software engineering practices across peer cohorts.",
+        "Leading collaborative problem-solving, code reviews, and structured debugging sessions with engineering peers.",
+        "Serving as an active ambassador championing technological excellence and practical workforce readiness."
+      ],
+      "technologies": [
+        "Go (Golang)",
+        "REST APIs",
+        "Docker",
+        "Git/GitHub",
+        "AI-Native Development",
+        "DevOps"
+      ]
+    },
+    {
+      "id": "sid-tech-advocate",
+      "role": "Technology Advocate / Techies4Solution Ambassador",
+      "organization": "Solution Innovation District (SID) — Anambra State Government",
+      "period": "2024 – Present",
+      "location": "Anambra State, Nigeria",
+      "type": "Public Sector Innovation & Community",
+      "isFeatured": true,
+      "summary": "Represented and supported the ICT and Innovation arm of the Anambra State Government, driving regional digital transformation and providing technical event execution support.",
+      "highlights": [
+        "Supported 1,000+ participants and contestants through online registration, technical enquiries, and event-day operational assistance for Anambra Innovation Week 2024.",
+        "Facilitated ICT quiz competitions and digital empowerment sessions, stimulating technical interest across youth demographics.",
+        "Conducted technical troubleshooting for participant onboarding platforms and communication channels.",
+        "Engaged grassroots communities to promote government-backed digital skilling and innovation opportunities."
+      ],
+      "technologies": [
+        "Technical Support",
+        "Event Systems",
+        "Community Coordination",
+        "Digital Literacy",
+        "Public Speaking"
+      ]
+    },
+    {
+      "id": "protalento-consult",
+      "role": "IT Support & Software Engineer",
+      "organization": "ProTalento IT Consult & Solutions",
+      "period": "2024 – 2025",
+      "location": "Nigeria / Hybrid",
+      "type": "IT Consulting & Development",
+      "isFeatured": true,
+      "summary": "Delivered technical support, network configuration, client workstation setup, and bespoke software features for commercial and institutional clients.",
+      "highlights": [
+        "Diagnosed and resolved complex hardware, OS, and networking issues with structured root-cause analysis.",
+        "Maintained client workstations, performed automated system backups, and hardened security configurations.",
+        "Developed web modules and automation scripts to streamline internal client operations.",
+        "Trained non-technical client staff on cybersecurity best practices and cloud collaboration tools."
+      ],
+      "technologies": [
+        "IT Support",
+        "Windows/Linux Administration",
+        "Networking",
+        "Python",
+        "JavaScript",
+        "Security"
+      ]
+    },
+    {
+      "id": "buildathon-trainer",
+      "role": "Technology Trainer — Hardware Programming & Creative Computing",
+      "organization": "Buildathon Holiday Camp",
+      "period": "August – September 2024",
+      "location": "Anambra State, Nigeria",
+      "type": "Technical Education & Hardware",
+      "isFeatured": true,
+      "summary": "Lead technical trainer for a multi-track computing boot camp supported by Raspberry Pi and MTN in collaboration with government educational initiatives.",
+      "highlights": [
+        "Trained 200+ secondary-school students in embedded systems, hardware programming, and creative computing.",
+        "Mastered Raspberry Pi Pico / Pico H microcontroller architecture and MicroPython hardware programming within 3 days prior to camp launch to deliver the Senior Secondary curriculum.",
+        "Instructed Junior Secondary track in Scratch computational thinking, event-driven animation, and logic constructs.",
+        "Guided students from zero hardware experience to building working sensor-actuator projects and automated prototypes."
+      ],
+      "technologies": [
+        "Raspberry Pi Pico / Pico H",
+        "Python / MicroPython",
+        "Scratch",
+        "Physical Computing",
+        "STEM Pedagogy"
+      ]
+    },
+    {
+      "id": "3mtt-captain",
+      "role": "Anambra Cohort 2 Captain",
+      "organization": "3MTT Nigeria (3 Million Technical Talent Initiative)",
+      "period": "2024",
+      "location": "Anambra State, Nigeria",
+      "type": "Community Leadership & DevOps",
+      "isFeatured": true,
+      "summary": "Served as state cohort leader coordinating hundreds of fellows undergoing technical skilling across software development, cloud, and cybersecurity tracks.",
+      "highlights": [
+        "Organized peer study circles, practical lab sessions, and hackathon preparation groups across Anambra State.",
+        "Acted as the official liaison between federal initiative management, local learning hubs, and fellows.",
+        "Provided peer mentoring in command-line tools, Git collaboration, and fundamental cloud concepts.",
+        "Promoted collaborative knowledge-sharing that elevated cohort completion rates."
+      ],
+      "technologies": [
+        "Community Leadership",
+        "Git/GitHub",
+        "Linux CLI",
+        "Cloud Fundamentals",
+        "Peer Mentorship"
+      ]
+    }
+  ],
+  "skills": {
+    "categories": [
+      {
+        "id": "programming",
+        "name": "Programming & Backend",
+        "description": "Core languages and frameworks for systems programming, APIs, and business logic.",
+        "skills": [
+          {
+            "name": "Go (Golang)",
+            "level": "Strong",
+            "highlight": "Concurrency, net/http, REST APIs, CLI tools, log/slog",
+            "tag": "Backend",
+            "proficiency": 90
+          },
+          {
+            "name": "Python",
+            "level": "Strong",
+            "highlight": "MicroPython, scripts, FastAPI, data handling, automation",
+            "tag": "Backend & Hardware",
+            "proficiency": 88
+          },
+          {
+            "name": "JavaScript / TypeScript",
+            "level": "Practical Experience",
+            "highlight": "Modern ES6+, React, Node.js, asynchronous flows",
+            "tag": "Full Stack",
+            "proficiency": 82
+          },
+          {
+            "name": "SQL & Relational DBs",
+            "level": "Practical Experience",
+            "highlight": "PostgreSQL, SQLite, schema design, queries, indexing",
+            "tag": "Database",
+            "proficiency": 80
+          }
+        ]
+      },
+      {
+        "id": "it-systems",
+        "name": "IT Support & Systems Administration",
+        "description": "Enterprise operating systems, network infrastructure, hardware diagnostics, and security.",
+        "skills": [
+          {
+            "name": "Hardware & Diagnostic Troubleshooting",
+            "level": "Strong",
+            "highlight": "Structured root-cause diagnosis, component replacement, triage",
+            "tag": "Hardware",
+            "proficiency": 95
+          },
+          {
+            "name": "Linux Administration",
+            "level": "Strong",
+            "highlight": "Ubuntu, Debian, systemd, bash scripting, permissions, SSH",
+            "tag": "OS",
+            "proficiency": 88
+          },
+          {
+            "name": "Windows Administration",
+            "level": "Strong",
+            "highlight": "Windows 10/11, Server basics, PowerShell, Registry, Event Viewer",
+            "tag": "OS",
+            "proficiency": 86
+          },
+          {
+            "name": "Computer Networking",
+            "level": "Practical Experience",
+            "highlight": "TCP/IP, DNS, DHCP, subnetting, Wireshark, routing",
+            "tag": "Networking",
+            "proficiency": 84
+          }
+        ]
+      },
+      {
+        "id": "cloud-devops",
+        "name": "Cloud, DevOps & Tools",
+        "description": "Deployment pipelines, containerization, cloud hosting, and version control.",
+        "skills": [
+          {
+            "name": "Docker & Containerization",
+            "level": "Practical Experience",
+            "highlight": "Multi-stage builds, Docker Compose, container lifecycle",
+            "tag": "DevOps",
+            "proficiency": 84
+          },
+          {
+            "name": "Git & GitHub",
+            "level": "Strong",
+            "highlight": "Branching strategies, pull requests, code reviews, GitHub Actions",
+            "tag": "Tooling",
+            "proficiency": 90
+          },
+          {
+            "name": "Microsoft Azure",
+            "level": "Practical Experience",
+            "highlight": "Azure VMs, App Services, Blob Storage, Azure AD fundamentals",
+            "tag": "Cloud",
+            "proficiency": 78
+          },
+          {
+            "name": "Google Cloud / Cloud Run",
+            "level": "Working Proficiency",
+            "highlight": "Serverless container deployments, Cloud Build, IAM",
+            "tag": "Cloud",
+            "proficiency": 75
+          }
+        ]
+      },
+      {
+        "id": "pedagogy-leadership",
+        "name": "Mentoring, Training & Leadership",
+        "description": "Techniques for teaching complex technical subjects and coordinating community initiatives.",
+        "skills": [
+          {
+            "name": "Technical Training & Pedagogy",
+            "level": "Strong",
+            "highlight": "Designed curricula for 200+ students across hardware and software",
+            "tag": "Mentorship",
+            "proficiency": 96
+          },
+          {
+            "name": "Public Speaking & Advocacy",
+            "level": "Strong",
+            "highlight": "Conference presentations, panel discussions, grassroots engagement",
+            "tag": "Communication",
+            "proficiency": 92
+          },
+          {
+            "name": "Event & Hackathon Coordination",
+            "level": "Strong",
+            "highlight": "Supported 1,000+ attendee summits, logistics, quiz competitions",
+            "tag": "Leadership",
+            "proficiency": 90
+          },
+          {
+            "name": "AI-Assisted Workflows",
+            "level": "Strong",
+            "highlight": "Prompt engineering, generative developer tools, modern productivity",
+            "tag": "AI",
+            "proficiency": 92
+          }
+        ]
+      }
+    ]
+  },
+  "certifications": [
+    {
+      "id": "google-it-support",
+      "name": "Google IT Support Professional Certificate",
+      "issuer": "Google",
+      "year": "2024",
+      "track": "Technical",
+      "description": "Comprehensive 5-course professional program covering hardware, networking, operating systems, system administration, and IT security.",
+      "skillsCovered": [
+        "Hardware Troubleshooting",
+        "Linux/Windows Administration",
+        "Networking & TCP/IP",
+        "Security Best Practices",
+        "Customer Service"
+      ],
+      "credentialUrl": "https://coursera.org/verify/professional-cert/google-it-support"
+    },
+    {
+      "id": "rpi-educator",
+      "name": "Raspberry Pi Certified Physical Computing Educator",
+      "issuer": "Raspberry Pi Foundation",
+      "year": "2024",
+      "track": "Technical",
+      "description": "Specialized certification demonstrating competence in microcontrollers, sensor integration, and computational thinking pedagogy.",
+      "skillsCovered": [
+        "Raspberry Pi Pico",
+        "MicroPython",
+        "GPIO Electronics",
+        "STEM Curriculum Design"
+      ],
+      "credentialUrl": "https://raspberrypi.org"
+    },
+    {
+      "id": "azure-fundamentals",
+      "name": "Microsoft Azure Fundamentals (AZ-900 Prep)",
+      "issuer": "Microsoft Learn",
+      "year": "2025",
+      "track": "Technical",
+      "description": "Cloud concepts, Azure architecture and services, management, security, and governance principles.",
+      "skillsCovered": [
+        "Cloud Computing",
+        "Virtual Machines",
+        "Azure Storage",
+        "Identity & Access"
+      ],
+      "credentialUrl": "https://learn.microsoft.com"
+    },
+    {
+      "id": "sdg-fellowship",
+      "name": "UN SDGs Leadership & Community Champion",
+      "issuer": "Nigeria Youth SDGs Network",
+      "year": "2024",
+      "track": "Non-Technical",
+      "description": "Accredited leadership program on Sustainable Development Goals implementation, youth advocacy, and social impact metrics.",
+      "skillsCovered": [
+        "SDG Advocacy",
+        "Project Management",
+        "Youth Mobilization",
+        "Community Leadership"
+      ],
+      "credentialUrl": "https://youthsdgs.org"
+    },
+    {
+      "id": "peace-fellow",
+      "name": "Global Peace Ambassador Certificate",
+      "issuer": "Global Peace Foundation",
+      "year": "2024",
+      "track": "Non-Technical",
+      "description": "International peace leadership certificate verifying participation in dialogue moderation, conflict resolution, and youth capacity building.",
+      "skillsCovered": [
+        "Peacebuilding",
+        "Cross-Cultural Communication",
+        "Youth Empowerment",
+        "Ethics"
+      ],
+      "credentialUrl": "https://globalpeace.org"
+    }
+  ],
+  "education": [
+    {
+      "degree": "Bachelor of Science / Technology",
+      "institution": "Federal University / Polytechnic",
+      "location": "Nigeria",
+      "period": "2019 – 2023",
+      "isScholarship": true,
+      "scholarshipDetail": "Academic Merit Recognition",
+      "highlights": [
+        "Focused on computing, systems analysis, algorithm design, and applied technology.",
+        "Active leader in university technology associations and student mentorship clubs."
+      ]
+    }
+  ],
+  "events": [
+    {
+      "id": "event-1",
+      "title": "Anambra Innovation Week 2024",
+      "role": "Lead Technology Advocate & Technical Operations Coordinator",
+      "organization": "Solution Innovation District (SID) — Anambra State Government",
+      "date": "November 2024",
+      "location": "Awka, Anambra State, Nigeria",
+      "track": "Technical",
+      "category": "Summit & Innovation",
+      "badge": "Government Innovation Flagship",
+      "summary": "The biggest innovation and technology gathering in South-East Nigeria organized by the Anambra State Government through the Solution Innovation District (SID).",
+      "impactMetric": "1,000+ participants and contestants supported",
+      "highlights": [
+        "Managed end-to-end online registration pipelines and automated ticketing for over 1,000 attendees and competitors",
+        "Provided continuous technical support, participant troubleshooting, and live venue guidance throughout event days",
+        "Coordinated the state-wide ICT Quiz and digital innovation pitches for young technology pioneers",
+        "Interfaced directly with government officials, international ecosystem partners, and keynote speakers"
+      ],
+      "technologies": [
+        "Technical Support",
+        "Event Operations",
+        "Ticketing Systems",
+        "Community Advocacy"
+      ],
+      "imageUrl": "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80",
+      "eventUrl": "https://solutioninnovationdistrict.an.gov.ng"
+    },
+    {
+      "id": "event-2",
+      "title": "Buildathon Holiday Camp: Hardware & Creative Computing",
+      "role": "Lead Technology Trainer (Hardware Programming & Creative Coding)",
+      "organization": "Federal Ministry in collaboration with Raspberry Pi Foundation & MTN",
+      "date": "August – September 2024",
+      "location": "Anambra State, Nigeria",
+      "track": "Technical",
+      "category": "STEM & Hardware Training",
+      "badge": "STEM Education Impact",
+      "summary": "An intensive month-long national STEM initiative equipping secondary school students with hands-on embedded systems and programming skills.",
+      "impactMetric": "200+ secondary school students trained",
+      "highlights": [
+        "Mastered the required Raspberry Pi Pico / Pico H hardware ecosystem and MicroPython within 3 days prior to deployment",
+        "Trained 200+ senior secondary students in GPIO interfacing, sensors, actuators, and MicroPython firmware logic",
+        "Guided junior secondary students through computational thinking, Scratch algorithmic animations, and creative logic",
+        "Mentored student teams to design working hardware prototypes addressing clean energy, agricultural automation, and home security"
+      ],
+      "technologies": [
+        "Raspberry Pi Pico / Pico H",
+        "MicroPython",
+        "Physical Computing",
+        "Sensors & Circuitry",
+        "Scratch"
+      ],
+      "imageUrl": "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "id": "event-3",
+      "title": "3MTT Nigeria — Cohort 2 Assembly & Cloud DevOps Workshops",
+      "role": "Cohort 2 Captain & DevOps Peer Facilitator",
+      "organization": "Federal Ministry of Communications, Innovation & Digital Economy (3MTT)",
+      "date": "2024",
+      "location": "Anambra State, Nigeria",
+      "track": "Technical",
+      "category": "Developer Conference",
+      "badge": "National Tech Fellowship",
+      "summary": "Nigeria’s premier technical talent development program aimed at building 3 million technical talents across cloud computing and engineering.",
+      "impactMetric": "Coordinated 100+ cohort fellows",
+      "highlights": [
+        "Elected Cohort 2 Captain, coordinating technical meetups, peer coding labs, and study groups across Anambra State",
+        "Delivered practical sessions on Linux system administration, Docker containerization, and Git/GitHub collaboration workflows",
+        "Facilitated group capstone project reviews and cloud deployment demonstrations on Microsoft Azure and Google Cloud"
+      ],
+      "technologies": [
+        "Linux CLI",
+        "Docker",
+        "Git / GitHub",
+        "Microsoft Azure",
+        "DevOps Principles"
+      ],
+      "imageUrl": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "id": "event-4",
+      "title": "GoVote Nigeria Youth Civic Engagement & Digital Mobilization",
+      "role": "State Champion (Anambra State)",
+      "organization": "GoVote Nigeria",
+      "date": "2023 – 2024",
+      "location": "Nigeria",
+      "track": "Non-Technical",
+      "category": "Community & Advocacy",
+      "badge": "Civic Tech Advocacy",
+      "summary": "Non-partisan civic advocacy campaign leveraging digital tools and on-ground youth networks to educate citizens on democratic participation.",
+      "impactMetric": "Reached thousands of first-time voters",
+      "highlights": [
+        "Led grassroots voter sensitization campaigns across tertiary campuses and youth community hubs",
+        "Organized public workshops countering electoral misinformation and driving civic responsibility"
+      ],
+      "technologies": [
+        "Civic Leadership",
+        "Youth Mobilization",
+        "Grassroots Advocacy"
+      ],
+      "imageUrl": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "id": "event-5",
+      "title": "Global Peace Youth Summit & Dialogue Series",
+      "role": "Peace Ambassador / Youth Builder",
+      "organization": "Global Peace Foundation",
+      "date": "2023 – 2025",
+      "location": "Nigeria",
+      "track": "Non-Technical",
+      "category": "Community & Advocacy",
+      "badge": "Global Peace Ambassador",
+      "summary": "International youth leadership summit fostering intercultural collaboration, social cohesion, and ethical leadership.",
+      "impactMetric": "Facilitated state youth dialogue panels",
+      "highlights": [
+        "Represented youth leaders in state-level peacebuilding assemblies and community conflict resolution roundtables",
+        "Advocated for education and youth empowerment as key drivers for sustainable community peace"
+      ],
+      "technologies": [
+        "Peacebuilding",
+        "Youth Leadership",
+        "Cross-Cultural Dialogue"
+      ],
+      "imageUrl": "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "id": "event-6",
+      "title": "Nigeria Youth SDGs State Assembly & Action Forum",
+      "role": "Anambra Champion — Assistant",
+      "organization": "Nigeria Youth SDGs Network",
+      "date": "2023 – Present",
+      "location": "Anambra State, Nigeria",
+      "track": "Non-Technical",
+      "category": "Community & Advocacy",
+      "badge": "UN SDG Champion",
+      "summary": "State-wide action forum advancing UN Sustainable Development Goals, specifically Quality Education (SDG 4) and Decent Work (SDG 8).",
+      "impactMetric": "Organized SDG education and skills roundtables",
+      "highlights": [
+        "Assisted in planning youth empowerment workshops aligning local grassroots initiatives with SDG 4 (Education) and SDG 8 (Decent Work)",
+        "Organized community outreach programs promoting youth self-reliance and vocational empowerment"
+      ],
+      "technologies": [
+        "SDG Frameworks",
+        "Youth Empowerment",
+        "Community Organizing"
+      ],
+      "imageUrl": "https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=800&q=80"
+    }
+  ],
+  "achievements": [
+    {
+      "id": "ach-1",
+      "title": "Google IT Support Professional",
+      "issuer": "Google / Coursera",
+      "year": "2024",
+      "track": "Technical",
+      "category": "Certification",
+      "description": "Rigorous credential covering troubleshooting, customer service, networking, operating systems, systems administration, and security.",
+      "icon": "award"
+    },
+    {
+      "id": "ach-2",
+      "title": "SDG Digital Champion",
+      "issuer": "United Nations SDG Advocates",
+      "year": "2025",
+      "track": "Non-Technical",
+      "category": "Recognition",
+      "description": "Recognized for community efforts promoting Quality Education (SDG 4) and Decent Work & Economic Growth (SDG 8) through youth mentorship.",
+      "icon": "globe"
+    },
+    {
+      "id": "ach-3",
+      "title": "Best Mentor Award",
+      "issuer": "Buildathon STEM Initiative",
+      "year": "2024",
+      "track": "Technical",
+      "category": "Award",
+      "description": "Awarded top technical educator honor for exceptional pedagogical delivery and 100% student project completion in hardware programming.",
+      "icon": "trophy"
+    },
+    {
+      "id": "ach-4",
+      "title": "Learn2Earn Fellowship Ambassador",
+      "issuer": "Learn2Earn NG",
+      "year": "2026",
+      "track": "Technical",
+      "category": "Fellowship",
+      "description": "Appointed as fellowship ambassador for high technical performance in Go engineering and commitment to peer mentorship.",
+      "icon": "star"
+    },
+    {
+      "id": "ach-5",
+      "title": "3MTT Cohort 2 Captain",
+      "issuer": "Federal Ministry of Communications, Innovation & Digital Economy",
+      "year": "2024",
+      "track": "Technical",
+      "category": "Recognition",
+      "description": "Elected State Cohort Captain leading hundreds of technical fellows through federal tech training programs.",
+      "icon": "users"
+    },
+    {
+      "id": "ach-6",
+      "title": "Raspberry Pi Certified Educator",
+      "issuer": "Raspberry Pi Foundation",
+      "year": "2024",
+      "track": "Technical",
+      "category": "Certification",
+      "description": "Certified to instruct computational thinking and physical electronics on Raspberry Pi & MicroPython platforms.",
+      "icon": "cpu"
+    },
+    {
+      "id": "ach-7",
+      "title": "Anambra Innovation Week Commendation",
+      "issuer": "Solution Innovation District (SID)",
+      "year": "2024",
+      "track": "Technical",
+      "category": "Award",
+      "description": "Official commendation for operational excellence and participant technical support during Anambra Innovation Week 2024.",
+      "icon": "shield"
+    },
+    {
+      "id": "ach-8",
+      "title": "Global Peace Ambassador Recognition",
+      "issuer": "Global Peace Foundation",
+      "year": "2024",
+      "track": "Non-Technical",
+      "category": "Recognition",
+      "description": "Honored for civic youth mobilization, peace dialogue facilitation, and youth leadership across community councils.",
+      "icon": "award"
+    },
+    {
+      "id": "ach-9",
+      "title": "Academic Merit Recognition",
+      "issuer": "Federal University / Polytechnic",
+      "year": "2023",
+      "track": "Non-Technical",
+      "category": "Scholarship",
+      "description": "Scholarship honor awarded for outstanding academic excellence in computing and technology studies.",
+      "icon": "star"
+    }
+  ],
+  "galleryItems": [
+    {
+      "id": "gal-1",
+      "title": "Teaching Python Basics",
+      "category": "Training",
+      "date": "2024-08-20",
+      "imageUrl": "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80",
+      "description": "Hands-on coding session introducing young learners to Python syntax, loops, and problem solving.",
+      "location": "Awka, Anambra State",
+      "tags": [
+        "Python",
+        "Education",
+        "Coding"
+      ]
+    },
+    {
+      "id": "gal-2",
+      "title": "Community Outreach Program",
+      "category": "Community",
+      "date": "2024-11-15",
+      "imageUrl": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80",
+      "description": "Engaging grassroots youth on technology careers, digital literacy, and government skilling opportunities.",
+      "location": "Anambra State",
+      "tags": [
+        "Advocacy",
+        "Youth",
+        "Digital Skills"
+      ]
+    },
+    {
+      "id": "gal-3",
+      "title": "Certificate - Google IT Support",
+      "category": "Certificate",
+      "date": "2024-06-10",
+      "imageUrl": "https://images.unsplash.com/photo-1589330694653-ded6df03f754?auto=format&fit=crop&w=800&q=80",
+      "description": "Official Google IT Support Professional Certification credential verification.",
+      "location": "Online / Coursera",
+      "tags": [
+        "Google",
+        "Certification",
+        "IT Support"
+      ]
+    },
+    {
+      "id": "gal-4",
+      "title": "Buildathon Training Session",
+      "category": "Training",
+      "date": "2024-08-25",
+      "imageUrl": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=800&q=80",
+      "description": "Guiding high school students through their first Raspberry Pi embedded sensor circuits.",
+      "location": "Buildathon Camp, Anambra",
+      "tags": [
+        "Buildathon",
+        "Raspberry Pi",
+        "STEM"
+      ]
+    },
+    {
+      "id": "gal-5",
+      "title": "Raspberry Pi Workshop",
+      "category": "Workshop",
+      "date": "2024-09-02",
+      "imageUrl": "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&w=800&q=80",
+      "description": "Demonstrating MicroPython PWM LED dimmers and ultrasonic distance triggers on breadboards.",
+      "location": "Mbaukwu ICT Centre",
+      "tags": [
+        "MicroPython",
+        "Hardware",
+        "Pico"
+      ]
+    },
+    {
+      "id": "gal-6",
+      "title": "Innovation Week Event",
+      "category": "Community",
+      "date": "2024-11-28",
+      "imageUrl": "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80",
+      "description": "Supporting participants and managing live competition stages at Anambra Innovation Week 2024.",
+      "location": "International Convention Centre, Awka",
+      "tags": [
+        "SID",
+        "Innovation",
+        "Techies4Solution"
+      ]
+    },
+    {
+      "id": "gal-7",
+      "title": "Learn2Earn Peer Code Review",
+      "category": "Workshop",
+      "date": "2026-02-18",
+      "imageUrl": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80",
+      "description": "Collaborative Go architecture session and API debugging with fellow engineering peers.",
+      "location": "Remote / Hybrid",
+      "tags": [
+        "Go",
+        "PeerReview",
+        "Learn2Earn"
+      ]
+    },
+    {
+      "id": "gal-8",
+      "title": "Certificate - Microsoft Azure Cloud",
+      "category": "Certificate",
+      "date": "2025-03-14",
+      "imageUrl": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=800&q=80",
+      "description": "Cloud fundamentals and architecture certification on Microsoft Azure.",
+      "location": "Microsoft Learn",
+      "tags": [
+        "Cloud",
+        "Azure",
+        "DevOps"
+      ]
+    }
+  ],
+  "siteSettings": {
+    "siteTitle": "Timothy Ododo - Portfolio & Admin Portal",
+    "siteDescription": "IT Professional, Software Developer, Tech Mentor & Innovator",
+    "primaryRole": "Technology Mentor & Software Engineer",
+    "contactEmail": "timothyododo@gmail.com",
+    "githubUrl": "https://github.com/timothyododo",
+    "linkedinUrl": "https://linkedin.com/in/timothyododo",
+    "twitterUrl": "https://x.com/timothyododo",
+    "allowMessages": true,
+    "showAdminLink": true
+  },
+  "carouselConfig": {
+    "mode": "carousel",
+    "steadyPhotoId": "photo-1",
+    "intervalSeconds": 4,
+    "autoPlay": true,
+    "showIndicators": true,
+    "showArrows": true,
+    "showCaptions": true,
+    "photos": [
+      {
+        "id": "photo-1",
+        "url": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=85",
+        "caption": "Timothy Ododo — Technology Mentor & Advocate",
+        "tag": "Executive Profile",
+        "isIncludedInCarousel": true,
+        "order": 1,
+        "dateAdded": "2026-02-01"
+      },
+      {
+        "id": "photo-2",
+        "url": "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=85",
+        "caption": "Buildathon Physical Computing & Hardware Camp — 200+ Students Trained",
+        "tag": "STEM Trainer",
+        "isIncludedInCarousel": true,
+        "order": 2,
+        "dateAdded": "2026-02-05"
+      },
+      {
+        "id": "photo-3",
+        "url": "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=85",
+        "caption": "Anambra Innovation Week 2024 — Supporting 1,000+ Participants",
+        "tag": "Innovation Tech Lead",
+        "isIncludedInCarousel": true,
+        "order": 3,
+        "dateAdded": "2026-02-10"
+      },
+      {
+        "id": "photo-4",
+        "url": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=85",
+        "caption": "3MTT Cohort 2 Captain — DevOps & Cloud Peer Engineering",
+        "tag": "DevOps & Community",
+        "isIncludedInCarousel": true,
+        "order": 4,
+        "dateAdded": "2026-02-15"
+      },
+      {
+        "id": "photo-5",
+        "url": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=800&q=85",
+        "caption": "Learn2Earn Software Engineering Fellowship — High-Impact Solutions",
+        "tag": "Software Engineering",
+        "isIncludedInCarousel": true,
+        "order": 5,
+        "dateAdded": "2026-02-20"
+      }
+    ]
+  }
+}
