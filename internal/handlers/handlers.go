@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -389,16 +390,250 @@ func (h *Handler) HandleContactSubmit(w http.ResponseWriter, r *http.Request) {
 		"length", len(sub.Message),
 	)
 
+	msgRecord := h.persistContactMessage(sub)
+
 	if isJSON {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success": true,
-			"message": "Thank you for reaching out! Timothy has received your message and will respond promptly.",
+			"success":       true,
+			"message":       "Thank you for reaching out! Timothy has received your message and will respond promptly.",
+			"messageRecord": msgRecord,
 		})
 	} else {
 		http.Redirect(w, r, "/contact?sent=true", http.StatusSeeOther)
 	}
+}
+
+func (h *Handler) getContentDir() string {
+	if h.contentSvc != nil {
+		if dir := h.contentSvc.GetContentDir(); dir != "" {
+			return dir
+		}
+	}
+	if dir := os.Getenv("CONTENT_DIR"); dir != "" {
+		return dir
+	}
+	return "content"
+}
+
+func (h *Handler) persistContactMessage(sub models.ContactSubmission) map[string]any {
+	contentDir := h.getContentDir()
+	now := time.Now().UTC().Format(time.RFC3339)
+	msgID := fmt.Sprintf("msg-%d-%04d", time.Now().UnixMilli(), time.Now().Nanosecond()%10000)
+
+	msgRecord := map[string]any{
+		"id":      msgID,
+		"name":    sub.Name,
+		"email":   sub.Email,
+		"subject": sub.Subject,
+		"message": sub.Message,
+		"date":    now,
+		"isRead":  false,
+		"status":  "New",
+	}
+
+	dataPath := filepath.Join(contentDir, "portfolio_data.json")
+	var existing map[string]any
+	if data, err := os.ReadFile(dataPath); err == nil && len(data) > 0 {
+		_ = json.Unmarshal(data, &existing)
+	}
+	if existing == nil {
+		existing = map[string]any{}
+	}
+
+	messagesList, ok := existing["messages"].([]any)
+	if !ok {
+		messagesList = []any{}
+	}
+	existing["messages"] = append([]any{msgRecord}, messagesList...)
+	existing["lastUpdated"] = now
+
+	_ = os.MkdirAll(contentDir, 0o755)
+	if encoded, err := json.MarshalIndent(existing, "", "  "); err == nil {
+		_ = os.WriteFile(dataPath, encoded, 0o644)
+	}
+
+	return msgRecord
+}
+
+// ReplyRequest defines payload for POST /api/reply
+type ReplyRequest struct {
+	To                string `json:"to"`
+	ToName            string `json:"toName"`
+	Subject           string `json:"subject"`
+	Body              string `json:"body"`
+	OriginalMessageID string `json:"originalMessageId"`
+}
+
+// HandleReply processes POST /api/reply
+func (h *Handler) HandleReply(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req ReplyRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]any{"error": "Invalid request payload"})
+		return
+	}
+
+	req.To = strings.TrimSpace(req.To)
+	req.Body = strings.TrimSpace(req.Body)
+	if req.To == "" || req.Body == "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]any{"error": "Recipient email and reply body are required."})
+		return
+	}
+
+	if req.Subject == "" {
+		req.Subject = "Reply from Timothy Ododo"
+	}
+	if req.ToName == "" {
+		req.ToName = req.To
+	}
+
+	contentDir := h.getContentDir()
+	now := time.Now().UTC().Format(time.RFC3339)
+	replyID := fmt.Sprintf("reply-%d", time.Now().UnixMilli())
+
+	replyRecord := map[string]any{
+		"id":                replyID,
+		"originalMessageId": req.OriginalMessageID,
+		"to":                req.To,
+		"toName":            req.ToName,
+		"from":              "timothyododo@gmail.com",
+		"subject":           req.Subject,
+		"body":              req.Body,
+		"sentAt":            now,
+	}
+
+	replyEntryForMessage := map[string]any{
+		"id":      replyRecord["id"],
+		"date":    replyRecord["sentAt"],
+		"subject": req.Subject,
+		"body":    req.Body,
+		"sentBy":  "Timothy Ododo <timothyododo@gmail.com>",
+	}
+
+	dataPath := filepath.Join(contentDir, "portfolio_data.json")
+	var existing map[string]any
+	if data, err := os.ReadFile(dataPath); err == nil && len(data) > 0 {
+		_ = json.Unmarshal(data, &existing)
+	}
+	if existing == nil {
+		existing = map[string]any{}
+	}
+
+	if messagesList, ok := existing["messages"].([]any); ok {
+		for i, rawMsg := range messagesList {
+			if msgMap, ok := rawMsg.(map[string]any); ok {
+				if msgMap["id"] == req.OriginalMessageID {
+					msgMap["isRead"] = true
+					msgMap["status"] = "Replied"
+					replies, _ := msgMap["replies"].([]any)
+					msgMap["replies"] = append(replies, replyEntryForMessage)
+					messagesList[i] = msgMap
+					break
+				}
+			}
+		}
+		existing["messages"] = messagesList
+	}
+	existing["lastUpdated"] = now
+
+	_ = os.MkdirAll(contentDir, 0o755)
+	if encoded, err := json.MarshalIndent(existing, "", "  "); err == nil {
+		_ = os.WriteFile(dataPath, encoded, 0o644)
+	}
+
+	h.logger.Info("outgoing email reply recorded",
+		"to", req.To,
+		"subject", req.Subject,
+		"originalMessageId", req.OriginalMessageID,
+	)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]any{
+		"success": true,
+		"message": fmt.Sprintf("Reply sent successfully to %s", req.To),
+		"reply":   replyRecord,
+	})
+}
+
+// UploadPhotoRequest defines payload for POST /api/upload-photo
+type UploadPhotoRequest struct {
+	ImageData string `json:"imageData"`
+	Filename  string `json:"filename"`
+	IsAvatar  bool   `json:"isAvatar"`
+	Caption   string `json:"caption"`
+	Tag       string `json:"tag"`
+}
+
+// HandleUploadPhoto processes POST /api/upload-photo
+func (h *Handler) HandleUploadPhoto(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req UploadPhotoRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]any{"error": "Image data is required."})
+		return
+	}
+
+	if strings.TrimSpace(req.ImageData) == "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]any{"error": "Image data is required."})
+		return
+	}
+
+	if req.IsAvatar {
+		contentDir := h.getContentDir()
+		dataPath := filepath.Join(contentDir, "portfolio_data.json")
+		var existing map[string]any
+		if data, err := os.ReadFile(dataPath); err == nil && len(data) > 0 {
+			_ = json.Unmarshal(data, &existing)
+		}
+		if existing == nil {
+			existing = map[string]any{}
+		}
+		profileMap, ok := existing["profile"].(map[string]any)
+		if !ok {
+			profileMap = map[string]any{}
+		}
+		profileMap["avatarUrl"] = req.ImageData
+		existing["profile"] = profileMap
+		existing["lastUpdated"] = time.Now().UTC().Format(time.RFC3339)
+		_ = os.MkdirAll(contentDir, 0o755)
+		if encoded, err := json.MarshalIndent(existing, "", "  "); err == nil {
+			_ = os.WriteFile(dataPath, encoded, 0o644)
+		}
+	}
+
+	filename := req.Filename
+	if filename == "" {
+		filename = "photo.jpg"
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]any{
+		"success":  true,
+		"url":      req.ImageData,
+		"filename": filename,
+		"caption":  req.Caption,
+		"tag":      req.Tag,
+	})
 }
 
 // APIProjects handles GET /api/projects
@@ -413,13 +648,15 @@ func (h *Handler) APIProjects(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(projects)
 }
 
-// Health handles GET /health
+// Health handles GET /health and GET /api/health
 func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {
+	now := time.Now().UTC().Format(time.RFC3339)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status":    "ok",
-		"timestamp": time.Now().UTC().Format(time.RFC3339),
+		"time":      now,
+		"timestamp": now,
 		"service":   "timothy-portfolio",
 		"version":   "1.0.0",
 	})

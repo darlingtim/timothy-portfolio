@@ -197,3 +197,206 @@ func TestContactHoneypotSpamRejection(t *testing.T) {
 		t.Errorf("expected redirect (303), got %d", rr.Code)
 	}
 }
+
+func TestContactPersistsMessageRecord(t *testing.T) {
+	tempContent := t.TempDir()
+	cfg := &config.Config{Port: "8080", AppEnv: "test", ContactEmail: "test@example.com", MaxBodyBytes: 64 * 1024}
+	contentSvc, err := services.NewContentService(tempContent)
+	if err != nil {
+		t.Fatalf("content service: %v", err)
+	}
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	h, err := New(cfg, contentSvc, "", logger)
+	if err != nil {
+		t.Fatalf("new handler: %v", err)
+	}
+
+	payload := map[string]string{
+		"name":    "Grace Hopper",
+		"email":   "grace@example.com",
+		"subject": "Compiler Question",
+		"message": "Hello Timothy, let us discuss compiler development and systems.",
+	}
+	data, _ := json.Marshal(payload)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/contact", bytes.NewBuffer(data))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+
+	h.HandleContactSubmit(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected status OK (200), got %d", rr.Code)
+	}
+
+	var res map[string]any
+	if err := json.NewDecoder(rr.Body).Decode(&res); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if res["success"] != true {
+		t.Fatalf("expected success=true")
+	}
+	msgRecord, ok := res["messageRecord"].(map[string]any)
+	if !ok {
+		t.Fatalf("expected messageRecord in response")
+	}
+	if msgRecord["name"] != "Grace Hopper" {
+		t.Errorf("expected name Grace Hopper, got %v", msgRecord["name"])
+	}
+
+	// Verify persistence in portfolio_data.json
+	dataBytes, err := os.ReadFile(filepath.Join(tempContent, "portfolio_data.json"))
+	if err != nil {
+		t.Fatalf("read portfolio_data.json: %v", err)
+	}
+	var stored map[string]any
+	if err := json.Unmarshal(dataBytes, &stored); err != nil {
+		t.Fatalf("unmarshal portfolio_data.json: %v", err)
+	}
+	messages, ok := stored["messages"].([]any)
+	if !ok || len(messages) == 0 {
+		t.Fatalf("expected messages array with at least 1 message")
+	}
+}
+
+func TestHandleReplySuccess(t *testing.T) {
+	tempContent := t.TempDir()
+	cfg := &config.Config{Port: "8080", AppEnv: "test", ContactEmail: "test@example.com", MaxBodyBytes: 64 * 1024}
+	contentSvc, err := services.NewContentService(tempContent)
+	if err != nil {
+		t.Fatalf("content service: %v", err)
+	}
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	h, err := New(cfg, contentSvc, "", logger)
+	if err != nil {
+		t.Fatalf("new handler: %v", err)
+	}
+
+	// Seed portfolio_data.json with an existing message
+	initialData := map[string]any{
+		"messages": []any{
+			map[string]any{
+				"id":      "msg-12345",
+				"name":    "Alan Turing",
+				"email":   "alan@enigma.org",
+				"subject": "Decryption question",
+				"message": "Let us collaborate on computational machinery.",
+				"isRead":  false,
+				"status":  "New",
+			},
+		},
+	}
+	initBytes, _ := json.Marshal(initialData)
+	_ = os.WriteFile(filepath.Join(tempContent, "portfolio_data.json"), initBytes, 0o644)
+
+	replyPayload := map[string]string{
+		"to":                "alan@enigma.org",
+		"toName":            "Alan Turing",
+		"subject":           "Re: Decryption question",
+		"body":              "Happy to collaborate on this!",
+		"originalMessageId": "msg-12345",
+	}
+	bodyBytes, _ := json.Marshal(replyPayload)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/reply", bytes.NewBuffer(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+
+	h.HandleReply(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected 200 OK, got %d: %s", rr.Code, rr.Body.String())
+	}
+
+	var res map[string]any
+	json.NewDecoder(rr.Body).Decode(&res)
+	if res["success"] != true {
+		t.Fatalf("expected success=true")
+	}
+
+	// Check updated data on disk
+	dataBytes, _ := os.ReadFile(filepath.Join(tempContent, "portfolio_data.json"))
+	var updated map[string]any
+	json.Unmarshal(dataBytes, &updated)
+	msgs := updated["messages"].([]any)
+	msg := msgs[0].(map[string]any)
+	if msg["status"] != "Replied" {
+		t.Errorf("expected status 'Replied', got %v", msg["status"])
+	}
+	if msg["isRead"] != true {
+		t.Errorf("expected isRead true, got %v", msg["isRead"])
+	}
+	replies := msg["replies"].([]any)
+	if len(replies) != 1 {
+		t.Fatalf("expected 1 reply in replies array, got %d", len(replies))
+	}
+}
+
+func TestHandleReplyValidationFailure(t *testing.T) {
+	h := setupTestHandler(t)
+
+	// Missing recipient email
+	invalidPayload := map[string]string{
+		"to":   "",
+		"body": "Some body",
+	}
+	bodyBytes, _ := json.Marshal(invalidPayload)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/reply", bytes.NewBuffer(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+
+	h.HandleReply(rr, req)
+
+	if rr.Code != http.StatusBadRequest {
+		t.Errorf("expected 400 Bad Request, got %d", rr.Code)
+	}
+}
+
+func TestHandleUploadPhoto(t *testing.T) {
+	tempContent := t.TempDir()
+	cfg := &config.Config{Port: "8080", AppEnv: "test", ContactEmail: "test@example.com", MaxBodyBytes: 64 * 1024}
+	contentSvc, err := services.NewContentService(tempContent)
+	if err != nil {
+		t.Fatalf("content service: %v", err)
+	}
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	h, err := New(cfg, contentSvc, "", logger)
+	if err != nil {
+		t.Fatalf("new handler: %v", err)
+	}
+
+	uploadPayload := map[string]any{
+		"imageData": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==",
+		"filename":  "profile.png",
+		"isAvatar":  true,
+		"caption":   "Timothy Ododo",
+	}
+	data, _ := json.Marshal(uploadPayload)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/upload-photo", bytes.NewBuffer(data))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+
+	h.HandleUploadPhoto(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rr.Code)
+	}
+
+	var res map[string]any
+	json.NewDecoder(rr.Body).Decode(&res)
+	if res["success"] != true {
+		t.Fatalf("expected success=true")
+	}
+
+	// Verify avatarUrl saved in portfolio_data.json
+	dataBytes, _ := os.ReadFile(filepath.Join(tempContent, "portfolio_data.json"))
+	var stored map[string]any
+	json.Unmarshal(dataBytes, &stored)
+	profile := stored["profile"].(map[string]any)
+	if profile["avatarUrl"] != "data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==" {
+		t.Errorf("avatarUrl mismatch: %v", profile["avatarUrl"])
+	}
+}
+
