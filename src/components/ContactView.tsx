@@ -1,19 +1,7 @@
-/** @jsx React.createElement */
-/** @jsxRuntime classic */
-// React is provided by the runtime, but this project does not include its type declarations.
-// @ts-expect-error React has no bundled declarations in this project.
 import React, { useState } from 'react';
 import { Mail, LinkedinIcon, GithubIcon, Send, CheckCircle2, AlertCircle, Phone, Sparkles } from 'lucide-react';
 import { Profile, ContactMessage } from '../types';
 import { saveStored, getMessages } from '../data';
-
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      [elementName: string]: Record<string, unknown>;
-    }
-  }
-}
 
 interface ContactViewProps {
   profile: Profile;
