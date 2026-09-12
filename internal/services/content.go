@@ -12,6 +12,7 @@ import (
 
 // ContentService defines interface for accessing portfolio content
 type ContentService interface {
+	GetContentDir() string
 	GetProfile() (*models.Profile, error)
 	GetExperiences() ([]models.Experience, error)
 	GetFeaturedExperiences() ([]models.Experience, error)
@@ -51,58 +52,94 @@ func NewContentService(contentDir string) (ContentService, error) {
 	return svc, nil
 }
 
+func (s *fileContentService) GetContentDir() string {
+	return s.contentDir
+}
+
 func (s *fileContentService) Reload() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// Load Profile
+	// 1. Load baseline from individual JSON files if they exist
 	var profile models.Profile
-	if err := s.loadJSON("profile.json", &profile); err != nil {
-		return err
+	if err := s.loadJSON("profile.json", &profile); err == nil {
+		s.profile = &profile
 	}
-	s.profile = &profile
 
-	// Load Experience
 	var experiences []models.Experience
-	if err := s.loadJSON("experience.json", &experiences); err != nil {
-		return err
+	if err := s.loadJSON("experience.json", &experiences); err == nil {
+		s.experiences = experiences
 	}
-	s.experiences = experiences
 
-	// Load Projects
 	var projects []models.Project
-	if err := s.loadJSON("projects.json", &projects); err != nil {
-		return err
+	if err := s.loadJSON("projects.json", &projects); err == nil {
+		s.projects = projects
 	}
-	s.projects = projects
 
-	// Load Skills
 	var skills models.SkillsData
-	if err := s.loadJSON("skills.json", &skills); err != nil {
-		return err
+	if err := s.loadJSON("skills.json", &skills); err == nil {
+		s.skills = &skills
 	}
-	s.skills = &skills
 
-	// Load Certifications
 	var certs []models.Certification
-	if err := s.loadJSON("certifications.json", &certs); err != nil {
-		return err
+	if err := s.loadJSON("certifications.json", &certs); err == nil {
+		s.certifications = certs
 	}
-	s.certifications = certs
 
-	// Load Education
 	var edu []models.Education
-	if err := s.loadJSON("education.json", &edu); err != nil {
-		return err
+	if err := s.loadJSON("education.json", &edu); err == nil {
+		s.education = edu
 	}
-	s.education = edu
 
-	// Load Community
 	var comm []models.CommunityRole
-	if err := s.loadJSON("community.json", &comm); err != nil {
-		return err
+	if err := s.loadJSON("community.json", &comm); err == nil {
+		s.community = comm
 	}
-	s.community = comm
+
+	// 2. If portfolio_data.json exists, overlay its authoritative data
+	portfolioPath := filepath.Join(s.contentDir, "portfolio_data.json")
+	if data, err := os.ReadFile(portfolioPath); err == nil && len(data) > 0 {
+		var combined struct {
+			Profile        *models.Profile        `json:"profile"`
+			Experiences    []models.Experience    `json:"experiences"`
+			Projects       []models.Project       `json:"projects"`
+			Skills         *models.SkillsData     `json:"skills"`
+			Certifications []models.Certification `json:"certifications"`
+			Education      []models.Education     `json:"education"`
+			Community      []models.CommunityRole `json:"community"`
+		}
+		if err := json.Unmarshal(data, &combined); err == nil {
+			if combined.Profile != nil {
+				s.profile = combined.Profile
+			}
+			if combined.Experiences != nil {
+				s.experiences = combined.Experiences
+			}
+			if combined.Projects != nil {
+				s.projects = combined.Projects
+			}
+			if combined.Skills != nil {
+				s.skills = combined.Skills
+			}
+			if combined.Certifications != nil {
+				s.certifications = combined.Certifications
+			}
+			if combined.Education != nil {
+				s.education = combined.Education
+			}
+			if combined.Community != nil {
+				s.community = combined.Community
+			}
+		}
+	}
+
+	// Ensure non-nil defaults
+	if s.profile == nil {
+		s.profile = &models.Profile{}
+	}
+	if s.skills == nil {
+		s.skills = &models.SkillsData{}
+	}
 
 	return nil
 }
