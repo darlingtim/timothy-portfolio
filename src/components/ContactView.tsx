@@ -1,14 +1,26 @@
+/** @jsx React.createElement */
+/** @jsxRuntime classic */
+// React is provided by the runtime, but this project does not include its type declarations.
+// @ts-expect-error React has no bundled declarations in this project.
 import React, { useState } from 'react';
-import { Mail, Linkedin, Github, Send, CheckCircle2, AlertCircle, Phone, Sparkles } from 'lucide-react';
+import { Mail, LinkedinIcon, GithubIcon, Send, CheckCircle2, AlertCircle, Phone, Sparkles } from 'lucide-react';
 import { Profile, ContactMessage } from '../types';
 import { saveStored, getMessages } from '../data';
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      [elementName: string]: Record<string, unknown>;
+    }
+  }
+}
 
 interface ContactViewProps {
   profile: Profile;
   onNewMessage?: (msg: ContactMessage) => void;
 }
 
-export const ContactView: React.FC<ContactViewProps> = ({ profile, onNewMessage }) => {
+export const ContactView: React.FC<ContactViewProps> = ({ profile, onNewMessage }: ContactViewProps) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -131,7 +143,7 @@ export const ContactView: React.FC<ContactViewProps> = ({ profile, onNewMessage 
                 className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:border-sky-500 transition-colors"
               >
                 <div className="w-9 h-9 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center">
-                  <Linkedin className="w-4 h-4" />
+                  <LinkedinIcon className="w-4 h-4" />
                 </div>
                 <div>
                   <span className="text-xs font-mono text-slate-500 block">LinkedIn</span>
@@ -146,7 +158,7 @@ export const ContactView: React.FC<ContactViewProps> = ({ profile, onNewMessage 
                 className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:border-sky-500 transition-colors"
               >
                 <div className="w-9 h-9 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center">
-                  <Github className="w-4 h-4" />
+                  <GithubIcon className="w-4 h-4" />
                 </div>
                 <div>
                   <span className="text-xs font-mono text-slate-500 block">GitHub</span>
@@ -191,7 +203,7 @@ export const ContactView: React.FC<ContactViewProps> = ({ profile, onNewMessage 
               type="text" 
               name="website" 
               value={formData.website} 
-              onChange={e => setFormData({ ...formData, website: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, website: e.target.value })}
               className="hidden" 
               tabIndex={-1} 
               autoComplete="off" 
@@ -206,7 +218,7 @@ export const ContactView: React.FC<ContactViewProps> = ({ profile, onNewMessage 
                   type="text"
                   required
                   value={formData.name}
-                  onChange={e => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g. Alex Johnson"
                   className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-sky-500"
                 />
@@ -220,7 +232,7 @@ export const ContactView: React.FC<ContactViewProps> = ({ profile, onNewMessage 
                   type="email"
                   required
                   value={formData.email}
-                  onChange={e => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="alex@company.org"
                   className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-sky-500"
                 />
@@ -235,7 +247,7 @@ export const ContactView: React.FC<ContactViewProps> = ({ profile, onNewMessage 
                 type="text"
                 required
                 value={formData.subject}
-                onChange={e => setFormData({ ...formData, subject: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, subject: e.target.value })}
                 placeholder="Mentorship / Internship / Backend Role / Collaboration"
                 className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-sky-500"
               />
@@ -255,7 +267,7 @@ export const ContactView: React.FC<ContactViewProps> = ({ profile, onNewMessage 
                 rows={5}
                 maxLength={2000}
                 value={formData.message}
-                onChange={e => setFormData({ ...formData, message: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({ ...formData, message: e.target.value })}
                 placeholder="Describe your project, team opportunity, or inquiry..."
                 className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-sky-500"
               />
