@@ -107,7 +107,7 @@ export const ContactView: React.FC<ContactViewProps> = ({ profile, onNewMessage 
               Direct Communication
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-              Available for Learn2Earn internship opportunities, mentorship engagements, developer relations roles, and backend engineering positions.
+              Available for Internship opportunities, mentorship engagements, developer relations roles, and backend engineering positions.
             </p>
 
             <div className="space-y-3 pt-2">
@@ -150,7 +150,7 @@ export const ContactView: React.FC<ContactViewProps> = ({ profile, onNewMessage 
                 </div>
                 <div>
                   <span className="text-xs font-mono text-slate-500 block">GitHub</span>
-                  <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">github.com/timothyododo</span>
+                  <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">github.com/darlingtim</span>
                 </div>
               </a>
             </div>
