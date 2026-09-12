@@ -88,19 +88,26 @@ func main() {
 
 	logger.Info("serving compiled React app from dist directory", "dist_dir", distDir)
 	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir(filepath.Join(distDir, "assets")))))
-	mux.Handle("/images/", http.StripPrefix("/images/", http.FileServer(http.Dir(filepath.Join(distDir, "images")))))
+	imagesDir := filepath.Join(distDir, "images")
+	_ = os.MkdirAll(imagesDir, 0o755)
+	mux.Handle("/images/", http.StripPrefix("/images/", http.FileServer(http.Dir(imagesDir))))
+
 	mux.HandleFunc("/health", h.Health)
+	mux.HandleFunc("/api/health", h.Health)
 	mux.HandleFunc("/api/data", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
 			handlePortfolioDataGet(w, r, contentDir)
 		case http.MethodPost:
 			handlePortfolioDataPost(w, r, contentDir)
+			_ = contentSvc.Reload()
 		default:
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		}
 	})
 	mux.HandleFunc("/api/contact", h.HandleContactSubmit)
+	mux.HandleFunc("/api/reply", h.HandleReply)
+	mux.HandleFunc("/api/upload-photo", h.HandleUploadPhoto)
 	mux.HandleFunc("/api/projects", h.APIProjects)
 	mux.HandleFunc("/robots.txt", h.RobotsTxt)
 	mux.HandleFunc("/sitemap.xml", h.SitemapXML)
@@ -152,6 +159,10 @@ func main() {
 
 // loggingMiddleware logs HTTP request execution times and metadata
 func handlePortfolioDataGet(w http.ResponseWriter, r *http.Request, contentDir string) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
 	dataPath := filepath.Join(contentDir, "portfolio_data.json")
 	data, err := os.ReadFile(dataPath)
 	if err != nil {
@@ -177,6 +188,10 @@ func handlePortfolioDataGet(w http.ResponseWriter, r *http.Request, contentDir s
 }
 
 func handlePortfolioDataPost(w http.ResponseWriter, r *http.Request, contentDir string) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
 	if r.Body == nil {
 		http.Error(w, "request body required", http.StatusBadRequest)
 		return
@@ -266,7 +281,7 @@ func securityHeadersMiddleware(next http.Handler) http.Handler {
 		w.Header().Set("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
 
 		// If serving static files, set caching headers
-		if filepath.HasPrefix(r.URL.Path, "/static/") {
+		if strings.HasPrefix(r.URL.Path, "/static/") || strings.HasPrefix(r.URL.Path, "/assets/") || strings.HasPrefix(r.URL.Path, "/images/") {
 			w.Header().Set("Cache-Control", "public, max-age=86400")
 		}
 
