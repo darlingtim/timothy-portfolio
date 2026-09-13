@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Calendar, MapPin, Users, Sparkles } from 'lucide-react';
+import { X, Plus, Trash2, Calendar, MapPin, Users, Sparkles, Check } from 'lucide-react';
 import { EventContribution, CustomField } from '../../types';
 import { CustomFieldEditor } from './CustomFieldEditor';
 import { MultiPhotoField } from './MultiPhotoField';

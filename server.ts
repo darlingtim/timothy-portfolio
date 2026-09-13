@@ -15,7 +15,7 @@ const STATIC_IMAGES_DIR = path.join(STATIC_DIR, 'images');
 if (!fs.existsSync(STATIC_IMAGES_DIR)) {
   fs.mkdirSync(STATIC_IMAGES_DIR, { recursive: true });
 }
-const IMAGE_CATEGORIES = ['profile', 'carousel', 'projects', 'experience', 'gallery', 'events', 'certifications', 'achievements', 'mentoring', 'general'];
+const IMAGE_CATEGORIES = ['profile', 'carousel', 'projects', 'experience', 'education', 'gallery', 'events', 'certifications', 'achievements', 'mentoring', 'general'];
 IMAGE_CATEGORIES.forEach((cat) => {
   const dir = path.join(STATIC_IMAGES_DIR, cat);
   if (!fs.existsSync(dir)) {

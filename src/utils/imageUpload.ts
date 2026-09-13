@@ -3,6 +3,7 @@ export type ImageCategory =
   | 'carousel' 
   | 'projects' 
   | 'experience' 
+  | 'education' 
   | 'gallery' 
   | 'events' 
   | 'certifications' 

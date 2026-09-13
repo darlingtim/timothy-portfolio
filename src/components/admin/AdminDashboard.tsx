@@ -77,6 +77,7 @@ import { AchievementModal } from './AchievementModal';
 import { CertificationModal } from './CertificationModal';
 import { MentoringModal } from './MentoringModal';
 import { EventModal } from './EventModal';
+import { EducationModal } from './EducationModal';
 import { SkillModal } from './SkillModal';
 import { SkillCategoryModal } from './SkillCategoryModal';
 import { CarouselSettingsManager } from './CarouselSettingsManager';
@@ -183,6 +184,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState<EventContribution | null>(null);
+
+  const [isEducationModalOpen, setIsEducationModalOpen] = useState(false);
+  const [educationToEdit, setEducationToEdit] = useState<Education | null>(null);
 
   // Skills & Category Modals & Filter states
   const [isSkillModalOpen, setIsSkillModalOpen] = useState(false);
@@ -508,6 +512,32 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setLocalMentoring(updated);
     saveStored('mentoring', updated);
     showToast('Mentoring program deleted.');
+  };
+
+  // Education CRUD
+  const handleSaveEducation = (edu: Education) => {
+    const existingIdx = education.findIndex(
+      (e) => (edu.id && e.id && e.id === edu.id) || (e.degree === edu.degree && e.institution === edu.institution)
+    );
+    let updated: Education[];
+    if (existingIdx >= 0) {
+      updated = [...education];
+      updated[existingIdx] = edu;
+      showToast(`Updated education "${edu.degree}"`);
+    } else {
+      updated = [edu, ...education];
+      showToast(`Added education "${edu.degree}"`);
+    }
+    setEducation(updated);
+    saveStored('education', updated);
+  };
+
+  const handleDeleteEducation = (idOrDegree: string) => {
+    if (!confirm('Are you sure you want to delete this education record?')) return;
+    const updated = education.filter((e) => (e.id ? e.id !== idOrDegree : e.degree !== idOrDegree));
+    setEducation(updated);
+    saveStored('education', updated);
+    showToast('Education record deleted.');
   };
 
   // Messages Actions & Direct Reply
@@ -2052,6 +2082,192 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
           )}
 
+          {/* TAB: EDUCATION CMS */}
+          {activeTab === 'education' && (
+            <div className="space-y-6 animate-in fade-in max-w-5xl">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="font-display text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <GraduationCap className="w-6 h-6 text-blue-500" />
+                    Education &amp; Academic Credentials
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Degrees, diplomas, university qualifications, scholarships, coursework highlights, and academic media.
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setEducationToEdit(null);
+                    setIsEducationModalOpen(true);
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs sm:text-sm shadow-sm flex items-center gap-1.5 transition-all shrink-0"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add Education Record</span>
+                </button>
+              </div>
+
+              {/* Quick Academic Metric Summary */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1633] flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-500 flex items-center justify-center shrink-0">
+                    <GraduationCap className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">Qualifications</span>
+                    <span className="font-display text-xl font-bold text-slate-900 dark:text-white">{education.length}</span>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1633] flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center shrink-0">
+                    <Award className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">Scholarships &amp; Honors</span>
+                    <span className="font-display text-xl font-bold text-amber-500">{education.filter((e) => e.isScholarship).length}</span>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1633] flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center shrink-0">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">Institutions</span>
+                    <span className="font-display text-xl font-bold text-slate-900 dark:text-white">
+                      {new Set(education.map((e) => e.institution)).size}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Education Cards List */}
+              <div className="space-y-4">
+                {education.map((edu, idx) => (
+                  <div
+                    key={edu.id || idx}
+                    className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1633] flex flex-col sm:flex-row gap-5 justify-between transition-all hover:border-blue-500/30"
+                  >
+                    <div className="flex items-start gap-4 flex-1">
+                      {edu.imageUrl ? (
+                        <img
+                          src={edu.imageUrl}
+                          alt={edu.institution}
+                          className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl border border-slate-200 dark:border-slate-700 shrink-0 bg-slate-900"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-500 flex items-center justify-center shrink-0">
+                          <GraduationCap className="w-8 h-8" />
+                        </div>
+                      )}
+
+                      <div className="space-y-2 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h4 className="font-display font-bold text-base sm:text-lg text-slate-900 dark:text-white">
+                            {edu.degree}
+                          </h4>
+                          {edu.period && (
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                              {edu.period}
+                            </span>
+                          )}
+                          {edu.isScholarship && (
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center gap-1">
+                              <Award className="w-3 h-3" />
+                              {edu.scholarshipDetail || 'Scholarship Recipient'}
+                            </span>
+                          )}
+                          {edu.grade && (
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                              {edu.grade}
+                            </span>
+                          )}
+                          {edu.photos && edu.photos.length > 0 && (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-blue-500/10 text-blue-400 flex items-center gap-1">
+                              <ImageIcon className="w-3 h-3" /> {edu.photos.length} photos
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1.5 flex-wrap">
+                          <span>{edu.institution}</span>
+                          {edu.location && (
+                            <span className="text-slate-400 font-normal">&bull; {edu.location}</span>
+                          )}
+                          {edu.fieldOfStudy && (
+                            <span className="text-slate-500 font-normal">&mdash; {edu.fieldOfStudy}</span>
+                          )}
+                        </p>
+
+                        {edu.highlights && edu.highlights.length > 0 && (
+                          <ul className="space-y-1 pt-1 text-xs text-slate-600 dark:text-slate-300 list-disc pl-4">
+                            {edu.highlights.map((h, hIdx) => (
+                              <li key={hIdx} className="leading-relaxed">
+                                {h}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+
+                        {edu.credentialUrl && (
+                          <div className="pt-1">
+                            <a
+                              href={edu.credentialUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-xs text-sky-500 hover:text-sky-400 font-mono"
+                            >
+                              <span>Verification / Portal Link</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex sm:flex-col items-center justify-end gap-1.5 shrink-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
+                      <button
+                        onClick={() => {
+                          setEducationToEdit(edu);
+                          setIsEducationModalOpen(true);
+                        }}
+                        className="p-2 rounded-xl text-slate-400 hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        title="Edit Education Record"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteEducation(edu.id || edu.degree)}
+                        className="p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 transition-colors"
+                        title="Delete Education Record"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                {education.length === 0 && (
+                  <div className="p-12 text-center border border-dashed border-slate-300 dark:border-slate-800 rounded-2xl text-slate-400 space-y-3">
+                    <GraduationCap className="w-10 h-10 mx-auto opacity-30 text-blue-500" />
+                    <p className="text-sm font-medium">No education records added yet.</p>
+                    <button
+                      onClick={() => {
+                        setEducationToEdit(null);
+                        setIsEducationModalOpen(true);
+                      }}
+                      className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-sm"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Add First Education Record</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* TAB 6: GALLERY CMS */}
           {activeTab === 'gallery' && (
             <div className="space-y-6 animate-in fade-in">
@@ -2801,6 +3017,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           setEventToEdit(null);
         }}
         onSave={handleSaveEvent}
+      />
+
+      <EducationModal
+        isOpen={isEducationModalOpen}
+        educationToEdit={educationToEdit}
+        onClose={() => {
+          setIsEducationModalOpen(false);
+          setEducationToEdit(null);
+        }}
+        onSave={handleSaveEducation}
       />
 
       <SkillModal

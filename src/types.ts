@@ -185,6 +185,7 @@ export interface Achievement {
 }
 
 export interface Education {
+  id?: string;
   degree: string;
   institution: string;
   location: string;
@@ -192,6 +193,11 @@ export interface Education {
   isScholarship: boolean;
   scholarshipDetail: string;
   highlights: string[];
+  imageUrl?: string;
+  photos?: string[];
+  credentialUrl?: string;
+  grade?: string;
+  fieldOfStudy?: string;
   customFields?: CustomField[];
 }
 

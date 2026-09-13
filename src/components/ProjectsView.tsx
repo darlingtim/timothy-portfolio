@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Project } from '../types';
-import { ArrowUpRight, Search, Code, ExternalLink, ArrowRight } from 'lucide-react';
+import { ArrowUpRight, Search, Code, ExternalLink, ArrowRight, Camera, Image as ImageIcon, Layers } from 'lucide-react';
 
 interface ProjectsViewProps {
   projects: Project[];
@@ -124,98 +124,138 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
 
         {/* Projects Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {displayList.map((project) => (
-            <article 
-              key={project.slug} 
-              className="flex flex-col justify-between p-6 sm:p-7 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-sky-500/40 hover:shadow-md transition-all"
-            >
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <span className="text-xs font-mono px-2.5 py-0.5 rounded bg-sky-500/10 text-sky-600 dark:text-sky-400 font-semibold">
-                    {project.category}
-                  </span>
-                  <span className="text-xs font-mono text-slate-500">
-                    {project.year}
-                  </span>
-                </div>
+          {displayList.map((project) => {
+            const projectPhoto = project.imageUrl || (project.photos && project.photos.length > 0 ? project.photos[0] : null);
+            const totalPhotos = (project.photos?.length || 0) + (project.imageUrl && (!project.photos || !project.photos.includes(project.imageUrl)) ? 1 : 0);
 
-                <h3 className="font-display text-xl font-bold text-slate-900 dark:text-slate-100 mb-1.5">
-                  <button 
-                    onClick={() => onSelectProject(project.slug)}
-                    className="hover:text-sky-600 dark:hover:text-sky-400 text-left transition-colors"
-                  >
-                    {project.name}
-                  </button>
-                </h3>
+            return (
+              <article 
+                key={project.slug} 
+                className="flex flex-col justify-between rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-sky-500/50 hover:shadow-lg transition-all overflow-hidden group"
+              >
+                <div>
+                  {/* Photo / Screenshot Header (if photo exists) */}
+                  {projectPhoto ? (
+                    <div 
+                      onClick={() => onSelectProject(project.slug)}
+                      className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 cursor-pointer"
+                    >
+                      <img
+                        src={projectPhoto}
+                        alt={project.name}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+                      
+                      <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
+                        <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-sky-400 font-semibold border border-white/15">
+                          {project.category}
+                        </span>
+                        <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white/90 border border-white/15">
+                          {project.year}
+                        </span>
+                      </div>
 
-                <p className="text-xs font-mono text-sky-600 dark:text-sky-400 mb-3">
-                  {project.tagline}
-                </p>
+                      {totalPhotos > 1 && (
+                        <div className="absolute bottom-2.5 right-2.5 px-2.5 py-1 rounded-lg bg-black/75 backdrop-blur-md text-white text-[11px] font-mono flex items-center gap-1.5 border border-white/20">
+                          <Camera className="w-3.5 h-3.5 text-sky-400" />
+                          <span>{totalPhotos} photos</span>
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
 
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
-                  {project.shortDescription}
-                </p>
-
-                <div className="p-3.5 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 text-xs space-y-1.5 mb-5">
-                  <div>
-                    <span className="font-semibold text-slate-900 dark:text-slate-200">Problem:</span>{' '}
-                    <span className="text-slate-600 dark:text-slate-400 line-clamp-2">{project.problem}</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-slate-900 dark:text-slate-200">Solution:</span>{' '}
-                    <span className="text-slate-600 dark:text-slate-400 line-clamp-2">{project.solution}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex flex-wrap gap-1 mb-5">
-                  {project.technologies.map((t, idx) => (
-                    <span key={idx} className="text-xs font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                      {t}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
-                  <button
-                    onClick={() => onSelectProject(project.slug)}
-                    className="text-sm font-semibold text-sky-600 dark:text-sky-400 hover:underline inline-flex items-center gap-1"
-                  >
-                    <span>Read Case Study</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-
-                  <div className="flex items-center gap-3">
-                    {project.github && (
-                      <a 
-                        href={project.github} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-xs font-mono text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-1"
-                        title="View GitHub Repository"
-                      >
-                        <Code className="w-3.5 h-3.5" />
-                        <span>Code</span>
-                      </a>
+                  <div className="p-6 sm:p-7">
+                    {!projectPhoto && (
+                      <div className="flex items-center justify-between gap-2 mb-3">
+                        <span className="text-xs font-mono px-2.5 py-0.5 rounded bg-sky-500/10 text-sky-600 dark:text-sky-400 font-semibold">
+                          {project.category}
+                        </span>
+                        <span className="text-xs font-mono text-slate-500">
+                          {project.year}
+                        </span>
+                      </div>
                     )}
-                    {project.liveUrl && (
-                      <a 
-                        href={project.liveUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-xs font-mono text-sky-600 hover:underline flex items-center gap-1"
-                        title="Open Live Deployment"
+
+                    <h3 className="font-display text-xl font-bold text-slate-900 dark:text-slate-100 mb-1.5">
+                      <button 
+                        onClick={() => onSelectProject(project.slug)}
+                        className="hover:text-sky-600 dark:hover:text-sky-400 text-left transition-colors"
                       >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                        <span>Demo</span>
-                      </a>
-                    )}
+                        {project.name}
+                      </button>
+                    </h3>
+
+                    <p className="text-xs font-mono text-sky-600 dark:text-sky-400 mb-3">
+                      {project.tagline}
+                    </p>
+
+                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                      {project.shortDescription}
+                    </p>
+
+                    <div className="p-3.5 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 text-xs space-y-1.5 mb-5">
+                      <div>
+                        <span className="font-semibold text-slate-900 dark:text-slate-200">Problem:</span>{' '}
+                        <span className="text-slate-600 dark:text-slate-400 line-clamp-2">{project.problem}</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold text-slate-900 dark:text-slate-200">Solution:</span>{' '}
+                        <span className="text-slate-600 dark:text-slate-400 line-clamp-2">{project.solution}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </article>
-          ))}
+
+                <div className="px-6 pb-6 sm:px-7 sm:pb-7">
+                  <div className="flex flex-wrap gap-1 mb-5">
+                    {project.technologies.map((t, idx) => (
+                      <span key={idx} className="text-xs font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <button
+                      onClick={() => onSelectProject(project.slug)}
+                      className="text-sm font-semibold text-sky-600 dark:text-sky-400 hover:underline inline-flex items-center gap-1"
+                    >
+                      <span>Read Case Study</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+
+                    <div className="flex items-center gap-3">
+                      {project.github && (
+                        <a 
+                          href={project.github} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-xs font-mono text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-1"
+                          title="View GitHub Repository"
+                        >
+                          <Code className="w-3.5 h-3.5" />
+                          <span>Code</span>
+                        </a>
+                      )}
+                      {project.liveUrl && (
+                        <a 
+                          href={project.liveUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-xs font-mono text-sky-600 hover:underline flex items-center gap-1"
+                          title="Open Live Deployment"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span>Demo</span>
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
         </div>
 
         {displayList.length === 0 && (

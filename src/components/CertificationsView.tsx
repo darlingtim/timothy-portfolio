@@ -222,36 +222,115 @@ export const CertificationsView: React.FC<CertificationsViewProps> = ({
           <div className="space-y-4">
             {education.map((edu, idx) => (
               <div
-                key={idx}
+                key={edu.id || idx}
                 className="p-6 sm:p-8 rounded-3xl border-2 border-amber-500/30 bg-gradient-to-br from-amber-500/5 via-slate-900/50 to-slate-950 text-slate-900 dark:text-white space-y-4 shadow-lg"
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div className="space-y-1">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-400/30 text-xs font-mono font-bold">
-                      <Award className="w-3.5 h-3.5" />
-                      <span>{edu.isScholarship ? 'Full Merit Scholarship Recipient' : 'Academic Degree'}</span>
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                  <div className="flex items-start gap-4">
+                    {edu.imageUrl && (
+                      <div
+                        onClick={() => setSelectedImage({
+                          url: edu.imageUrl!,
+                          title: edu.degree,
+                          issuer: edu.institution
+                        })}
+                        className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border border-amber-500/30 bg-slate-900 shrink-0 cursor-pointer group/img relative"
+                      >
+                        <img
+                          src={edu.imageUrl}
+                          alt={edu.institution}
+                          className="w-full h-full object-cover group-hover/img:scale-105 transition-transform"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center text-white">
+                          <Maximize2 className="w-4 h-4" />
+                        </div>
+                      </div>
+                    )}
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-400/30 text-xs font-mono font-bold">
+                          <Award className="w-3.5 h-3.5" />
+                          <span>{edu.isScholarship ? 'Full Merit Scholarship Recipient' : 'Academic Degree'}</span>
+                        </div>
+                        {edu.grade && (
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            {edu.grade}
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="font-display text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
+                        {edu.degree} &mdash; {edu.institution}
+                      </h3>
+                      {edu.fieldOfStudy && (
+                        <p className="text-xs font-mono text-sky-400">
+                          Major / Field: {edu.fieldOfStudy}
+                        </p>
+                      )}
                     </div>
-                    <h3 className="font-display text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
-                      {edu.degree} &mdash; {edu.institution}
-                    </h3>
                   </div>
-                  <span className="text-xs font-mono px-3 py-1 rounded-lg bg-slate-800 text-slate-300 shrink-0">
-                    {edu.period} &bull; {edu.location}
+
+                  <span className="text-xs font-mono px-3 py-1 rounded-lg bg-slate-800 text-slate-300 shrink-0 self-start">
+                    {edu.period} {edu.location && `• ${edu.location}`}
                   </span>
                 </div>
 
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                  {edu.scholarshipDetail}
-                </p>
+                {edu.scholarshipDetail && (
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                    {edu.scholarshipDetail}
+                  </p>
+                )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
-                  {edu.highlights.map((h, i) => (
-                    <div key={i} className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300">
-                      <span className="text-amber-500 font-bold">★</span>
-                      <span>{h}</span>
+                {edu.highlights && edu.highlights.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
+                    {edu.highlights.map((h, i) => (
+                      <div key={i} className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300">
+                        <span className="text-amber-500 font-bold">★</span>
+                        <span>{h}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Additional gallery photos attached to education */}
+                {edu.photos && edu.photos.length > 0 && (
+                  <div className="pt-2">
+                    <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider block mb-2">
+                      Academic &amp; Campus Media
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {edu.photos.map((p, pIdx) => (
+                        <div
+                          key={pIdx}
+                          onClick={() => setSelectedImage({
+                            url: p,
+                            title: `${edu.degree} Photo ${pIdx + 1}`,
+                            issuer: edu.institution
+                          })}
+                          className="w-14 h-14 rounded-xl overflow-hidden border border-slate-700 bg-slate-900 cursor-pointer group/thumb relative"
+                        >
+                          <img src={p} alt="" className="w-full h-full object-cover group-hover/thumb:scale-105 transition-transform" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center text-white">
+                            <Maximize2 className="w-3 h-3" />
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
+
+                {edu.credentialUrl && (
+                  <div className="pt-2 border-t border-amber-500/10 flex justify-end">
+                    <a
+                      href={edu.credentialUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs font-mono text-amber-400 hover:text-amber-300 font-semibold"
+                    >
+                      <span>Verify Academic Credential / Portal</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                )}
               </div>
             ))}
           </div>

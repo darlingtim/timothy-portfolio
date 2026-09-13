@@ -40,6 +40,7 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string
   all: { bg: 'bg-slate-500/10', text: 'text-slate-500', border: 'border-slate-500/20' },
   projects: { bg: 'bg-blue-500/10', text: 'text-blue-500', border: 'border-blue-500/20' },
   experience: { bg: 'bg-cyan-500/10', text: 'text-cyan-500', border: 'border-cyan-500/20' },
+  education: { bg: 'bg-blue-600/10', text: 'text-blue-400', border: 'border-blue-500/20' },
   certifications: { bg: 'bg-emerald-500/10', text: 'text-emerald-500', border: 'border-emerald-500/20' },
   achievements: { bg: 'bg-amber-500/10', text: 'text-amber-500', border: 'border-amber-500/20' },
   mentoring: { bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/20' },
@@ -56,6 +57,7 @@ const ALL_CATEGORY_OPTIONS: ImageCategory[] = [
   'projects',
   'mentoring',
   'experience',
+  'education',
   'gallery',
   'certifications',
   'achievements',
@@ -146,7 +148,7 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
   };
 
   const handleBatchMove = async () => {
-    const urls = Array.from(checkedUrls);
+    const urls: string[] = Array.from(checkedUrls);
     if (urls.length === 0) return;
     setIsBatchOperating(true);
     try {
@@ -166,7 +168,7 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
   };
 
   const handleBatchDelete = async () => {
-    const urls = confirmDeleteUrls || Array.from(checkedUrls);
+    const urls: string[] = confirmDeleteUrls || Array.from(checkedUrls);
     if (urls.length === 0) return;
     setIsBatchOperating(true);
     try {
