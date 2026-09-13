@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Plus, Trash2, Calendar, MapPin, Users, Sparkles, Upload, Check } from 'lucide-react';
 import { EventContribution, CustomField } from '../../types';
 import { CustomFieldEditor } from './CustomFieldEditor';
+import { uploadImageFile } from '../../utils/imageUpload';
 
 interface EventModalProps {
   isOpen: boolean;
@@ -82,11 +83,15 @@ export const EventModal: React.FC<EventModalProps> = ({
   const handleImageFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setFormData({ ...formData, imageUrl: event.target?.result as string });
-    };
-    reader.readAsDataURL(file);
+    uploadImageFile(file, { category: 'events' })
+      .then((result) => {
+        if (result.url) {
+          setFormData({ ...formData, imageUrl: result.url });
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to upload event image:', err);
+      });
   };
 
   const handleHighlightChange = (index: number, val: string) => {

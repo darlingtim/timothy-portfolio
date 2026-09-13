@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Upload, Image as ImageIcon, Trash2, Check } from 'lucide-react';
 import { GalleryItem, CustomField } from '../../types';
 import { CustomFieldEditor } from './CustomFieldEditor';
+import { uploadImageFile } from '../../utils/imageUpload';
 
 interface GalleryModalProps {
   isOpen: boolean;
@@ -52,12 +53,15 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      setFormData((prev) => ({ ...prev, imageUrl: dataUrl }));
-    };
-    reader.readAsDataURL(file);
+    uploadImageFile(file, { category: 'gallery' })
+      .then((result) => {
+        if (result.url) {
+          setFormData((prev) => ({ ...prev, imageUrl: result.url }));
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to upload gallery image:', err);
+      });
   };
 
   const handleAddTag = () => {

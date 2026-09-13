@@ -7,6 +7,108 @@ import { createServer as createViteServer } from 'vite';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_FILE_PATH = path.join(process.cwd(), 'content', 'portfolio_data.json');
+const STATIC_DIR = path.join(process.cwd(), 'static');
+const STATIC_IMAGES_DIR = path.join(STATIC_DIR, 'images');
+
+// Ensure static/images directory and category subdirectories exist on disk
+if (!fs.existsSync(STATIC_IMAGES_DIR)) {
+  fs.mkdirSync(STATIC_IMAGES_DIR, { recursive: true });
+}
+const IMAGE_CATEGORIES = ['profile', 'carousel', 'projects', 'gallery', 'events', 'general'];
+IMAGE_CATEGORIES.forEach((cat) => {
+  const dir = path.join(STATIC_IMAGES_DIR, cat);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+});
+
+function syncStaticToDist() {
+  try {
+    const distPath = path.join(process.cwd(), 'dist');
+    if (fs.existsSync(distPath)) {
+      const distStaticDir = path.join(distPath, 'static');
+      fs.cpSync(STATIC_DIR, distStaticDir, { recursive: true, force: true });
+    }
+  } catch {
+    // Non-blocking sync
+  }
+}
+syncStaticToDist();
+
+// Helper to decode base64 or copy and persist uploaded images to static/images/<category>/
+function saveImageToDisk(
+  imageData: string,
+  originalFilename?: string,
+  requestedCategory?: string
+): { url: string; filename: string; category: string } {
+  if (!imageData) {
+    throw new Error('Image data is required');
+  }
+
+  // Clean and sanitize category folder name
+  let category = 'general';
+  if (requestedCategory && typeof requestedCategory === 'string') {
+    const clean = requestedCategory.toLowerCase().trim().replace(/[^a-z0-9_-]/g, '');
+    if (clean) category = clean;
+  }
+
+  // If already a remote web URL or static path, return as is
+  if (imageData.startsWith('http://') || imageData.startsWith('https://') || imageData.startsWith('/static/images/')) {
+    return {
+      url: imageData,
+      filename: originalFilename || 'image',
+      category
+    };
+  }
+
+  let ext = 'jpg';
+  let buffer: Buffer;
+
+  const matches = imageData.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+  if (matches) {
+    let matchedExt = matches[1].toLowerCase();
+    if (matchedExt === 'jpeg') matchedExt = 'jpg';
+    if (matchedExt === 'svg+xml') matchedExt = 'svg';
+    ext = matchedExt;
+    buffer = Buffer.from(matches[2], 'base64');
+  } else {
+    try {
+      buffer = Buffer.from(imageData, 'base64');
+    } catch {
+      return { url: imageData, filename: originalFilename || 'image', category };
+    }
+  }
+
+  const safeBaseName = originalFilename
+    ? path.basename(originalFilename, path.extname(originalFilename)).replace(/[^a-zA-Z0-9_-]/g, '_')
+    : 'upload';
+  const finalFilename = `${safeBaseName}-${Date.now()}.${ext}`;
+
+  const categoryDir = path.join(STATIC_IMAGES_DIR, category);
+  if (!fs.existsSync(categoryDir)) {
+    fs.mkdirSync(categoryDir, { recursive: true });
+  }
+  const filePath = path.join(categoryDir, finalFilename);
+
+  fs.writeFileSync(filePath, buffer);
+
+  // Sync to dist if dist exists in production
+  try {
+    const distCategoryDir = path.join(process.cwd(), 'dist', 'static', 'images', category);
+    if (fs.existsSync(path.join(process.cwd(), 'dist'))) {
+      fs.mkdirSync(distCategoryDir, { recursive: true });
+      fs.writeFileSync(path.join(distCategoryDir, finalFilename), buffer);
+    }
+  } catch (syncErr) {
+    console.warn('Could not sync uploaded image to dist:', syncErr);
+  }
+
+  return {
+    url: `/static/images/${category}/${finalFilename}`,
+    filename: finalFilename,
+    category
+  };
+}
 
 // Helper to safely load data from disk
 function loadServerData(): any {
@@ -46,6 +148,10 @@ async function startServer() {
 
   // In-memory / server-side log storage (hydrated from disk if exists)
   let serverData = loadServerData() || {};
+
+  // Serve static files from static/ and static/images/
+  app.use('/static', express.static(STATIC_DIR, { maxAge: '1d' }));
+  app.use('/images', express.static(STATIC_IMAGES_DIR, { maxAge: '1d' }));
 
   // Health endpoint
   app.get('/api/health', (req, res) => {
@@ -210,20 +316,23 @@ ${body}
     }
   });
 
-  // Profile photo upload API: stores photo and updates disk
-  app.post('/api/upload-photo', (req, res) => {
+  // Profile & categorized photo upload API: saves images to static/images/<category>/ and updates disk
+  app.post(['/api/upload-photo', '/api/upload-image'], (req, res) => {
     try {
-      const { imageData, filename, isAvatar, caption, tag } = req.body;
+      const { imageData, filename, isAvatar, caption, tag, category } = req.body;
       if (!imageData) {
         return res.status(400).json({ error: 'Image data is required.' });
       }
+
+      const targetCategory = category || (isAvatar ? 'profile' : 'general');
+      const { url, filename: savedFilename, category: savedCategory } = saveImageToDisk(imageData, filename, targetCategory);
 
       // If requested as primary avatar, also persist in profile on disk
       if (isAvatar) {
         const currentData = loadServerData() || {};
         currentData.profile = {
           ...(currentData.profile || {}),
-          avatarUrl: imageData
+          avatarUrl: url
         };
         saveServerData(currentData);
         serverData = currentData;
@@ -231,13 +340,34 @@ ${body}
 
       return res.json({
         success: true,
-        url: imageData,
-        filename: filename || 'photo.jpg',
+        url,
+        filename: savedFilename,
+        category: savedCategory,
         caption: caption || '',
         tag: tag || ''
       });
     } catch (err: any) {
       return res.status(500).json({ error: err.message || 'Image processing failed.' });
+    }
+  });
+
+  // Get list of all organized image folders and files
+  app.get('/api/images/categories', (req, res) => {
+    try {
+      const result: Record<string, string[]> = {};
+      if (fs.existsSync(STATIC_IMAGES_DIR)) {
+        const entries = fs.readdirSync(STATIC_IMAGES_DIR, { withFileTypes: true });
+        for (const entry of entries) {
+          if (entry.isDirectory()) {
+            const catDir = path.join(STATIC_IMAGES_DIR, entry.name);
+            const files = fs.readdirSync(catDir).filter(f => !f.startsWith('.'));
+            result[entry.name] = files.map(f => `/static/images/${entry.name}/${f}`);
+          }
+        }
+      }
+      return res.json({ success: true, categories: result });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || 'Failed to list image categories' });
     }
   });
 

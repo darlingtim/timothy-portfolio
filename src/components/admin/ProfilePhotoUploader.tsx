@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Camera, Upload, Trash2, CheckCircle2, Image as ImageIcon, Sparkles } from 'lucide-react';
+import { uploadImageFile } from '../../utils/imageUpload';
 
 interface ProfilePhotoUploaderProps {
   currentAvatarUrl?: string;
@@ -34,19 +35,21 @@ export const ProfilePhotoUploader: React.FC<ProfilePhotoUploaderProps> = ({
     }
 
     setIsUploading(true);
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      setPreviewUrl(dataUrl);
-      onSaveAvatar(dataUrl);
-      setIsUploading(false);
-      triggerSuccess();
-    };
-    reader.onerror = () => {
-      alert('Failed to read image file.');
-      setIsUploading(false);
-    };
-    reader.readAsDataURL(file);
+    uploadImageFile(file, { isAvatar: true, category: 'profile' })
+      .then((result) => {
+        if (result.url) {
+          setPreviewUrl(result.url);
+          onSaveAvatar(result.url);
+          triggerSuccess();
+        }
+      })
+      .catch((err) => {
+        console.error('Upload failed:', err);
+        alert('Failed to process image file.');
+      })
+      .finally(() => {
+        setIsUploading(false);
+      });
   };
 
   const handleUrlSubmit = (e: React.FormEvent) => {

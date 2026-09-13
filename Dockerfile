@@ -40,6 +40,7 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 COPY --from=go-builder /app/bin/web /app/web
 COPY --from=go-builder /app/content /app/content
 COPY --from=go-builder /app/dist /app/dist
+COPY --from=go-builder /app/static /app/static
 
 RUN chown -R appuser:appgroup /app
 

@@ -395,8 +395,8 @@ func TestHandleUploadPhoto(t *testing.T) {
 	var stored map[string]any
 	json.Unmarshal(dataBytes, &stored)
 	profile := stored["profile"].(map[string]any)
-	if profile["avatarUrl"] != "data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==" {
-		t.Errorf("avatarUrl mismatch: %v", profile["avatarUrl"])
+	if !strings.HasPrefix(profile["avatarUrl"].(string), "/static/images/") {
+		t.Errorf("expected avatarUrl under /static/images/, got: %v", profile["avatarUrl"])
 	}
 }
 

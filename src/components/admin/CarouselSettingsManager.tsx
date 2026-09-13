@@ -15,6 +15,7 @@ import {
   Eye
 } from 'lucide-react';
 import { CarouselConfig, CarouselPhoto } from '../../types';
+import { uploadImageFile } from '../../utils/imageUpload';
 
 interface CarouselSettingsManagerProps {
   config: CarouselConfig;
@@ -78,27 +79,37 @@ export const CarouselSettingsManager: React.FC<CarouselSettingsManagerProps> = (
     const file = e.target.files?.[0];
     if (!file) return;
     setIsUploading(true);
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      const newPhoto: CarouselPhoto = {
-        id: `photo-${Date.now()}`,
-        url: dataUrl,
-        caption: newPhotoCaption.trim() || 'Timothy Ododo Portfolio Photo',
-        tag: newPhotoTag.trim() || 'Portfolio',
-        isIncludedInCarousel: true,
-        order: formData.photos.length + 1,
-        dateAdded: new Date().toISOString()
-      };
-      setFormData(prev => ({
-        ...prev,
-        photos: [...prev.photos, newPhoto]
-      }));
-      setNewPhotoCaption('');
-      setNewPhotoTag('');
-      setIsUploading(false);
-    };
-    reader.readAsDataURL(file);
+    uploadImageFile(file, {
+      category: 'carousel',
+      caption: newPhotoCaption.trim() || 'Timothy Ododo Portfolio Photo',
+      tag: newPhotoTag.trim() || 'Portfolio',
+    })
+      .then((result) => {
+        if (result.url) {
+          const newPhoto: CarouselPhoto = {
+            id: `photo-${Date.now()}`,
+            url: result.url,
+            caption: newPhotoCaption.trim() || 'Timothy Ododo Portfolio Photo',
+            tag: newPhotoTag.trim() || 'Portfolio',
+            isIncludedInCarousel: true,
+            order: formData.photos.length + 1,
+            dateAdded: new Date().toISOString()
+          };
+          setFormData(prev => ({
+            ...prev,
+            photos: [...prev.photos, newPhoto]
+          }));
+          setNewPhotoCaption('');
+          setNewPhotoTag('');
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to upload photo:', err);
+        alert('Failed to process photo.');
+      })
+      .finally(() => {
+        setIsUploading(false);
+      });
   };
 
   const handleAddUrlPhoto = (e: React.FormEvent) => {

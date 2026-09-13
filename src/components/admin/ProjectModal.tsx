@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Plus, Trash2, Upload, FolderGit2, Check, ExternalLink } from 'lucide-react';
 import { Project, CustomField } from '../../types';
 import { CustomFieldEditor } from './CustomFieldEditor';
+import { uploadImageFile } from '../../utils/imageUpload';
 
 interface ProjectModalProps {
   isOpen: boolean;
@@ -84,12 +85,15 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      setFormData((prev) => ({ ...prev, imageUrl: dataUrl }));
-    };
-    reader.readAsDataURL(file);
+    uploadImageFile(file, { category: 'projects' })
+      .then((result) => {
+        if (result.url) {
+          setFormData((prev) => ({ ...prev, imageUrl: result.url }));
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to upload project image:', err);
+      });
   };
 
   const handleAddTech = () => {

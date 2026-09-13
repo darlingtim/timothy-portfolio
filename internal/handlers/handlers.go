@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -573,6 +574,7 @@ type UploadPhotoRequest struct {
 	IsAvatar  bool   `json:"isAvatar"`
 	Caption   string `json:"caption"`
 	Tag       string `json:"tag"`
+	Category  string `json:"category"`
 }
 
 // HandleUploadPhoto processes POST /api/upload-photo
@@ -597,6 +599,59 @@ func (h *Handler) HandleUploadPhoto(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	category := "general"
+	if req.IsAvatar {
+		category = "profile"
+	} else if strings.TrimSpace(req.Category) != "" {
+		cleanCat := regexp.MustCompile(`[^a-zA-Z0-9_-]`).ReplaceAllString(strings.ToLower(strings.TrimSpace(req.Category)), "")
+		if cleanCat != "" {
+			category = cleanCat
+		}
+	}
+
+	finalURL := req.ImageData
+	finalFilename := req.Filename
+	if finalFilename == "" {
+		finalFilename = "photo.jpg"
+	}
+
+	// If base64 data, decode and write directly to static/images/<category>/
+	if strings.HasPrefix(req.ImageData, "data:image/") {
+		parts := strings.SplitN(req.ImageData, ",", 2)
+		if len(parts) == 2 {
+			header := parts[0]
+			rawBase64 := parts[1]
+
+			ext := ".jpg"
+			if strings.Contains(header, "image/png") {
+				ext = ".png"
+			} else if strings.Contains(header, "image/webp") {
+				ext = ".webp"
+			} else if strings.Contains(header, "image/gif") {
+				ext = ".gif"
+			} else if strings.Contains(header, "image/svg") {
+				ext = ".svg"
+			}
+
+			if decoded, err := base64.StdEncoding.DecodeString(rawBase64); err == nil {
+				baseName := "upload"
+				if req.Filename != "" {
+					clean := filepath.Base(req.Filename)
+					clean = strings.TrimSuffix(clean, filepath.Ext(clean))
+					clean = regexp.MustCompile(`[^a-zA-Z0-9_-]`).ReplaceAllString(clean, "_")
+					if clean != "" {
+						baseName = clean
+					}
+				}
+				finalFilename = fmt.Sprintf("%s-%d%s", baseName, time.Now().UnixNano(), ext)
+				categoryDir := filepath.Join(".", "static", "images", category)
+				_ = os.MkdirAll(categoryDir, 0o755)
+				_ = os.WriteFile(filepath.Join(categoryDir, finalFilename), decoded, 0o644)
+				finalURL = fmt.Sprintf("/static/images/%s/%s", category, finalFilename)
+			}
+		}
+	}
+
 	if req.IsAvatar {
 		contentDir := h.getContentDir()
 		dataPath := filepath.Join(contentDir, "portfolio_data.json")
@@ -611,7 +666,7 @@ func (h *Handler) HandleUploadPhoto(w http.ResponseWriter, r *http.Request) {
 		if !ok {
 			profileMap = map[string]any{}
 		}
-		profileMap["avatarUrl"] = req.ImageData
+		profileMap["avatarUrl"] = finalURL
 		existing["profile"] = profileMap
 		existing["lastUpdated"] = time.Now().UTC().Format(time.RFC3339)
 		_ = os.MkdirAll(contentDir, 0o755)
@@ -620,17 +675,13 @@ func (h *Handler) HandleUploadPhoto(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	filename := req.Filename
-	if filename == "" {
-		filename = "photo.jpg"
-	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]any{
 		"success":  true,
-		"url":      req.ImageData,
-		"filename": filename,
+		"url":      finalURL,
+		"filename": finalFilename,
+		"category": category,
 		"caption":  req.Caption,
 		"tag":      req.Tag,
 	})
