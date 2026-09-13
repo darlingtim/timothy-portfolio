@@ -14,7 +14,10 @@ import {
   ArrowRight,
   Star,
   Trophy,
-  Users
+  Users,
+  Image as ImageIcon,
+  Maximize2,
+  X
 } from 'lucide-react';
 import { Certification, Achievement, Education } from '../types';
 
@@ -33,6 +36,7 @@ export const CertificationsView: React.FC<CertificationsViewProps> = ({
 }) => {
   const [activeTrack, setActiveTrack] = useState<'All' | 'Technical' | 'Non-Technical'>('All');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedImage, setSelectedImage] = useState<{ url: string; title: string; issuer?: string } | null>(null);
 
   // Filter Certifications
   const filteredCerts = certifications.filter((cert) => {
@@ -71,7 +75,42 @@ export const CertificationsView: React.FC<CertificationsViewProps> = ({
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#070e24] text-slate-900 dark:text-slate-100 transition-colors">
-      
+      {/* Lightbox Modal for Certificate / Award Images */}
+      {selectedImage && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div 
+            className="relative max-w-4xl w-full max-h-[92vh] bg-slate-900 rounded-2xl overflow-hidden border border-slate-700 shadow-2xl flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/80">
+              <div className="flex items-center gap-2 text-white">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span className="font-display font-bold text-sm">{selectedImage.title}</span>
+                {selectedImage.issuer && (
+                  <span className="text-xs text-slate-400 font-mono">({selectedImage.issuer})</span>
+                )}
+              </div>
+              <button
+                onClick={() => setSelectedImage(null)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-2 sm:p-4 flex items-center justify-center bg-black/40 overflow-auto">
+              <img
+                src={selectedImage.url}
+                alt={selectedImage.title}
+                className="max-h-[75vh] w-auto max-w-full object-contain rounded-lg"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header Banner */}
       <div className="relative bg-[#0c1633] text-white py-14 sm:py-18 border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
@@ -241,6 +280,31 @@ export const CertificationsView: React.FC<CertificationsViewProps> = ({
                   className="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1633] shadow-sm hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-4 group"
                 >
                   <div className="space-y-3">
+                    {/* Certificate Photo / Badge (if uploaded) */}
+                    {cert.imageUrl && (
+                      <div 
+                        onClick={() => setSelectedImage({
+                          url: cert.imageUrl!,
+                          title: cert.name,
+                          issuer: cert.issuer
+                        })}
+                        className="relative w-full h-36 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-900/60 cursor-pointer group/img"
+                      >
+                        <img
+                          src={cert.imageUrl}
+                          alt={cert.name}
+                          className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white text-xs font-semibold">
+                          <Maximize2 className="w-4 h-4" />
+                          <span>View Full Certificate</span>
+                        </div>
+                        <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/60 backdrop-blur-xs text-[10px] font-mono text-emerald-400">
+                          Verified Document
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex items-center justify-between">
                       <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
                         isTech 
@@ -283,17 +347,34 @@ export const CertificationsView: React.FC<CertificationsViewProps> = ({
                       Verified
                     </span>
 
-                    {cert.credentialUrl && (
-                      <a
-                        href={cert.credentialUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-xs font-semibold text-sky-500 hover:text-sky-400 flex items-center gap-1"
-                      >
-                        <span>View Credential</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {cert.imageUrl && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedImage({
+                            url: cert.imageUrl!,
+                            title: cert.name,
+                            issuer: cert.issuer
+                          })}
+                          className="text-xs font-semibold text-emerald-500 hover:text-emerald-400 flex items-center gap-1"
+                        >
+                          <ImageIcon className="w-3 h-3" />
+                          <span>Photo</span>
+                        </button>
+                      )}
+
+                      {cert.credentialUrl && (
+                        <a
+                          href={cert.credentialUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs font-semibold text-sky-500 hover:text-sky-400 flex items-center gap-1"
+                        >
+                          <span>Credential</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -329,7 +410,29 @@ export const CertificationsView: React.FC<CertificationsViewProps> = ({
                   key={ach.id}
                   className="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1633] space-y-3 flex flex-col justify-between shadow-sm hover:border-amber-500/40 transition-all"
                 >
-                  <div className="space-y-2">
+                  <div className="space-y-3">
+                    {/* Achievement / Award Photo / Badge (if uploaded) */}
+                    {ach.imageUrl && (
+                      <div 
+                        onClick={() => setSelectedImage({
+                          url: ach.imageUrl!,
+                          title: ach.title,
+                          issuer: ach.issuer
+                        })}
+                        className="relative w-full h-32 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-900/60 cursor-pointer group/img"
+                      >
+                        <img
+                          src={ach.imageUrl}
+                          alt={ach.title}
+                          className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white text-xs font-semibold">
+                          <Maximize2 className="w-4 h-4" />
+                          <span>View Award Photo</span>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
@@ -362,6 +465,21 @@ export const CertificationsView: React.FC<CertificationsViewProps> = ({
                       <Star className="w-3.5 h-3.5 fill-amber-400" />
                       Honor Conferred
                     </span>
+
+                    {ach.imageUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedImage({
+                          url: ach.imageUrl!,
+                          title: ach.title,
+                          issuer: ach.issuer
+                        })}
+                        className="text-xs font-semibold text-amber-500 hover:text-amber-400 flex items-center gap-1"
+                      >
+                        <ImageIcon className="w-3 h-3" />
+                        <span>Photo</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               );

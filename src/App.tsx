@@ -190,6 +190,8 @@ export default function App() {
         setCarouselConfig={setCarouselConfig}
         events={events}
         setEvents={setEvents}
+        mentoringPrograms={mentoringPrograms}
+        setMentoringPrograms={setMentoringPrograms}
         isDark={isDark}
         onToggleTheme={handleToggleTheme}
         onVisitPortfolio={() => { setInAdminDashboard(false); handleNavigate('/'); }}

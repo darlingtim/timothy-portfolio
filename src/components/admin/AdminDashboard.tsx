@@ -43,7 +43,9 @@ import {
   Pin,
   Layers,
   BarChart2,
-  Sliders
+  Sliders,
+  Users,
+  FolderOpen
 } from 'lucide-react';
 import { 
   Profile, 
@@ -61,9 +63,10 @@ import {
   CarouselConfig,
   EventContribution,
   Skill,
-  SkillCategory
+  SkillCategory,
+  MentoringProgram
 } from '../../types';
-import { saveStored } from '../../data';
+import { saveStored, getMentoringPrograms } from '../../data';
 import { CustomFieldEditor } from './CustomFieldEditor';
 import { ProfilePhotoUploader } from './ProfilePhotoUploader';
 import { EmailReplyModal } from './EmailReplyModal';
@@ -71,11 +74,14 @@ import { ProjectModal } from './ProjectModal';
 import { ExperienceModal } from './ExperienceModal';
 import { GalleryModal } from './GalleryModal';
 import { AchievementModal } from './AchievementModal';
+import { CertificationModal } from './CertificationModal';
+import { MentoringModal } from './MentoringModal';
 import { EventModal } from './EventModal';
 import { SkillModal } from './SkillModal';
 import { SkillCategoryModal } from './SkillCategoryModal';
 import { CarouselSettingsManager } from './CarouselSettingsManager';
 import { GitDeployManager } from './GitDeployManager';
+import { MediaLibraryModal } from './MediaLibraryModal';
 
 interface AdminDashboardProps {
   profile: Profile;
@@ -94,6 +100,8 @@ interface AdminDashboardProps {
   setCertifications: React.Dispatch<React.SetStateAction<Certification[]>>;
   education: Education[];
   setEducation: React.Dispatch<React.SetStateAction<Education[]>>;
+  mentoringPrograms?: MentoringProgram[];
+  setMentoringPrograms?: React.Dispatch<React.SetStateAction<MentoringProgram[]>>;
   messages: ContactMessage[];
   setMessages: React.Dispatch<React.SetStateAction<ContactMessage[]>>;
   siteSettings: SiteSettings;
@@ -125,6 +133,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   setCertifications,
   education,
   setEducation,
+  mentoringPrograms,
+  setMentoringPrograms,
   messages,
   setMessages,
   siteSettings,
@@ -141,6 +151,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Local mentoring programs state with fallback
+  const [localMentoring, setLocalMentoring] = useState<MentoringProgram[]>(() => {
+    return mentoringPrograms || getMentoringPrograms();
+  });
 
   // Search & filter states
   const [projectSearch, setProjectSearch] = useState('');
@@ -159,6 +174,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [isAchievementModalOpen, setIsAchievementModalOpen] = useState(false);
   const [achievementToEdit, setAchievementToEdit] = useState<Achievement | null>(null);
 
+  const [isCertificationModalOpen, setIsCertificationModalOpen] = useState(false);
+  const [certificationToEdit, setCertificationToEdit] = useState<Certification | null>(null);
+  const [credentialSubTab, setCredentialSubTab] = useState<'certifications' | 'achievements'>('certifications');
+
+  const [isMentoringModalOpen, setIsMentoringModalOpen] = useState(false);
+  const [programToEdit, setProgramToEdit] = useState<MentoringProgram | null>(null);
+
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState<EventContribution | null>(null);
 
@@ -175,6 +197,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
   const [messageToReply, setMessageToReply] = useState<ContactMessage | null>(null);
+  const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -437,6 +460,54 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setAchievements(updated);
     saveStored('achievements', updated);
     showToast('Achievement deleted.');
+  };
+
+  // Certifications CRUD
+  const handleSaveCertification = (cert: Certification) => {
+    const exists = certifications.some((c) => c.id === cert.id);
+    let updated: Certification[];
+    if (exists) {
+      updated = certifications.map((c) => (c.id === cert.id ? cert : c));
+      showToast(`Updated certification "${cert.name}"`);
+    } else {
+      updated = [cert, ...certifications];
+      showToast(`Added certification "${cert.name}"`);
+    }
+    setCertifications(updated);
+    saveStored('certifications', updated);
+  };
+
+  const handleDeleteCertification = (id: string) => {
+    if (!confirm('Delete this certification record?')) return;
+    const updated = certifications.filter((c) => c.id !== id);
+    setCertifications(updated);
+    saveStored('certifications', updated);
+    showToast('Certification deleted.');
+  };
+
+  // Mentoring CRUD
+  const handleSaveMentoringProgram = (program: MentoringProgram) => {
+    const exists = localMentoring.some((p) => p.id === program.id);
+    let updated: MentoringProgram[];
+    if (exists) {
+      updated = localMentoring.map((p) => (p.id === program.id ? program : p));
+      showToast(`Updated mentoring program "${program.title}"`);
+    } else {
+      updated = [program, ...localMentoring];
+      showToast(`Added mentoring program "${program.title}"`);
+    }
+    if (setMentoringPrograms) setMentoringPrograms(updated);
+    setLocalMentoring(updated);
+    saveStored('mentoring', updated);
+  };
+
+  const handleDeleteMentoringProgram = (id: string) => {
+    if (!confirm('Delete this mentoring program record?')) return;
+    const updated = localMentoring.filter((p) => p.id !== id);
+    if (setMentoringPrograms) setMentoringPrograms(updated);
+    setLocalMentoring(updated);
+    saveStored('mentoring', updated);
+    showToast('Mentoring program deleted.');
   };
 
   // Messages Actions & Direct Reply
@@ -733,7 +804,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               }`}
             >
               <Award className="w-4 h-4 text-slate-400" />
-              <span>Achievements</span>
+              <span>Certifications &amp; Awards</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('mentoring');
+                setSidebarOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                activeTab === 'mentoring'
+                  ? 'bg-slate-800 text-sky-400 font-semibold'
+                  : 'text-slate-300 hover:bg-slate-800/50'
+              }`}
+            >
+              <Users className="w-4 h-4 text-slate-400" />
+              <span>Mentoring Programs</span>
             </button>
 
             <button
@@ -779,6 +865,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold px-3">
               SITE MANAGEMENT
             </span>
+
+            <button
+              onClick={() => {
+                setIsMediaLibraryOpen(true);
+                setSidebarOpen(false);
+              }}
+              className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800/50 hover:text-white transition-colors text-left"
+            >
+              <div className="flex items-center gap-3">
+                <FolderOpen className="w-4 h-4 text-sky-400" />
+                <span>Media &amp; Photo Library</span>
+              </div>
+              <span className="px-1.5 py-0.5 text-[9px] font-mono font-bold bg-sky-500/20 text-sky-400 rounded">
+                Cross-Cat
+              </span>
+            </button>
 
             <button
               onClick={() => {
@@ -2030,70 +2132,339 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
           )}
 
-          {/* TAB 7: ACHIEVEMENTS CMS */}
+          {/* TAB 7: CERTIFICATIONS & ACHIEVEMENTS CMS */}
           {activeTab === 'achievements' && (
             <div className="space-y-6 animate-in fade-in max-w-4xl">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h3 className="font-display text-xl font-bold text-slate-900 dark:text-white">
-                    Achievements &amp; Certifications
+                    Certifications &amp; Distinctions
                   </h3>
                   <p className="text-xs text-slate-500">
-                    Certificates, awards, recognitions, and fellowships.
+                    Upload certificate credentials, badges, verified honors, and fellowships.
+                  </p>
+                </div>
+
+                {/* Subtab Toggle */}
+                <div className="flex items-center p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700">
+                  <button
+                    type="button"
+                    onClick={() => setCredentialSubTab('certifications')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 ${
+                      credentialSubTab === 'certifications'
+                        ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>Certifications ({certifications.length})</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCredentialSubTab('achievements')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 ${
+                      credentialSubTab === 'achievements'
+                        ? 'bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    <Award className="w-3.5 h-3.5" />
+                    <span>Honors &amp; Awards ({achievements.length})</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Subtab 1: Certifications */}
+              {credentialSubTab === 'certifications' && (
+                <div className="space-y-4 animate-in fade-in">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono text-slate-400 uppercase tracking-wider font-semibold">
+                      Verified Technical &amp; Professional Certifications
+                    </span>
+                    <button
+                      onClick={() => {
+                        setCertificationToEdit(null);
+                        setIsCertificationModalOpen(true);
+                      }}
+                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs sm:text-sm shadow-sm flex items-center gap-1.5 transition-all"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Add Certification</span>
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {certifications.map((cert) => (
+                      <div
+                        key={cert.id}
+                        className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1633] flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                      >
+                        <div className="flex items-start gap-3">
+                          {cert.imageUrl ? (
+                            <img
+                              src={cert.imageUrl}
+                              alt={cert.name}
+                              className="w-14 h-14 object-cover rounded-xl border border-slate-200 dark:border-slate-700 shrink-0 bg-slate-900"
+                            />
+                          ) : (
+                            <div className="w-14 h-14 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center shrink-0">
+                              <ShieldCheck className="w-6 h-6" />
+                            </div>
+                          )}
+                          <div className="space-y-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h4 className="font-display font-bold text-sm text-slate-900 dark:text-white">
+                                {cert.name}
+                              </h4>
+                              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                                {cert.track || 'Technical'}
+                              </span>
+                              {cert.imageUrl && (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-sky-500/10 text-sky-400 flex items-center gap-1">
+                                  <ImageIcon className="w-3 h-3" /> Photo Attached
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-slate-600 dark:text-slate-400">
+                              {cert.issuer} &bull; {cert.year} &mdash; {cert.description}
+                            </p>
+                            {cert.skillsCovered && cert.skillsCovered.length > 0 && (
+                              <div className="flex flex-wrap gap-1 pt-1">
+                                {cert.skillsCovered.slice(0, 4).map((s) => (
+                                  <span key={s} className="px-1.5 py-0.2 rounded text-[9px] font-mono bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                                    {s}
+                                  </span>
+                                ))}
+                                {cert.skillsCovered.length > 4 && (
+                                  <span className="text-[9px] font-mono text-slate-400">+{cert.skillsCovered.length - 4} more</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1 self-end sm:self-center shrink-0">
+                          <button
+                            onClick={() => {
+                              setCertificationToEdit(cert);
+                              setIsCertificationModalOpen(true);
+                            }}
+                            className="p-2 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-slate-800"
+                            title="Edit Certification"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCertification(cert.id)}
+                            className="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/40"
+                            title="Delete Certification"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+
+                    {certifications.length === 0 && (
+                      <div className="p-8 text-center border border-dashed border-slate-300 dark:border-slate-800 rounded-2xl text-slate-400 text-xs">
+                        No certifications registered yet. Click "Add Certification" to attach certificates.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Subtab 2: Achievements & Honors */}
+              {credentialSubTab === 'achievements' && (
+                <div className="space-y-4 animate-in fade-in">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono text-slate-400 uppercase tracking-wider font-semibold">
+                      Recognitions, Fellowships &amp; Honors
+                    </span>
+                    <button
+                      onClick={() => {
+                        setAchievementToEdit(null);
+                        setIsAchievementModalOpen(true);
+                      }}
+                      className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs sm:text-sm shadow-sm flex items-center gap-1.5 transition-all"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Add Achievement</span>
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {achievements.map((ach) => (
+                      <div
+                        key={ach.id}
+                        className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1633] flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                      >
+                        <div className="flex items-start gap-3">
+                          {ach.imageUrl ? (
+                            <img
+                              src={ach.imageUrl}
+                              alt={ach.title}
+                              className="w-14 h-14 object-cover rounded-xl border border-slate-200 dark:border-slate-700 shrink-0 bg-slate-900"
+                            />
+                          ) : (
+                            <div className="w-14 h-14 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center shrink-0">
+                              <Award className="w-6 h-6" />
+                            </div>
+                          )}
+                          <div className="space-y-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h4 className="font-display font-bold text-sm text-slate-900 dark:text-white">
+                                {ach.title}
+                              </h4>
+                              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/10 text-amber-500">
+                                {ach.category}
+                              </span>
+                              {ach.imageUrl && (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/10 text-amber-400 flex items-center gap-1">
+                                  <ImageIcon className="w-3 h-3" /> Photo Attached
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-slate-600 dark:text-slate-400">
+                              {ach.issuer} &bull; {ach.year} &mdash; {ach.description}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1 self-end sm:self-center shrink-0">
+                          <button
+                            onClick={() => {
+                              setAchievementToEdit(ach);
+                              setIsAchievementModalOpen(true);
+                            }}
+                            className="p-2 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-slate-800"
+                            title="Edit Achievement"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteAchievement(ach.id)}
+                            className="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/40"
+                            title="Delete Achievement"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+
+                    {achievements.length === 0 && (
+                      <div className="p-8 text-center border border-dashed border-slate-300 dark:border-slate-800 rounded-2xl text-slate-400 text-xs">
+                        No achievements recorded yet. Click "Add Achievement" to get started.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB: MENTORING PROGRAMS CMS */}
+          {activeTab === 'mentoring' && (
+            <div className="space-y-6 animate-in fade-in max-w-4xl">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="font-display text-xl font-bold text-slate-900 dark:text-white">
+                    Mentoring &amp; Technical Bootcamps
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Youth STEM initiatives, engineering peer groups, workshops, and classroom session photos.
                   </p>
                 </div>
                 <button
                   onClick={() => {
-                    setAchievementToEdit(null);
-                    setIsAchievementModalOpen(true);
+                    setProgramToEdit(null);
+                    setIsMentoringModalOpen(true);
                   }}
-                  className="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs sm:text-sm shadow-sm flex items-center gap-1.5 transition-all"
+                  className="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs sm:text-sm shadow-sm flex items-center gap-1.5 transition-all"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Add Achievement</span>
+                  <span>Add Mentoring Program</span>
                 </button>
               </div>
 
-              <div className="space-y-3">
-                {achievements.map((ach) => (
+              <div className="space-y-4">
+                {localMentoring.map((prog) => (
                   <div
-                    key={ach.id}
-                    className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1633] flex items-center justify-between gap-4"
+                    key={prog.id}
+                    className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1633] flex flex-col sm:flex-row gap-4 justify-between"
                   >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <Award className="w-4 h-4 text-amber-500 shrink-0" />
-                        <h4 className="font-display font-bold text-sm text-slate-900 dark:text-white">
-                          {ach.title}
-                        </h4>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/10 text-amber-500">
-                          {ach.category}
-                        </span>
+                    <div className="flex items-start gap-4">
+                      {prog.imageUrl ? (
+                        <img
+                          src={prog.imageUrl}
+                          alt={prog.title}
+                          className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl border border-slate-200 dark:border-slate-700 shrink-0 bg-slate-900"
+                        />
+                      ) : (
+                        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
+                          <Users className="w-8 h-8" />
+                        </div>
+                      )}
+                      <div className="space-y-1.5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h4 className="font-display font-bold text-base text-slate-900 dark:text-white">
+                            {prog.title}
+                          </h4>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-sky-500/10 text-sky-400 font-semibold border border-sky-500/20">
+                            {prog.learnersCount}
+                          </span>
+                          {prog.imageUrl && (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-purple-500/10 text-purple-400 flex items-center gap-1">
+                              <Camera className="w-3 h-3" /> Workshop Photo
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs font-semibold text-sky-600 dark:text-sky-400">
+                          {prog.organization} &bull; <span className="text-slate-400 font-normal">{prog.period}</span>
+                        </p>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2">
+                          {prog.description}
+                        </p>
+                        {prog.technologies && prog.technologies.length > 0 && (
+                          <div className="flex flex-wrap gap-1 pt-1">
+                            {prog.technologies.map((t) => (
+                              <span key={t} className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                                {t}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                      <p className="text-xs text-slate-600 dark:text-slate-400">
-                        {ach.issuer} &bull; {ach.year} &mdash; {ach.description}
-                      </p>
                     </div>
 
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex sm:flex-col items-center justify-end gap-1.5 shrink-0">
                       <button
                         onClick={() => {
-                          setAchievementToEdit(ach);
-                          setIsAchievementModalOpen(true);
+                          setProgramToEdit(prog);
+                          setIsMentoringModalOpen(true);
                         }}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-slate-800"
+                        className="p-2 rounded-lg text-slate-400 hover:text-purple-400 hover:bg-slate-800"
+                        title="Edit Program"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleDeleteAchievement(ach.id)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/40"
+                        onClick={() => handleDeleteMentoringProgram(prog.id)}
+                        className="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/40"
+                        title="Delete Program"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
                 ))}
+
+                {localMentoring.length === 0 && (
+                  <div className="p-10 text-center border border-dashed border-slate-300 dark:border-slate-800 rounded-2xl text-slate-400 text-xs">
+                    No mentoring programs added yet. Click "Add Mentoring Program" to showcase your mentoring work.
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -2352,6 +2723,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 galleryItems,
                 siteSettings,
                 carouselConfig,
+                mentoring: localMentoring,
               }}
               showToast={showToast}
             />
@@ -2391,6 +2763,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         onSave={handleSaveGallery}
       />
 
+      <CertificationModal
+        isOpen={isCertificationModalOpen}
+        certificationToEdit={certificationToEdit}
+        onClose={() => {
+          setIsCertificationModalOpen(false);
+          setCertificationToEdit(null);
+        }}
+        onSave={handleSaveCertification}
+      />
+
       <AchievementModal
         isOpen={isAchievementModalOpen}
         achievementToEdit={achievementToEdit}
@@ -2399,6 +2781,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           setAchievementToEdit(null);
         }}
         onSave={handleSaveAchievement}
+      />
+
+      <MentoringModal
+        isOpen={isMentoringModalOpen}
+        programToEdit={programToEdit}
+        onClose={() => {
+          setIsMentoringModalOpen(false);
+          setProgramToEdit(null);
+        }}
+        onSave={handleSaveMentoringProgram}
       />
 
       <EventModal
@@ -2441,6 +2833,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           setMessageToReply(null);
         }}
         onSendReply={handleSendReply}
+      />
+
+      <MediaLibraryModal
+        isOpen={isMediaLibraryOpen}
+        onClose={() => setIsMediaLibraryOpen(false)}
+        targetCategoryLabel="Portfolio Item"
+        defaultCategoryFilter="all"
+        onSelectPhoto={(url) => {
+          showToast(`Selected photo: ${url.split('/').pop()}`);
+        }}
       />
 
     </div>

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { X, Award, Check } from 'lucide-react';
+import { X, Award, Check, Upload, Trash2, ExternalLink, FolderOpen, Image as ImageIcon } from 'lucide-react';
 import { Achievement, CustomField } from '../../types';
+import { uploadImageFile } from '../../utils/imageUpload';
 import { CustomFieldEditor } from './CustomFieldEditor';
+import { MediaLibraryModal } from './MediaLibraryModal';
 
 interface AchievementModalProps {
   isOpen: boolean;
@@ -27,8 +29,13 @@ export const AchievementModal: React.FC<AchievementModalProps> = ({
     description: '',
     icon: 'award',
     date: new Date().toISOString().split('T')[0],
+    imageUrl: '',
+    credentialUrl: '',
     customFields: []
   });
+
+  const [isUploading, setIsUploading] = useState(false);
+  const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
 
   useEffect(() => {
     if (achievementToEdit) {
@@ -42,10 +49,31 @@ export const AchievementModal: React.FC<AchievementModalProps> = ({
         description: '',
         icon: 'award',
         date: new Date().toISOString().split('T')[0],
+        imageUrl: '',
+        credentialUrl: '',
         customFields: []
       });
     }
   }, [achievementToEdit]);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    uploadImageFile(file, { category: 'certifications' })
+      .then((result) => {
+        if (result.url) {
+          setFormData((prev) => ({ ...prev, imageUrl: result.url }));
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to upload certificate/award photo:', err);
+      })
+      .finally(() => {
+        setIsUploading(false);
+      });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +89,8 @@ export const AchievementModal: React.FC<AchievementModalProps> = ({
       description: formData.description || '',
       icon: formData.icon || 'award',
       date: formData.date || '',
+      imageUrl: formData.imageUrl?.trim() || undefined,
+      credentialUrl: formData.credentialUrl?.trim() || undefined,
       customFields: formData.customFields || []
     };
 
@@ -186,6 +216,101 @@ export const AchievementModal: React.FC<AchievementModalProps> = ({
               />
             </div>
 
+            {/* Certificate / Award Photo Upload */}
+            <div className="space-y-3 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4 text-amber-500" />
+                  <label className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-300">
+                    Certificate Photo / Award Badge
+                  </label>
+                </div>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-500">
+                  Folder: static/images/certifications
+                </span>
+              </div>
+
+              {formData.imageUrl ? (
+                <div className="flex items-center gap-3">
+                  <div className="relative w-28 h-20 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 group shrink-0">
+                    <img
+                      src={formData.imageUrl}
+                      alt="Certificate preview"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <a
+                        href={formData.imageUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="p-1 rounded bg-white/20 text-white hover:bg-white/40"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5 flex-1 min-w-0">
+                    <p className="text-xs font-mono text-slate-500 truncate">{formData.imageUrl}</p>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsMediaLibraryOpen(true)}
+                        className="px-2.5 py-1 rounded border border-sky-300 dark:border-sky-800 text-sky-600 dark:text-sky-400 text-xs hover:bg-sky-50 dark:hover:bg-sky-950/40 flex items-center gap-1 transition-colors font-medium"
+                      >
+                        <FolderOpen className="w-3.5 h-3.5" />
+                        <span>Change from Library</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, imageUrl: '' })}
+                        className="px-2.5 py-1 rounded border border-rose-300 dark:border-rose-800 text-rose-500 text-xs hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-1 transition-colors"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        <span>Remove</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <label className="flex flex-col items-center justify-center h-20 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-amber-500 rounded-xl cursor-pointer bg-white dark:bg-slate-900 transition-colors p-2 text-center group">
+                      <Upload className="w-5 h-5 text-slate-400 group-hover:text-amber-500 mb-1 transition-colors" />
+                      <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        {isUploading ? 'Uploading...' : 'Upload Image File'}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        disabled={isUploading}
+                        className="hidden"
+                      />
+                    </label>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsMediaLibraryOpen(true)}
+                      className="flex flex-col items-center justify-center h-20 border-2 border-dashed border-sky-300 dark:border-sky-800/80 hover:border-sky-500 rounded-xl bg-sky-50/50 dark:bg-sky-950/20 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors p-2 text-center group"
+                    >
+                      <FolderOpen className="w-5 h-5 text-sky-500 mb-1 transition-transform group-hover:scale-110" />
+                      <span className="text-xs font-semibold text-sky-600 dark:text-sky-400">
+                        Choose from Photo Library
+                      </span>
+                    </button>
+                  </div>
+
+                  <input
+                    type="text"
+                    value={formData.imageUrl || ''}
+                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                    placeholder="Or enter image URL: /static/images/certifications/... or https://..."
+                    className="w-full px-2.5 py-1 text-xs rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                  />
+                </div>
+              )}
+            </div>
+
             {/* Custom metadata */}
             <CustomFieldEditor
               customFields={formData.customFields || []}
@@ -216,6 +341,16 @@ export const AchievementModal: React.FC<AchievementModalProps> = ({
         </div>
 
       </div>
+
+      <MediaLibraryModal
+        isOpen={isMediaLibraryOpen}
+        onClose={() => setIsMediaLibraryOpen(false)}
+        targetCategoryLabel="Achievement / Certificate"
+        defaultCategoryFilter="certifications"
+        onSelectPhoto={(url) => {
+          setFormData((prev) => ({ ...prev, imageUrl: url }));
+        }}
+      />
     </div>
   );
 };

@@ -188,6 +188,7 @@
       "credentialUrl": "https://coursera.org/verify/professional-cert/google-it-support",
       "description": "Comprehensive 5-course professional program covering hardware, networking, operating systems, system administration, and IT security.",
       "id": "google-it-support",
+      "imageUrl": "/static/images/certifications/google-it-support-cert.svg",
       "issuer": "Google",
       "name": "Google IT Support Professional Certificate",
       "skillsCovered": [
@@ -204,6 +205,7 @@
       "credentialUrl": "https://raspberrypi.org",
       "description": "Specialized certification demonstrating competence in microcontrollers, sensor integration, and computational thinking pedagogy.",
       "id": "rpi-educator",
+      "imageUrl": "/static/images/certifications/rpi-educator-cert.svg",
       "issuer": "Raspberry Pi Foundation",
       "name": "Raspberry Pi Certified Physical Computing Educator",
       "skillsCovered": [
@@ -659,7 +661,7 @@
       ]
     }
   ],
-  "lastUpdated": "2026-09-13T11:33:11.471Z",
+  "lastUpdated": "2026-09-13T11:43:44.018Z",
   "messages": [
     {
       "date": "2026-09-12T12:16:48Z",
@@ -1231,6 +1233,7 @@
       "period": "August – September 2024",
       "learnersCount": "200+ Students",
       "focus": "Raspberry Pi Pico, MicroPython, Scratch & Sensor Prototyping",
+      "imageUrl": "/static/images/mentoring/buildathon-holiday-camp.jpg",
       "description": "Designed and delivered an immersive 4-week physical computing program for junior and senior secondary school students across Anambra State.",
       "highlights": [
         "Rapidly developed and deployed hands-on curriculum within 72 hours of camp kick-off",

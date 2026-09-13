@@ -1,5 +1,5 @@
-import React from 'react';
-import { Users, GraduationCap, Award, CheckCircle2, Quote, ArrowRight, Sparkles, Heart } from 'lucide-react';
+import React, { useState } from 'react';
+import { Users, GraduationCap, Award, CheckCircle2, Quote, ArrowRight, Sparkles, Heart, Camera, Maximize2, X } from 'lucide-react';
 import { MentoringProgram, ImpactMetric } from '../types';
 
 interface MentoringViewProps {
@@ -8,9 +8,48 @@ interface MentoringViewProps {
 }
 
 export const MentoringView: React.FC<MentoringViewProps> = ({ programs, onNavigate }) => {
+  const [selectedPhoto, setSelectedPhoto] = useState<{ url: string; title: string; caption?: string } | null>(null);
+
   return (
     <div className="py-12 sm:py-16 space-y-16">
-      
+      {/* Lightbox Modal for Mentoring Photos */}
+      {selectedPhoto && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in"
+          onClick={() => setSelectedPhoto(null)}
+        >
+          <div 
+            className="relative max-w-4xl w-full max-h-[90vh] bg-slate-900 rounded-2xl overflow-hidden border border-slate-700 shadow-2xl flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/80">
+              <div className="flex items-center gap-2 text-white">
+                <Camera className="w-4 h-4 text-sky-400" />
+                <span className="font-display font-bold text-sm">{selectedPhoto.title}</span>
+              </div>
+              <button
+                onClick={() => setSelectedPhoto(null)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-2 sm:p-4 flex items-center justify-center bg-black/40 overflow-auto">
+              <img
+                src={selectedPhoto.url}
+                alt={selectedPhoto.title}
+                className="max-h-[72vh] w-auto max-w-full object-contain rounded-lg"
+              />
+            </div>
+            {selectedPhoto.caption && (
+              <div className="p-3 border-t border-slate-800 bg-slate-950/90 text-xs text-slate-300">
+                {selectedPhoto.caption}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Top Banner */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl space-y-4">
@@ -83,11 +122,11 @@ export const MentoringView: React.FC<MentoringViewProps> = ({ programs, onNaviga
           Featured Mentorship Programs
         </h2>
 
-        <div className="space-y-6">
+        <div className="space-y-8">
           {programs.map((prog) => (
             <div
               key={prog.id}
-              className="p-6 sm:p-8 rounded-2xl bg-white dark:bg-[#0c1633] border border-slate-200 dark:border-slate-800 shadow-sm space-y-6"
+              className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#0c1633] border border-slate-200 dark:border-slate-800 shadow-sm space-y-6"
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
                 <div>
@@ -107,6 +146,40 @@ export const MentoringView: React.FC<MentoringViewProps> = ({ programs, onNaviga
                   </span>
                 </div>
               </div>
+
+              {/* Mentoring Photo Banner (if available) */}
+              {prog.imageUrl && (
+                <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 group">
+                  <div className="aspect-video sm:aspect-21/9 w-full overflow-hidden">
+                    <img
+                      src={prog.imageUrl}
+                      alt={`${prog.title} Workshop Session`}
+                      className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300 cursor-pointer"
+                      onClick={() => setSelectedPhoto({
+                        url: prog.imageUrl!,
+                        title: prog.title,
+                        caption: `${prog.organization} — ${prog.focus}`
+                      })}
+                    />
+                  </div>
+                  <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-black/65 backdrop-blur-xs text-white text-xs font-mono font-medium flex items-center gap-1.5 border border-white/20">
+                    <Camera className="w-3.5 h-3.5 text-sky-400" />
+                    <span>Workshop Session Photo</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPhoto({
+                      url: prog.imageUrl!,
+                      title: prog.title,
+                      caption: `${prog.organization} — ${prog.focus}`
+                    })}
+                    className="absolute bottom-3 right-3 p-2 rounded-xl bg-black/65 hover:bg-black/80 backdrop-blur-xs text-white text-xs flex items-center gap-1.5 transition-colors border border-white/20"
+                  >
+                    <Maximize2 className="w-4 h-4" />
+                    <span className="hidden sm:inline">Expand Photo</span>
+                  </button>
+                </div>
+              )}
 
               <p className="text-slate-600 dark:text-slate-300 text-base leading-relaxed">
                 {prog.description}

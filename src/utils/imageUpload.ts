@@ -1,4 +1,14 @@
-export type ImageCategory = 'profile' | 'carousel' | 'projects' | 'gallery' | 'events' | 'general';
+export type ImageCategory = 
+  | 'profile' 
+  | 'carousel' 
+  | 'projects' 
+  | 'experience' 
+  | 'gallery' 
+  | 'events' 
+  | 'certifications' 
+  | 'achievements' 
+  | 'mentoring' 
+  | 'general';
 
 export interface UploadImageResult {
   url: string;
@@ -11,6 +21,45 @@ export interface UploadImageOptions {
   isAvatar?: boolean;
   caption?: string;
   tag?: string;
+}
+
+export interface MediaImageItem {
+  url: string;
+  filename: string;
+  category: string;
+  source?: 'uploaded' | 'portfolio' | 'preset';
+  modified?: string;
+  size?: number;
+}
+
+/**
+ * Fetches all available photos across all categories from the server API.
+ */
+export async function fetchMediaImages(): Promise<MediaImageItem[]> {
+  try {
+    const res = await fetch('/api/images');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && Array.isArray(data.images)) {
+        return data.images;
+      }
+    }
+  } catch (err) {
+    console.warn('Could not fetch media images from /api/images:', err);
+  }
+
+  // Fallback preset / static defaults
+  return [
+    { url: '/static/images/profile/timothy-ododo-avatar.jpg', filename: 'timothy-ododo-avatar.jpg', category: 'profile', source: 'uploaded' },
+    { url: '/static/images/carousel/carousel-photo-1.jpg', filename: 'carousel-photo-1.jpg', category: 'carousel', source: 'uploaded' },
+    { url: '/static/images/carousel/carousel-photo-2.jpg', filename: 'carousel-photo-2.jpg', category: 'carousel', source: 'uploaded' },
+    { url: '/static/images/carousel/carousel-photo-3.jpg', filename: 'carousel-photo-3.jpg', category: 'carousel', source: 'uploaded' },
+    { url: '/static/images/carousel/buildathon-holiday-camp.jpg', filename: 'buildathon-holiday-camp.jpg', category: 'carousel', source: 'uploaded' },
+    { url: '/static/images/events/buildathon-holiday-camp.jpg', filename: 'buildathon-holiday-camp.jpg', category: 'events', source: 'uploaded' },
+    { url: '/static/images/certifications/google-it-support-cert.svg', filename: 'google-it-support-cert.svg', category: 'certifications', source: 'uploaded' },
+    { url: '/static/images/certifications/rpi-educator-cert.svg', filename: 'rpi-educator-cert.svg', category: 'certifications', source: 'uploaded' },
+    { url: '/static/images/mentoring/buildathon-holiday-camp.jpg', filename: 'buildathon-holiday-camp.jpg', category: 'mentoring', source: 'uploaded' },
+  ];
 }
 
 /**

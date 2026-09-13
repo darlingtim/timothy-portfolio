@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Upload, Image as ImageIcon, Trash2, Check } from 'lucide-react';
+import { X, Upload, Image as ImageIcon, Trash2, Check, FolderOpen } from 'lucide-react';
 import { GalleryItem, CustomField } from '../../types';
 import { CustomFieldEditor } from './CustomFieldEditor';
 import { uploadImageFile } from '../../utils/imageUpload';
+import { MediaLibraryModal } from './MediaLibraryModal';
 
 interface GalleryModalProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
   });
 
   const [tagInput, setTagInput] = useState('');
+  const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -132,10 +134,19 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
           <form id="gallery-form" onSubmit={handleSubmit} className="space-y-5">
             
             {/* Image Preview & Upload */}
-            <div className="space-y-2 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/60">
-              <label className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-300 block">
-                Photo Asset
-              </label>
+            <div className="space-y-3 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/60">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4 text-purple-500" />
+                  <label className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-300 block">
+                    Photo Asset
+                  </label>
+                </div>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-500 font-medium">
+                  Folder: static/images/gallery
+                </span>
+              </div>
+
               <div className="flex flex-col sm:flex-row items-center gap-4">
                 <div className="w-28 h-20 rounded-lg bg-slate-200 dark:bg-slate-800 overflow-hidden shrink-0 border border-slate-300 dark:border-slate-700">
                   {formData.imageUrl ? (
@@ -147,9 +158,9 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
                 <div className="flex-1 w-full space-y-2">
                   <input
                     type="text"
-                    value={formData.imageUrl}
+                    value={formData.imageUrl || ''}
                     onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                    placeholder="https://images.unsplash.com/..."
+                    placeholder="https://images.unsplash.com/... or /static/images/..."
                     className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:outline-none"
                   />
                   <div className="flex items-center gap-2">
@@ -168,6 +179,24 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
                       <Upload className="w-3.5 h-3.5" />
                       <span>Upload image file</span>
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsMediaLibraryOpen(true)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 text-xs rounded-lg border border-purple-300 dark:border-purple-800 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40 transition-colors font-medium"
+                    >
+                      <FolderOpen className="w-3.5 h-3.5" />
+                      <span>Choose from Library</span>
+                    </button>
+                    {formData.imageUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, imageUrl: '' })}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 text-xs rounded-lg border border-rose-300 dark:border-rose-800 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Clear</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -314,6 +343,16 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
         </div>
 
       </div>
+
+      <MediaLibraryModal
+        isOpen={isMediaLibraryOpen}
+        onClose={() => setIsMediaLibraryOpen(false)}
+        targetCategoryLabel="Gallery Photo"
+        defaultCategoryFilter="gallery"
+        onSelectPhoto={(url) => {
+          setFormData((prev) => ({ ...prev, imageUrl: url }));
+        }}
+      />
     </div>
   );
 };

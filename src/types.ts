@@ -95,6 +95,7 @@ export interface Experience {
   summary: string;
   highlights: string[];
   technologies: string[];
+  imageUrl?: string;
   customFields?: CustomField[];
   companyUrl?: string;
 }
@@ -160,6 +161,7 @@ export interface Certification {
   credentialUrl: string;
   category?: string;
   badge?: string;
+  imageUrl?: string;
   customFields?: CustomField[];
 }
 
@@ -173,6 +175,8 @@ export interface Achievement {
   description: string;
   icon?: string;
   date?: string;
+  imageUrl?: string;
+  credentialUrl?: string;
   customFields?: CustomField[];
 }
 
@@ -217,6 +221,8 @@ export interface MentoringProgram {
   description: string;
   highlights: string[];
   technologies: string[];
+  imageUrl?: string;
+  photos?: string[];
   customFields?: CustomField[];
   testimonials?: {
     author: string;

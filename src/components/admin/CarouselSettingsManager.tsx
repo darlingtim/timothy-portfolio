@@ -12,10 +12,12 @@ import {
   Sparkles,
   ArrowUp,
   ArrowDown,
-  Eye
+  Eye,
+  FolderOpen
 } from 'lucide-react';
 import { CarouselConfig, CarouselPhoto } from '../../types';
 import { uploadImageFile } from '../../utils/imageUpload';
+import { MediaLibraryModal } from './MediaLibraryModal';
 
 interface CarouselSettingsManagerProps {
   config: CarouselConfig;
@@ -31,6 +33,7 @@ export const CarouselSettingsManager: React.FC<CarouselSettingsManagerProps> = (
   const [newPhotoCaption, setNewPhotoCaption] = useState('');
   const [newPhotoTag, setNewPhotoTag] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -449,7 +452,7 @@ export const CarouselSettingsManager: React.FC<CarouselSettingsManagerProps> = (
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-            <div>
+            <div className="flex items-center gap-2">
               <input
                 type="file"
                 ref={fileInputRef}
@@ -464,6 +467,15 @@ export const CarouselSettingsManager: React.FC<CarouselSettingsManagerProps> = (
               >
                 <Upload className="w-3.5 h-3.5" />
                 <span>{isUploading ? 'Reading file...' : 'Upload Image from Computer'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsMediaLibraryOpen(true)}
+                className="px-4 py-2 rounded-xl border border-sky-300 dark:border-sky-800 text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              >
+                <FolderOpen className="w-3.5 h-3.5" />
+                <span>Choose from Photo Library</span>
               </button>
             </div>
 
@@ -481,6 +493,21 @@ export const CarouselSettingsManager: React.FC<CarouselSettingsManagerProps> = (
         </div>
 
       </div>
+
+      <MediaLibraryModal
+        isOpen={isMediaLibraryOpen}
+        onClose={() => setIsMediaLibraryOpen(false)}
+        targetCategoryLabel="Hero Carousel"
+        defaultCategoryFilter="carousel"
+        onSelectPhoto={(url) => {
+          setNewPhotoUrl(url);
+          // auto-fill caption if empty
+          if (!newPhotoCaption) {
+            const name = url.split('/').pop()?.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+            if (name) setNewPhotoCaption(name.charAt(0).toUpperCase() + name.slice(1));
+          }
+        }}
+      />
 
     </div>
   );

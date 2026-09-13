@@ -14,7 +14,7 @@ const STATIC_IMAGES_DIR = path.join(STATIC_DIR, 'images');
 if (!fs.existsSync(STATIC_IMAGES_DIR)) {
   fs.mkdirSync(STATIC_IMAGES_DIR, { recursive: true });
 }
-const IMAGE_CATEGORIES = ['profile', 'carousel', 'projects', 'gallery', 'events', 'general'];
+const IMAGE_CATEGORIES = ['profile', 'carousel', 'projects', 'experience', 'gallery', 'events', 'certifications', 'mentoring', 'general'];
 IMAGE_CATEGORIES.forEach((cat) => {
   const dir = path.join(STATIC_IMAGES_DIR, cat);
   if (!fs.existsSync(dir)) {
@@ -368,6 +368,169 @@ ${body}
       return res.json({ success: true, categories: result });
     } catch (err: any) {
       return res.status(500).json({ error: err.message || 'Failed to list image categories' });
+    }
+  });
+
+  // Universal Media Library API: returns all photos across all categories (disk + portfolio references)
+  app.get('/api/images', (req, res) => {
+    try {
+      interface ImageInfo {
+        url: string;
+        filename: string;
+        category: string;
+        source: 'uploaded' | 'portfolio' | 'preset';
+        modified?: string;
+        size?: number;
+      }
+
+      const images: ImageInfo[] = [];
+      const seenUrls = new Set<string>();
+
+      // 1. Scan filesystem static/images/<category>/* and static/images/*
+      if (fs.existsSync(STATIC_IMAGES_DIR)) {
+        // Direct files in static/images
+        const rootFiles = fs.readdirSync(STATIC_IMAGES_DIR, { withFileTypes: true });
+        for (const rf of rootFiles) {
+          if (!rf.isDirectory() && !rf.name.startsWith('.')) {
+            const fullPath = path.join(STATIC_IMAGES_DIR, rf.name);
+            const stat = fs.statSync(fullPath);
+            const url = `/static/images/${rf.name}`;
+            if (!seenUrls.has(url)) {
+              seenUrls.add(url);
+              images.push({
+                url,
+                filename: rf.name,
+                category: 'general',
+                source: 'uploaded',
+                modified: stat.mtime.toISOString(),
+                size: stat.size
+              });
+            }
+          }
+        }
+
+        // Subdirectories per category
+        for (const cat of IMAGE_CATEGORIES) {
+          const catDir = path.join(STATIC_IMAGES_DIR, cat);
+          if (fs.existsSync(catDir)) {
+            const catFiles = fs.readdirSync(catDir).filter(f => !f.startsWith('.'));
+            for (const f of catFiles) {
+              const fullPath = path.join(catDir, f);
+              try {
+                const stat = fs.statSync(fullPath);
+                const url = `/static/images/${cat}/${f}`;
+                if (!seenUrls.has(url)) {
+                  seenUrls.add(url);
+                  images.push({
+                    url,
+                    filename: f,
+                    category: cat,
+                    source: 'uploaded',
+                    modified: stat.mtime.toISOString(),
+                    size: stat.size
+                  });
+                }
+              } catch {
+                // Skip if error
+              }
+            }
+          }
+        }
+      }
+
+      // 2. Also harvest any photos defined in current portfolio data so user can re-use existing photos
+      const data = loadServerData() || {};
+      const checkAndAdd = (url: string | undefined, category: string, label?: string) => {
+        if (!url || typeof url !== 'string' || url.trim() === '') return;
+        const cleanUrl = url.trim();
+        if (seenUrls.has(cleanUrl)) return;
+        seenUrls.add(cleanUrl);
+        
+        let filename = label || cleanUrl.split('/').pop()?.split('?')[0] || 'photo';
+        if (filename.length > 30) filename = filename.slice(0, 30) + '...';
+
+        images.push({
+          url: cleanUrl,
+          filename,
+          category,
+          source: cleanUrl.startsWith('/static/') ? 'uploaded' : 'portfolio'
+        });
+      };
+
+      // Profile avatar
+      if (data.profile?.avatarUrl) checkAndAdd(data.profile.avatarUrl, 'profile', 'Profile Avatar');
+
+      // Carousel photos
+      if (data.carouselConfig?.photos && Array.isArray(data.carouselConfig.photos)) {
+        data.carouselConfig.photos.forEach((p: any) => {
+          checkAndAdd(p.url, 'carousel', p.caption || 'Carousel Slide');
+        });
+      }
+
+      // Projects
+      if (data.projects && Array.isArray(data.projects)) {
+        data.projects.forEach((proj: any) => {
+          checkAndAdd(proj.imageUrl, 'projects', proj.name || 'Project Cover');
+        });
+      }
+
+      // Experiences
+      if (data.experiences && Array.isArray(data.experiences)) {
+        data.experiences.forEach((exp: any) => {
+          checkAndAdd(exp.imageUrl, 'experience', `${exp.role} at ${exp.organization}`);
+        });
+      }
+
+      // Certifications
+      if (data.certifications && Array.isArray(data.certifications)) {
+        data.certifications.forEach((c: any) => {
+          checkAndAdd(c.imageUrl, 'certifications', c.name || 'Certificate');
+        });
+      }
+
+      // Achievements
+      if (data.achievements && Array.isArray(data.achievements)) {
+        data.achievements.forEach((a: any) => {
+          checkAndAdd(a.imageUrl, 'achievements', a.title || 'Achievement');
+        });
+      }
+
+      // Mentoring
+      if (data.mentoring && Array.isArray(data.mentoring)) {
+        data.mentoring.forEach((m: any) => {
+          checkAndAdd(m.imageUrl, 'mentoring', m.title || 'Mentoring Program');
+        });
+      }
+
+      // Events
+      if (data.events && Array.isArray(data.events)) {
+        data.events.forEach((e: any) => {
+          checkAndAdd(e.imageUrl, 'events', e.title || 'Event Contribution');
+        });
+      }
+
+      // Gallery
+      if (data.galleryItems && Array.isArray(data.galleryItems)) {
+        data.galleryItems.forEach((g: any) => {
+          checkAndAdd(g.imageUrl, 'gallery', g.title || 'Gallery Photo');
+        });
+      }
+
+      // Sort newest uploaded first
+      images.sort((a, b) => {
+        if (a.modified && b.modified) {
+          return new Date(b.modified).getTime() - new Date(a.modified).getTime();
+        }
+        return a.category.localeCompare(b.category);
+      });
+
+      return res.json({
+        success: true,
+        count: images.length,
+        images
+      });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || 'Failed to fetch media images' });
     }
   });
 

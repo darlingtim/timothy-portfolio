@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Experience } from '../types';
-import { Briefcase, Calendar, MapPin, CheckCircle2 } from 'lucide-react';
+import { Briefcase, Calendar, MapPin, CheckCircle2, Image as ImageIcon, ExternalLink, X, ZoomIn } from 'lucide-react';
 
 interface ExperienceViewProps {
   experiences: Experience[];
@@ -9,6 +9,8 @@ interface ExperienceViewProps {
 }
 
 export const ExperienceView: React.FC<ExperienceViewProps> = ({ experiences, onNavigate, isStandalone = false }) => {
+  const [zoomPhoto, setZoomPhoto] = useState<{ url: string; title: string } | null>(null);
+
   return (
     <section className={`py-16 md:py-24 border-b border-slate-200 dark:border-slate-800 ${isStandalone ? '' : 'bg-slate-50/30 dark:bg-slate-900/20'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -61,6 +63,32 @@ export const ExperienceView: React.FC<ExperienceViewProps> = ({ experiences, onN
                 </div>
               </div>
 
+              {/* Optional Workplace / Role Photo */}
+              {exp.imageUrl && (
+                <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 group max-w-2xl">
+                  <div className="aspect-[16/9] sm:aspect-[21/9] w-full overflow-hidden">
+                    <img
+                      src={exp.imageUrl}
+                      alt={`${exp.role} at ${exp.organization}`}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-102"
+                    />
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-between p-3 text-white">
+                    <span className="text-xs font-medium truncate">
+                      {exp.role} — {exp.organization}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setZoomPhoto({ url: exp.imageUrl!, title: `${exp.role} at ${exp.organization}` })}
+                      className="p-1.5 rounded-lg bg-white/20 hover:bg-white/40 text-white transition-colors"
+                      title="Zoom photo"
+                    >
+                      <ZoomIn className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <p className="text-slate-600 dark:text-slate-300 text-base leading-relaxed">
                 {exp.summary}
               </p>
@@ -92,6 +120,28 @@ export const ExperienceView: React.FC<ExperienceViewProps> = ({ experiences, onN
         </div>
 
       </div>
+
+      {/* Lightbox Zoom Modal */}
+      {zoomPhoto && (
+        <div
+          className="fixed inset-0 z-[110] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
+          onClick={() => setZoomPhoto(null)}
+        >
+          <div className="relative max-w-4xl w-full bg-black/50 rounded-2xl overflow-hidden border border-white/10" onClick={(e) => e.stopPropagation()}>
+            <img src={zoomPhoto.url} alt={zoomPhoto.title} className="w-full max-h-[80vh] object-contain mx-auto" />
+            <div className="p-4 bg-slate-900/90 flex items-center justify-between text-white">
+              <span className="text-sm font-medium">{zoomPhoto.title}</span>
+              <button
+                type="button"
+                onClick={() => setZoomPhoto(null)}
+                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

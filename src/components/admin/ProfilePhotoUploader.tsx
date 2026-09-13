@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { Camera, Upload, Trash2, CheckCircle2, Image as ImageIcon, Sparkles } from 'lucide-react';
+import { Camera, Upload, Trash2, CheckCircle2, Image as ImageIcon, Sparkles, FolderOpen } from 'lucide-react';
 import { uploadImageFile } from '../../utils/imageUpload';
+import { MediaLibraryModal } from './MediaLibraryModal';
 
 interface ProfilePhotoUploaderProps {
   currentAvatarUrl?: string;
@@ -22,6 +23,7 @@ export const ProfilePhotoUploader: React.FC<ProfilePhotoUploaderProps> = ({
   const [previewUrl, setPreviewUrl] = useState<string>(currentAvatarUrl);
   const [urlInput, setUrlInput] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
+  const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -151,27 +153,45 @@ export const ProfilePhotoUploader: React.FC<ProfilePhotoUploaderProps> = ({
 
         {/* Upload Options and Inputs */}
         <div className="md:col-span-8 space-y-5">
-          {/* File Upload Trigger */}
-          <div
-            onClick={() => fileInputRef.current?.click()}
-            className="p-6 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-sky-500 dark:hover:border-sky-400 rounded-xl cursor-pointer bg-slate-50 dark:bg-slate-950/40 text-center transition-colors group"
-          >
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              accept="image/*"
-              className="hidden"
-            />
-            <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-sky-500/10 text-sky-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Upload className="w-5 h-5" />
+          {/* File Upload Trigger & Photo Library */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="p-5 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-sky-500 dark:hover:border-sky-400 rounded-xl cursor-pointer bg-slate-50 dark:bg-slate-950/40 text-center transition-colors group flex flex-col items-center justify-center"
+            >
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                className="hidden"
+              />
+              <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-sky-500/10 text-sky-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Upload className="w-5 h-5" />
+              </div>
+              <span className="text-sm font-semibold text-slate-900 dark:text-white block">
+                {isUploading ? "Processing..." : "Upload New File"}
+              </span>
+              <span className="text-xs text-slate-500 block mt-1">
+                PNG, JPG, JPEG, WebP
+              </span>
             </div>
-            <span className="text-sm font-semibold text-slate-900 dark:text-white block">
-              {isUploading ? "Processing photo..." : "Click to browse or drop an image file"}
-            </span>
-            <span className="text-xs text-slate-500 block mt-1">
-              Supports PNG, JPG, JPEG, WebP, SVG (High Resolution recommended)
-            </span>
+
+            <button
+              type="button"
+              onClick={() => setIsMediaLibraryOpen(true)}
+              className="p-5 border-2 border-dashed border-sky-300 dark:border-sky-800/80 hover:border-sky-500 rounded-xl bg-sky-50/50 dark:bg-sky-950/20 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-center transition-colors group flex flex-col items-center justify-center"
+            >
+              <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-sky-500/10 text-sky-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <FolderOpen className="w-5 h-5" />
+              </div>
+              <span className="text-sm font-semibold text-sky-600 dark:text-sky-400 block">
+                Choose from Library
+              </span>
+              <span className="text-xs text-slate-500 block mt-1">
+                Select from any category
+              </span>
+            </button>
           </div>
 
           {/* Web URL Form */}
@@ -223,6 +243,18 @@ export const ProfilePhotoUploader: React.FC<ProfilePhotoUploaderProps> = ({
           </div>
         </div>
       </div>
+
+      <MediaLibraryModal
+        isOpen={isMediaLibraryOpen}
+        onClose={() => setIsMediaLibraryOpen(false)}
+        targetCategoryLabel="Profile Avatar"
+        defaultCategoryFilter="profile"
+        onSelectPhoto={(url) => {
+          setPreviewUrl(url);
+          onSaveAvatar(url);
+          triggerSuccess();
+        }}
+      />
     </div>
   );
 };
