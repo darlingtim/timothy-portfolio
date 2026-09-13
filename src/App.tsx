@@ -102,15 +102,17 @@ export default function App() {
         if (serverData.profile) setProfile(serverData.profile);
         if (serverData.projects) setProjects(serverData.projects);
         if (serverData.experiences) setExperiences(serverData.experiences);
-        if (serverData.gallery) setGalleryItems(serverData.gallery);
+        if (serverData.gallery || serverData.galleryItems) setGalleryItems(serverData.gallery || serverData.galleryItems);
         if (serverData.achievements) setAchievements(serverData.achievements);
         if (serverData.skills) setSkills(serverData.skills);
         if (serverData.certifications) setCertifications(serverData.certifications);
         if (serverData.education) setEducation(serverData.education);
         if (serverData.messages) setMessages(serverData.messages);
-        if (serverData.settings) setSiteSettings(serverData.settings);
+        if (serverData.settings || serverData.siteSettings) setSiteSettings(serverData.settings || serverData.siteSettings);
         if (serverData.carouselConfig) setCarouselConfig(serverData.carouselConfig);
-        if (serverData.eventContributions) setEvents(serverData.eventContributions);
+        if (serverData.eventContributions || serverData.events) setEvents(serverData.eventContributions || serverData.events);
+        if (serverData.community) setCommunity(serverData.community);
+        if (serverData.mentoring) setMentoringPrograms(serverData.mentoring);
       }
     });
   }, []);

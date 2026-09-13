@@ -77,6 +77,14 @@ async function startServer() {
         lastUpdated: new Date().toISOString()
       };
 
+      // Keep alias keys synchronized in JSON
+      if (merged.gallery) merged.galleryItems = merged.gallery;
+      if (merged.galleryItems) merged.gallery = merged.galleryItems;
+      if (merged.settings) merged.siteSettings = merged.settings;
+      if (merged.siteSettings) merged.settings = merged.siteSettings;
+      if (merged.eventContributions) merged.events = merged.eventContributions;
+      if (merged.events) merged.eventContributions = merged.events;
+
       saveServerData(merged);
       serverData = merged;
 
