@@ -88,7 +88,6 @@ func main() {
 
 	logger.Info("serving compiled React app from dist directory", "dist_dir", distDir)
 	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir(filepath.Join(distDir, "assets")))))
-	staticDir := filepath.Join(".", "static")
 	staticImagesDir := filepath.Join(staticDir, "images")
 	_ = os.MkdirAll(staticImagesDir, 0o755)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir))))
