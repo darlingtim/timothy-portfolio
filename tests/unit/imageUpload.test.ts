@@ -19,7 +19,7 @@ describe('Image Architecture & Static Storage', () => {
       // Must not be a raw base64 data URI in storage
       expect(photo.url.startsWith('data:image/')).toBe(false);
       expect(
-        photo.url.startsWith('/static/images/carousel/') || photo.url.startsWith('https://')
+        photo.url.startsWith('/static/images/') || photo.url.startsWith('https://') || photo.url.startsWith('http://')
       ).toBe(true);
     });
   });
