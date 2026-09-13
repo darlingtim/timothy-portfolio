@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { X, Plus, Trash2, Upload, FolderGit2, Check, ExternalLink, FolderOpen, Image as ImageIcon } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Plus, Trash2, FolderGit2, Check, ExternalLink } from 'lucide-react';
 import { Project, CustomField } from '../../types';
 import { CustomFieldEditor } from './CustomFieldEditor';
-import { uploadImageFile } from '../../utils/imageUpload';
-import { MediaLibraryModal } from './MediaLibraryModal';
+import { MultiPhotoField } from './MultiPhotoField';
 
 interface ProjectModalProps {
   isOpen: boolean;
@@ -32,6 +31,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
     github: '',
     liveUrl: '',
     imageUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80',
+    photos: [],
     overview: '',
     problem: '',
     solution: '',
@@ -46,15 +46,16 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
     customFields: []
   });
 
-  const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
   const [techInput, setTechInput] = useState('');
   const [featureInput, setFeatureInput] = useState('');
   const [customCategoryInput, setCustomCategoryInput] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (projectToEdit) {
-      setFormData({ ...projectToEdit });
+      setFormData({
+        ...projectToEdit,
+        photos: projectToEdit.photos || projectToEdit.images || []
+      });
     } else {
       setFormData({
         name: '',
@@ -68,6 +69,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
         github: '',
         liveUrl: '',
         imageUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80',
+        photos: [],
         overview: '',
         problem: '',
         solution: '',
@@ -83,20 +85,6 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
       });
     }
   }, [projectToEdit]);
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    uploadImageFile(file, { category: 'projects' })
-      .then((result) => {
-        if (result.url) {
-          setFormData((prev) => ({ ...prev, imageUrl: result.url }));
-        }
-      })
-      .catch((err) => {
-        console.error('Failed to upload project image:', err);
-      });
-  };
 
   const handleAddTech = () => {
     if (!techInput.trim()) return;
@@ -288,104 +276,16 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
               </div>
             </div>
 
-            {/* Image Upload / URL */}
-            <div className="space-y-3 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/60">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <ImageIcon className="w-4 h-4 text-blue-500" />
-                  <label className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-300 block">
-                    Project Cover Image
-                  </label>
-                </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-500 font-semibold">
-                  Folder: static/images/projects
-                </span>
-              </div>
-
-              {formData.imageUrl ? (
-                <div className="flex items-center gap-4">
-                  <div className="relative w-36 h-24 rounded-lg bg-slate-200 dark:bg-slate-800 overflow-hidden shrink-0 border border-slate-300 dark:border-slate-700 group">
-                    <img src={formData.imageUrl} alt="Cover" className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <a
-                        href={formData.imageUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="p-1.5 rounded bg-white/20 text-white hover:bg-white/40"
-                        title="View photo"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                    </div>
-                  </div>
-                  <div className="flex-1 w-full space-y-2 min-w-0">
-                    <p className="text-xs font-mono text-slate-500 truncate">{formData.imageUrl}</p>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setIsMediaLibraryOpen(true)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-sky-300 dark:border-sky-800 text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/40 font-medium transition-colors"
-                      >
-                        <FolderOpen className="w-3.5 h-3.5" />
-                        <span>Change from Library</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setFormData({ ...formData, imageUrl: '' })}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-rose-300 dark:border-rose-800 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>Remove</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    {/* Upload from Computer */}
-                    <label className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-blue-500 rounded-xl cursor-pointer bg-white dark:bg-slate-900 transition-colors p-2 text-center group">
-                      <Upload className="w-5 h-5 text-slate-400 group-hover:text-blue-500 mb-1 transition-colors" />
-                      <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                        Upload Project Image
-                      </span>
-                      <span className="text-[10px] text-slate-400">PNG, JPG, WebP</span>
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleImageUpload}
-                        accept="image/*"
-                        className="hidden"
-                      />
-                    </label>
-
-                    {/* Choose from Library */}
-                    <button
-                      type="button"
-                      onClick={() => setIsMediaLibraryOpen(true)}
-                      className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-sky-300 dark:border-sky-800/80 hover:border-sky-500 rounded-xl bg-sky-50/50 dark:bg-sky-950/20 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors p-2 text-center group"
-                    >
-                      <FolderOpen className="w-5 h-5 text-sky-500 mb-1 transition-transform group-hover:scale-110" />
-                      <span className="text-xs font-semibold text-sky-600 dark:text-sky-400">
-                        Choose from Photo Library
-                      </span>
-                      <span className="text-[10px] text-slate-400">Select any uploaded photo</span>
-                    </button>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] text-slate-400 shrink-0">or enter image path / URL:</span>
-                    <input
-                      type="text"
-                      value={formData.imageUrl || ''}
-                      onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                      placeholder="https://images.unsplash.com/... or /static/images/projects/..."
-                      className="flex-1 px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* Project Cover & Gallery Photos */}
+            <MultiPhotoField
+              label="Project Screenshots & Gallery"
+              category="projects"
+              primaryPhoto={formData.imageUrl || ''}
+              onChangePrimaryPhoto={(url) => setFormData({ ...formData, imageUrl: url })}
+              photos={formData.photos || []}
+              onChangePhotos={(photos) => setFormData({ ...formData, photos, images: photos })}
+              description="Add cover banner and multiple screenshots or architecture diagrams for this project."
+            />
 
             {/* Links */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -568,16 +468,6 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
         </div>
 
       </div>
-
-      <MediaLibraryModal
-        isOpen={isMediaLibraryOpen}
-        onClose={() => setIsMediaLibraryOpen(false)}
-        targetCategoryLabel="Project"
-        defaultCategoryFilter="projects"
-        onSelectPhoto={(url) => {
-          setFormData((prev) => ({ ...prev, imageUrl: url }));
-        }}
-      />
     </div>
   );
 };

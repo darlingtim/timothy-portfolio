@@ -128,3 +128,69 @@ export async function uploadImageFile(
     reader.readAsDataURL(file);
   });
 }
+
+/**
+ * Moves one or more images from their current category folder to targetCategory.
+ * Updates all references in portfolio data.
+ */
+export async function moveMediaImages(
+  urls: string[],
+  targetCategory: string
+): Promise<{ success: boolean; movedCount: number; referencesUpdated: number; moved: any[]; error?: string }> {
+  try {
+    const res = await fetch('/api/images/move', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ urls, targetCategory }),
+    });
+    return await res.json();
+  } catch (err: any) {
+    console.error('Failed to move media images:', err);
+    return { success: false, movedCount: 0, referencesUpdated: 0, moved: [], error: err.message };
+  }
+}
+
+/**
+ * Permanently deletes one or more images from the server filesystem.
+ */
+export async function deleteMediaImages(
+  urls: string[]
+): Promise<{ success: boolean; deletedCount: number; deleted: string[]; error?: string }> {
+  try {
+    const res = await fetch('/api/images/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ urls }),
+    });
+    return await res.json();
+  } catch (err: any) {
+    console.error('Failed to delete media images:', err);
+    return { success: false, deletedCount: 0, deleted: [], error: err.message };
+  }
+}
+
+/**
+ * Detects duplicate photos across folders, cleans redundant copies,
+ * and points all portfolio references to canonical URLs.
+ */
+export async function deduplicateMediaImages(): Promise<{
+  success: boolean;
+  removedCount: number;
+  savedBytes: number;
+  details: string[];
+  canonicalMap?: Record<string, string>;
+  error?: string;
+}> {
+  try {
+    const res = await fetch('/api/images/deduplicate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    return await res.json();
+  } catch (err: any) {
+    console.error('Failed to deduplicate media images:', err);
+    return { success: false, removedCount: 0, savedBytes: 0, details: [], error: err.message };
+  }
+}
+

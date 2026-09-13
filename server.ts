@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 
@@ -14,7 +15,7 @@ const STATIC_IMAGES_DIR = path.join(STATIC_DIR, 'images');
 if (!fs.existsSync(STATIC_IMAGES_DIR)) {
   fs.mkdirSync(STATIC_IMAGES_DIR, { recursive: true });
 }
-const IMAGE_CATEGORIES = ['profile', 'carousel', 'projects', 'experience', 'gallery', 'events', 'certifications', 'mentoring', 'general'];
+const IMAGE_CATEGORIES = ['profile', 'carousel', 'projects', 'experience', 'gallery', 'events', 'certifications', 'achievements', 'mentoring', 'general'];
 IMAGE_CATEGORIES.forEach((cat) => {
   const dir = path.join(STATIC_IMAGES_DIR, cat);
   if (!fs.existsSync(dir)) {
@@ -136,6 +137,32 @@ function saveServerData(data: any): boolean {
     console.error('Error saving portfolio data to disk:', err);
     return false;
   }
+}
+
+// Recursively traverse portfolio data and replace oldUrl with newUrl
+function replaceUrlInObject(obj: any, oldUrl: string, newUrl: string): number {
+  if (!obj || oldUrl === newUrl) return 0;
+  let count = 0;
+  if (Array.isArray(obj)) {
+    for (let i = 0; i < obj.length; i++) {
+      if (typeof obj[i] === 'string' && obj[i] === oldUrl) {
+        obj[i] = newUrl;
+        count++;
+      } else if (typeof obj[i] === 'object' && obj[i] !== null) {
+        count += replaceUrlInObject(obj[i], oldUrl, newUrl);
+      }
+    }
+  } else if (typeof obj === 'object' && obj !== null) {
+    for (const key of Object.keys(obj)) {
+      if (typeof obj[key] === 'string' && obj[key] === oldUrl) {
+        obj[key] = newUrl;
+        count++;
+      } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+        count += replaceUrlInObject(obj[key], oldUrl, newUrl);
+      }
+    }
+  }
+  return count;
 }
 
 async function startServer() {
@@ -531,6 +558,318 @@ ${body}
       });
     } catch (err: any) {
       return res.status(500).json({ error: err.message || 'Failed to fetch media images' });
+    }
+  });
+
+  // Move photo(s) from one category folder to another and update references in portfolio_data.json
+  app.post('/api/images/move', (req, res) => {
+    try {
+      const { urls, targetCategory } = req.body;
+      if (!Array.isArray(urls) || urls.length === 0 || !targetCategory) {
+        return res.status(400).json({ error: 'urls (string array) and targetCategory are required.' });
+      }
+
+      if (!IMAGE_CATEGORIES.includes(targetCategory)) {
+        return res.status(400).json({ error: `Invalid targetCategory. Allowed: ${IMAGE_CATEGORIES.join(', ')}` });
+      }
+
+      const destCategoryDir = path.join(STATIC_IMAGES_DIR, targetCategory);
+      if (!fs.existsSync(destCategoryDir)) {
+        fs.mkdirSync(destCategoryDir, { recursive: true });
+      }
+
+      const currentData = loadServerData() || {};
+      const moved: { oldUrl: string; newUrl: string; filename: string; targetCategory: string }[] = [];
+      let totalRefUpdates = 0;
+
+      for (const rawUrl of urls) {
+        if (!rawUrl || typeof rawUrl !== 'string') continue;
+        const cleanUrl = rawUrl.trim();
+
+        // Extract relative image path from URL
+        let relativeImagePath = '';
+        if (cleanUrl.startsWith('/static/images/')) {
+          relativeImagePath = cleanUrl.replace(/^\/static\/images\//, '');
+        } else if (cleanUrl.startsWith('/images/')) {
+          relativeImagePath = cleanUrl.replace(/^\/images\//, '');
+        } else {
+          continue; // External URLs cannot be moved on local filesystem
+        }
+
+        const sourcePath = path.join(STATIC_IMAGES_DIR, relativeImagePath);
+        if (!fs.existsSync(sourcePath)) {
+          console.warn(`[MOVE] File not found on disk: ${sourcePath}`);
+          continue;
+        }
+
+        const filename = path.basename(sourcePath);
+        let targetFilename = filename;
+        let destPath = path.join(destCategoryDir, targetFilename);
+
+        // If source and destination are the exact same path, skip
+        if (path.resolve(sourcePath) === path.resolve(destPath)) {
+          continue;
+        }
+
+        // Handle naming collisions if destination file exists and is a different file
+        if (fs.existsSync(destPath)) {
+          const srcStat = fs.statSync(sourcePath);
+          const dstStat = fs.statSync(destPath);
+          if (srcStat.size !== dstStat.size) {
+            const ext = path.extname(filename);
+            const base = path.basename(filename, ext);
+            targetFilename = `${base}-${Date.now()}${ext}`;
+            destPath = path.join(destCategoryDir, targetFilename);
+          } else {
+            // Same size, unlink source to avoid duplication
+            try {
+              fs.unlinkSync(sourcePath);
+            } catch {}
+          }
+        }
+
+        // Move file
+        if (fs.existsSync(sourcePath) && !fs.existsSync(destPath)) {
+          fs.renameSync(sourcePath, destPath);
+        }
+
+        // Also sync move to dist if dist exists
+        try {
+          const distStaticDir = path.join(process.cwd(), 'dist', 'static', 'images');
+          if (fs.existsSync(distStaticDir)) {
+            const distDestDir = path.join(distStaticDir, targetCategory);
+            fs.mkdirSync(distDestDir, { recursive: true });
+            const distDestPath = path.join(distDestDir, targetFilename);
+            if (fs.existsSync(destPath)) {
+              fs.copyFileSync(destPath, distDestPath);
+            }
+            const distSourcePath = path.join(distStaticDir, relativeImagePath);
+            if (fs.existsSync(distSourcePath) && distSourcePath !== distDestPath) {
+              fs.unlinkSync(distSourcePath);
+            }
+          }
+        } catch (syncErr) {
+          console.warn('[MOVE] Could not sync move to dist:', syncErr);
+        }
+
+        const newUrl = `/static/images/${targetCategory}/${targetFilename}`;
+        moved.push({
+          oldUrl: cleanUrl,
+          newUrl,
+          filename: targetFilename,
+          targetCategory
+        });
+
+        // Update references across portfolio_data.json
+        const updatedCount = replaceUrlInObject(currentData, cleanUrl, newUrl);
+        totalRefUpdates += updatedCount;
+      }
+
+      if (totalRefUpdates > 0 || moved.length > 0) {
+        saveServerData(currentData);
+        serverData = currentData;
+      }
+
+      return res.json({
+        success: true,
+        movedCount: moved.length,
+        referencesUpdated: totalRefUpdates,
+        moved
+      });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || 'Failed to move images' });
+    }
+  });
+
+  // Permanently delete photo(s) from disk
+  app.post('/api/images/delete', (req, res) => {
+    try {
+      const { urls } = req.body;
+      if (!Array.isArray(urls) || urls.length === 0) {
+        return res.status(400).json({ error: 'urls (string array) is required.' });
+      }
+
+      const deleted: string[] = [];
+
+      for (const rawUrl of urls) {
+        if (!rawUrl || typeof rawUrl !== 'string') continue;
+        const cleanUrl = rawUrl.trim();
+
+        let relativeImagePath = '';
+        if (cleanUrl.startsWith('/static/images/')) {
+          relativeImagePath = cleanUrl.replace(/^\/static\/images\//, '');
+        } else if (cleanUrl.startsWith('/images/')) {
+          relativeImagePath = cleanUrl.replace(/^\/images\//, '');
+        } else {
+          continue;
+        }
+
+        const filePath = path.join(STATIC_IMAGES_DIR, relativeImagePath);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+          deleted.push(cleanUrl);
+        }
+
+        // Also delete from dist
+        try {
+          const distPath = path.join(process.cwd(), 'dist', 'static', 'images', relativeImagePath);
+          if (fs.existsSync(distPath)) {
+            fs.unlinkSync(distPath);
+          }
+        } catch {}
+      }
+
+      return res.json({
+        success: true,
+        deletedCount: deleted.length,
+        deleted
+      });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || 'Failed to delete images' });
+    }
+  });
+
+  // Scan all static/images, detect duplicate files by MD5 checksum, clean redundant duplicates, and update portfolio_data.json
+  app.post('/api/images/deduplicate', (req, res) => {
+    try {
+      interface FileEntry {
+        filePath: string;
+        url: string;
+        category: string;
+        filename: string;
+        size: number;
+        hash: string;
+        isRoot: boolean;
+      }
+
+      const files: FileEntry[] = [];
+
+      // Scan root static/images
+      if (fs.existsSync(STATIC_IMAGES_DIR)) {
+        const rootItems = fs.readdirSync(STATIC_IMAGES_DIR, { withFileTypes: true });
+        for (const item of rootItems) {
+          if (!item.isDirectory() && !item.name.startsWith('.')) {
+            const fp = path.join(STATIC_IMAGES_DIR, item.name);
+            try {
+              const buf = fs.readFileSync(fp);
+              const hash = crypto.createHash('md5').update(buf).digest('hex');
+              files.push({
+                filePath: fp,
+                url: `/static/images/${item.name}`,
+                category: 'general',
+                filename: item.name,
+                size: buf.length,
+                hash,
+                isRoot: true
+              });
+            } catch {}
+          }
+        }
+
+        // Scan subdirectories
+        for (const cat of IMAGE_CATEGORIES) {
+          const catDir = path.join(STATIC_IMAGES_DIR, cat);
+          if (fs.existsSync(catDir)) {
+            const catFiles = fs.readdirSync(catDir).filter(f => !f.startsWith('.'));
+            for (const f of catFiles) {
+              const fp = path.join(catDir, f);
+              try {
+                const buf = fs.readFileSync(fp);
+                const hash = crypto.createHash('md5').update(buf).digest('hex');
+                files.push({
+                  filePath: fp,
+                  url: `/static/images/${cat}/${f}`,
+                  category: cat,
+                  filename: f,
+                  size: buf.length,
+                  hash,
+                  isRoot: false
+                });
+              } catch {}
+            }
+          }
+        }
+      }
+
+      // Group by hash
+      const hashMap = new Map<string, FileEntry[]>();
+      for (const f of files) {
+        const existing = hashMap.get(f.hash) || [];
+        existing.push(f);
+        hashMap.set(f.hash, existing);
+      }
+
+      const currentData = loadServerData() || {};
+      const dataString = JSON.stringify(currentData);
+
+      let removedCount = 0;
+      let savedBytes = 0;
+      const details: string[] = [];
+      const canonicalMap: Record<string, string> = {};
+
+      for (const [hash, group] of hashMap.entries()) {
+        if (group.length <= 1) continue;
+
+        // Determine canonical copy:
+        // Priority:
+        // 1. File referenced in portfolio_data.json
+        // 2. Specialized folder (non-root)
+        // 3. First alphabetically
+        group.sort((a, b) => {
+          const aInUse = dataString.includes(a.url) ? 1 : 0;
+          const bInUse = dataString.includes(b.url) ? 1 : 0;
+          if (aInUse !== bInUse) return bInUse - aInUse;
+
+          if (a.isRoot !== b.isRoot) return a.isRoot ? 1 : -1;
+          return a.category.localeCompare(b.category);
+        });
+
+        const canonical = group[0];
+        const duplicates = group.slice(1);
+
+        for (const dup of duplicates) {
+          // Point any references to canonical
+          replaceUrlInObject(currentData, dup.url, canonical.url);
+          canonicalMap[dup.url] = canonical.url;
+
+          // Delete duplicate file from disk
+          try {
+            if (fs.existsSync(dup.filePath)) {
+              fs.unlinkSync(dup.filePath);
+              savedBytes += dup.size;
+              removedCount++;
+              details.push(`Cleaned duplicate "${dup.url}" (pointing to canonical "${canonical.url}")`);
+            }
+          } catch (err: any) {
+            console.warn(`Could not delete duplicate ${dup.filePath}:`, err);
+          }
+
+          // Delete duplicate from dist
+          try {
+            const rel = dup.isRoot ? dup.filename : `${dup.category}/${dup.filename}`;
+            const distPath = path.join(process.cwd(), 'dist', 'static', 'images', rel);
+            if (fs.existsSync(distPath)) {
+              fs.unlinkSync(distPath);
+            }
+          } catch {}
+        }
+      }
+
+      if (removedCount > 0) {
+        saveServerData(currentData);
+        serverData = currentData;
+        console.log(`[DEDUPLICATE] Cleaned ${removedCount} duplicate photo files, saved ${(savedBytes / 1024).toFixed(1)} KB`);
+      }
+
+      return res.json({
+        success: true,
+        removedCount,
+        savedBytes,
+        details,
+        canonicalMap
+      });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || 'Failed to deduplicate images' });
     }
   });
 

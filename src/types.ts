@@ -34,6 +34,7 @@ export interface EventContribution {
   highlights: string[];
   technologies?: string[];
   imageUrl?: string;
+  photos?: string[];
   eventUrl?: string;
   certificateUrl?: string;
   customFields?: CustomField[];
@@ -96,6 +97,7 @@ export interface Experience {
   highlights: string[];
   technologies: string[];
   imageUrl?: string;
+  photos?: string[];
   customFields?: CustomField[];
   companyUrl?: string;
 }
@@ -125,6 +127,8 @@ export interface Project {
   status?: 'Published' | 'In Progress' | 'Archived';
   dateAdded?: string;
   imageUrl?: string;
+  photos?: string[];
+  images?: string[];
   customFields?: CustomField[];
 }
 
@@ -202,12 +206,15 @@ export interface CommunityRole {
 export interface GalleryItem {
   id: string;
   title: string;
-  category: 'Training' | 'Community' | 'Certificate' | 'Workshop';
+  category: 'Training' | 'Community' | 'Certificate' | 'Workshop' | 'Events' | 'Mentoring' | 'Projects' | 'Experience' | 'Carousel' | string;
   date: string;
   imageUrl: string;
   description: string;
   location?: string;
   tags?: string[];
+  sourceCategory?: string;
+  sourceEntityId?: string;
+  sourceEntityName?: string;
   customFields?: CustomField[];
 }
 

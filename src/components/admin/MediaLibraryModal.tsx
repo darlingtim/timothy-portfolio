@@ -9,9 +9,24 @@ import {
   RefreshCw, 
   Sparkles, 
   ExternalLink,
-  FolderOpen
+  FolderInput,
+  Trash2,
+  CheckSquare,
+  Square,
+  AlertTriangle,
+  Layers,
+  Copy,
+  Folder
 } from 'lucide-react';
-import { fetchMediaImages, uploadImageFile, MediaImageItem, ImageCategory } from '../../utils/imageUpload';
+import { 
+  fetchMediaImages, 
+  uploadImageFile, 
+  moveMediaImages, 
+  deleteMediaImages, 
+  deduplicateMediaImages,
+  MediaImageItem, 
+  ImageCategory 
+} from '../../utils/imageUpload';
 
 interface MediaLibraryModalProps {
   isOpen: boolean;
@@ -35,6 +50,19 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string
   general: { bg: 'bg-slate-500/10', text: 'text-slate-400', border: 'border-slate-500/20' },
 };
 
+const ALL_CATEGORY_OPTIONS: ImageCategory[] = [
+  'carousel',
+  'events',
+  'projects',
+  'mentoring',
+  'experience',
+  'gallery',
+  'certifications',
+  'achievements',
+  'profile',
+  'general'
+];
+
 export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
   isOpen,
   onClose,
@@ -55,6 +83,13 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
   const [showUploadDrawer, setShowUploadDrawer] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Multi-select for batch actions
+  const [checkedUrls, setCheckedUrls] = useState<Set<string>>(new Set());
+  const [batchTargetCategory, setBatchTargetCategory] = useState<ImageCategory>('general');
+  const [isBatchOperating, setIsBatchOperating] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
+  const [confirmDeleteUrls, setConfirmDeleteUrls] = useState<string[] | null>(null);
+
   const loadPhotos = async () => {
     setLoading(true);
     try {
@@ -71,6 +106,13 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
     loadPhotos();
   }, [isOpen]);
 
+  const showNotification = (type: 'success' | 'error' | 'info', text: string) => {
+    setStatusMessage({ type, text });
+    setTimeout(() => {
+      setStatusMessage(null);
+    }, 4500);
+  };
+
   const handleSelect = (item: MediaImageItem) => {
     setSelectedUrl(item.url);
     setSelectedItem(item);
@@ -80,6 +122,95 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
     if (!selectedUrl) return;
     onSelectPhoto(selectedUrl, selectedItem || undefined);
     onClose();
+  };
+
+  const handleToggleCheck = (url: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCheckedUrls((prev) => {
+      const next = new Set(prev);
+      if (next.has(url)) {
+        next.delete(url);
+      } else {
+        next.add(url);
+      }
+      return next;
+    });
+  };
+
+  const handleSelectAllFiltered = () => {
+    if (checkedUrls.size === filteredImages.length) {
+      setCheckedUrls(new Set());
+    } else {
+      setCheckedUrls(new Set(filteredImages.map((img) => img.url)));
+    }
+  };
+
+  const handleBatchMove = async () => {
+    const urls = Array.from(checkedUrls);
+    if (urls.length === 0) return;
+    setIsBatchOperating(true);
+    try {
+      const res = await moveMediaImages(urls, batchTargetCategory);
+      if (res.success) {
+        showNotification('success', `Moved ${res.movedCount} photo(s) to "${batchTargetCategory}". All references updated.`);
+        setCheckedUrls(new Set());
+        await loadPhotos();
+      } else {
+        showNotification('error', res.error || 'Failed to move photos');
+      }
+    } catch (err: any) {
+      showNotification('error', err.message || 'Error moving photos');
+    } finally {
+      setIsBatchOperating(false);
+    }
+  };
+
+  const handleBatchDelete = async () => {
+    const urls = confirmDeleteUrls || Array.from(checkedUrls);
+    if (urls.length === 0) return;
+    setIsBatchOperating(true);
+    try {
+      const res = await deleteMediaImages(urls);
+      if (res.success) {
+        showNotification('success', `Permanently deleted ${res.deletedCount} photo(s).`);
+        setCheckedUrls(new Set());
+        setConfirmDeleteUrls(null);
+        if (urls.includes(selectedUrl)) {
+          setSelectedUrl('');
+          setSelectedItem(null);
+        }
+        await loadPhotos();
+      } else {
+        showNotification('error', res.error || 'Failed to delete photos');
+      }
+    } catch (err: any) {
+      showNotification('error', err.message || 'Error deleting photos');
+    } finally {
+      setIsBatchOperating(false);
+      setConfirmDeleteUrls(null);
+    }
+  };
+
+  const handleDeduplicate = async () => {
+    setIsBatchOperating(true);
+    try {
+      const res = await deduplicateMediaImages();
+      if (res.success) {
+        if (res.removedCount > 0) {
+          const kb = (res.savedBytes / 1024).toFixed(1);
+          showNotification('success', `Cleaned ${res.removedCount} duplicate file(s) and freed ${kb} KB! All references updated.`);
+        } else {
+          showNotification('info', 'No duplicate photos found across folders. All photos are unique!');
+        }
+        await loadPhotos();
+      } else {
+        showNotification('error', res.error || 'Failed to clean duplicates');
+      }
+    } catch (err: any) {
+      showNotification('error', err.message || 'Error deduplicating photos');
+    } finally {
+      setIsBatchOperating(false);
+    }
   };
 
   const handleDirectUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -101,15 +232,17 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
         setSelectedUrl(res.url);
         setSelectedItem(newItem);
         setShowUploadDrawer(false);
+        showNotification('success', `Uploaded "${res.filename || file.name}" to "${res.category || uploadCategory}".`);
       }
     } catch (err) {
       console.error('Failed to upload image:', err);
+      showNotification('error', 'Failed to upload photo');
     } finally {
       setIsUploading(false);
     }
   };
 
-  // Extract unique categories and counts
+  // Category counts
   const categoryCounts = images.reduce<Record<string, number>>((acc, img) => {
     const cat = img.category || 'general';
     acc[cat] = (acc[cat] || 0) + 1;
@@ -131,25 +264,23 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-white dark:bg-[#0c1633] w-full max-w-5xl h-[90vh] rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col shadow-2xl overflow-hidden">
+      <div className="bg-white dark:bg-[#0c1633] w-full max-w-5xl h-[92vh] rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col shadow-2xl overflow-hidden relative">
         
-        {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0 bg-slate-50/50 dark:bg-slate-900/40">
+        {/* Top Header */}
+        <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 bg-white dark:bg-[#0c1633] shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-500 flex items-center justify-center shrink-0">
-              <FolderOpen className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-500 flex items-center justify-center font-bold">
+              <Layers className="w-5 h-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-display text-lg font-bold text-slate-900 dark:text-white">
-                  Media Library &amp; Photo Picker
-                </h3>
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-500 font-semibold">
-                  Cross-Category
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                Universal Media Library
+                <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-mono font-normal">
+                  {images.length} photos
                 </span>
-              </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Choose from <span className="font-semibold text-slate-700 dark:text-slate-300">{images.length} previously uploaded photos</span> across all categories to use for {targetCategoryLabel}.
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">
+                Organize, move, clean duplicate photos, or select an image for <span className="text-sky-500 font-medium">{targetCategoryLabel}</span>.
               </p>
             </div>
           </div>
@@ -157,116 +288,156 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={loadPhotos}
-              className="p-2 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              title="Refresh photos"
+              onClick={handleDeduplicate}
+              disabled={isBatchOperating}
+              title="Clean duplicate photo files and point all references to canonical images"
+              className="px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5 transition-colors disabled:opacity-50"
             >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-sky-500' : ''}`} />
+              <Sparkles className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">Clean Duplicates</span>
             </button>
+
+            <button
+              type="button"
+              onClick={() => setShowUploadDrawer(!showUploadDrawer)}
+              className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-sky-600 hover:bg-sky-500 text-white shadow-sm flex items-center gap-1.5 transition-colors"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              <span>Upload Photo</span>
+            </button>
+
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        {/* Toolbar: Search, Filters, and Quick Upload */}
-        <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1633] space-y-3 shrink-0">
-          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+        {/* Status Notification Banner */}
+        {statusMessage && (
+          <div className={`px-4 py-2 text-xs font-medium flex items-center justify-between border-b ${
+            statusMessage.type === 'success' 
+              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' 
+              : statusMessage.type === 'error'
+              ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
+              : 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20'
+          }`}>
+            <span>{statusMessage.text}</span>
+            <button type="button" onClick={() => setStatusMessage(null)} className="hover:opacity-75">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
+        {/* Upload Drawer (Collapsible) */}
+        {showUploadDrawer && (
+          <div className="p-4 bg-slate-50 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0 animate-in slide-in-from-top-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-slate-300">
+                <Folder className="w-4 h-4 text-sky-500" />
+                <span>Save photo into category folder:</span>
+              </div>
+              <select
+                value={uploadCategory}
+                onChange={(e) => setUploadCategory(e.target.value as ImageCategory)}
+                className="px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+              >
+                {ALL_CATEGORY_OPTIONS.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}/
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleDirectUpload}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-sky-600 hover:bg-sky-500 text-white flex items-center gap-2 shadow-sm transition-colors disabled:opacity-50"
+              >
+                {isUploading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                <span>{isUploading ? 'Uploading...' : 'Choose File from Device'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowUploadDrawer(false)}
+                className="px-3 py-2 rounded-xl text-xs text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-800"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Toolbar: Search, Category Filters & Batch Multi-Select Header */}
+        <div className="p-3 sm:p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 space-y-3 shrink-0">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             {/* Search Input */}
-            <div className="relative flex-1">
+            <div className="relative flex-1 max-w-md">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
+                placeholder="Search photos by filename, url, or folder..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search photos by filename, category or path..."
-                className="w-full pl-9 pr-4 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-sky-500"
+                className="w-full pl-9 pr-8 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
               />
               {searchTerm && (
                 <button
                   type="button"
                   onClick={() => setSearchTerm('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                 >
-                  Clear
+                  <X className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
 
-            {/* Upload Button toggle */}
-            <div className="flex items-center gap-2">
+            {/* Quick Actions & Refresh */}
+            <div className="flex items-center gap-2 justify-between sm:justify-end">
               <button
                 type="button"
-                onClick={() => setShowUploadDrawer(!showUploadDrawer)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                  showUploadDrawer
-                    ? 'bg-sky-600 text-white'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                }`}
+                onClick={handleSelectAllFiltered}
+                className="px-2.5 py-1.5 rounded-lg text-xs font-medium border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center gap-1.5"
+                title="Select all filtered photos for batch actions"
               >
-                <Upload className="w-3.5 h-3.5" />
-                <span>Upload New to Library</span>
+                {checkedUrls.size > 0 && checkedUrls.size === filteredImages.length ? (
+                  <CheckSquare className="w-3.5 h-3.5 text-sky-500" />
+                ) : (
+                  <Square className="w-3.5 h-3.5 text-slate-400" />
+                )}
+                <span>{checkedUrls.size > 0 ? `Deselect All (${checkedUrls.size})` : 'Select All'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={loadPhotos}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                title="Refresh library"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               </button>
             </div>
           </div>
 
-          {/* Upload Drawer (optional dropzone inside media library) */}
-          {showUploadDrawer && (
-            <div className="p-4 rounded-xl border border-sky-500/30 bg-sky-500/5 dark:bg-sky-950/20 space-y-3 animate-in fade-in">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Save to category:</span>
-                  <select
-                    value={uploadCategory}
-                    onChange={(e) => setUploadCategory(e.target.value as ImageCategory)}
-                    className="px-2.5 py-1 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                  >
-                    <option value="projects">projects/</option>
-                    <option value="experience">experience/</option>
-                    <option value="certifications">certifications/</option>
-                    <option value="achievements">achievements/</option>
-                    <option value="mentoring">mentoring/</option>
-                    <option value="events">events/</option>
-                    <option value="gallery">gallery/</option>
-                    <option value="profile">profile/</option>
-                    <option value="carousel">carousel/</option>
-                    <option value="general">general/</option>
-                  </select>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleDirectUpload}
-                    accept="image/*"
-                    className="hidden"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading}
-                    className="px-4 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold flex items-center gap-1.5 disabled:opacity-50"
-                  >
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>{isUploading ? 'Uploading...' : 'Choose File from Computer'}</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Category Filter Chips */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs scrollbar-thin">
-            <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider shrink-0 mr-1 flex items-center gap-1">
-              <Filter className="w-3 h-3" /> Filter:
-            </span>
+          {/* Category Filter Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
+            <Filter className="w-3.5 h-3.5 text-slate-400 shrink-0 mr-1" />
             {availableCategories.map((cat) => {
-              const count = cat === 'all' ? images.length : categoryCounts[cat] || 0;
-              const isSelected = activeCategory === cat;
+              const isActive = activeCategory === cat;
+              const count = cat === 'all' ? images.length : (categoryCounts[cat] || 0);
               const colorInfo = CATEGORY_COLORS[cat] || CATEGORY_COLORS.general;
 
               return (
@@ -274,17 +445,15 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
                   key={cat}
                   type="button"
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-3 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex items-center gap-1.5 ${
-                    isSelected
-                      ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xs font-semibold'
-                      : 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  className={`px-3 py-1 rounded-lg font-medium whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                    isActive
+                      ? 'bg-sky-600 text-white shadow-sm'
+                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/60 border border-slate-200 dark:border-slate-700/60'
                   }`}
                 >
                   <span className="capitalize">{cat}</span>
-                  <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
-                    isSelected 
-                      ? 'bg-white/20 dark:bg-black/20 text-current' 
-                      : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                    isActive ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'
                   }`}>
                     {count}
                   </span>
@@ -294,76 +463,221 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
           </div>
         </div>
 
-        {/* Photos Grid Content Area */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-5 bg-slate-50/50 dark:bg-[#070e24]">
+        {/* Batch Operations Floating Bar (Appears when 1+ photos are checked) */}
+        {checkedUrls.size > 0 && (
+          <div className="bg-sky-500/10 dark:bg-sky-950/40 border-b border-sky-500/20 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs animate-in slide-in-from-top-1 shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-sky-600 dark:text-sky-400">
+                {checkedUrls.size} photo{checkedUrls.size > 1 ? 's' : ''} selected
+              </span>
+              <button
+                type="button"
+                onClick={() => setCheckedUrls(new Set())}
+                className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 underline text-[11px]"
+              >
+                Clear
+              </button>
+            </div>
+
+            <div className="flex items-center flex-wrap gap-2">
+              {/* Move to folder */}
+              <div className="flex items-center gap-1.5">
+                <span className="text-slate-600 dark:text-slate-400 font-medium">Move to:</span>
+                <select
+                  value={batchTargetCategory}
+                  onChange={(e) => setBatchTargetCategory(e.target.value as ImageCategory)}
+                  className="px-2.5 py-1 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                >
+                  {ALL_CATEGORY_OPTIONS.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}/
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={handleBatchMove}
+                  disabled={isBatchOperating}
+                  className="px-3 py-1 rounded-lg font-semibold bg-sky-600 hover:bg-sky-500 text-white flex items-center gap-1 shadow-sm disabled:opacity-50"
+                >
+                  <FolderInput className="w-3.5 h-3.5" />
+                  <span>Move</span>
+                </button>
+              </div>
+
+              <div className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-1 hidden sm:block" />
+
+              {/* Delete permanently */}
+              <button
+                type="button"
+                onClick={() => setConfirmDeleteUrls(Array.from(checkedUrls))}
+                disabled={isBatchOperating}
+                className="px-3 py-1 rounded-lg font-semibold bg-rose-600 hover:bg-rose-500 text-white flex items-center gap-1 shadow-sm disabled:opacity-50"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Confirmation Modal for Deletion */}
+        {confirmDeleteUrls && (
+          <div className="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 max-w-md w-full shadow-2xl space-y-4 animate-in zoom-in-95">
+              <div className="flex items-center gap-3 text-rose-500">
+                <div className="w-10 h-10 rounded-full bg-rose-500/10 flex items-center justify-center shrink-0">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Delete Photos Completely?</h3>
+                  <p className="text-xs text-slate-500">This action permanently deletes the files from the server.</p>
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-600 dark:text-slate-300">
+                Are you sure you want to permanently delete <strong className="text-rose-500">{confirmDeleteUrls.length} photo(s)</strong>? If any entity uses them, the image URL will no longer be available.
+              </p>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirmDeleteUrls(null)}
+                  className="px-4 py-2 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBatchDelete}
+                  disabled={isBatchOperating}
+                  className="px-4 py-2 text-xs font-semibold rounded-xl bg-rose-600 hover:bg-rose-500 text-white flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Yes, Delete Completely</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Main Grid of Photos */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5">
           {loading ? (
             <div className="h-64 flex flex-col items-center justify-center gap-3 text-slate-400">
-              <RefreshCw className="w-6 h-6 animate-spin text-sky-500" />
-              <p className="text-xs font-mono">Loading all photos across categories...</p>
+              <RefreshCw className="w-8 h-8 animate-spin text-sky-500" />
+              <p className="text-xs font-mono">Loading media library photos...</p>
             </div>
           ) : filteredImages.length === 0 ? (
-            <div className="h-64 flex flex-col items-center justify-center gap-2 text-center p-6 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
-              <ImageIcon className="w-10 h-10 text-slate-400/50" />
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">No photos found</p>
-              <p className="text-xs text-slate-500 max-w-sm">
-                {searchTerm 
-                  ? `No photos matched "${searchTerm}". Try a different search term or category.`
-                  : 'No photos exist in this category yet. Click "Upload New to Library" to add one.'}
-              </p>
+            <div className="h-64 flex flex-col items-center justify-center gap-3 text-center">
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center">
+                <ImageIcon className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">No photos found</p>
+                <p className="text-xs text-slate-400 mt-1 max-w-sm">
+                  {searchTerm 
+                    ? `No photos match query "${searchTerm}". Try a different folder or search term.`
+                    : 'Upload photos or click "Select File" to add images to this category.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowUploadDrawer(true)}
+                className="mt-2 px-4 py-2 rounded-xl text-xs font-semibold bg-sky-600 hover:bg-sky-500 text-white flex items-center gap-1.5"
+              >
+                <Upload className="w-3.5 h-3.5" />
+                <span>Upload a Photo</span>
+              </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
               {filteredImages.map((img) => {
                 const isSelected = selectedUrl === img.url;
+                const isChecked = checkedUrls.has(img.url);
                 const catColor = CATEGORY_COLORS[img.category] || CATEGORY_COLORS.general;
 
                 return (
                   <div
                     key={img.url}
                     onClick={() => handleSelect(img)}
-                    className={`group relative rounded-xl border overflow-hidden cursor-pointer bg-white dark:bg-[#0c1633] transition-all hover:shadow-md ${
+                    className={`group relative rounded-xl border overflow-hidden cursor-pointer transition-all duration-200 flex flex-col bg-white dark:bg-slate-900/60 ${
                       isSelected
-                        ? 'border-sky-500 ring-2 ring-sky-500/40 shadow-lg scale-[1.02]'
-                        : 'border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-600'
+                        ? 'border-sky-500 ring-2 ring-sky-500/30 shadow-lg scale-[1.01]'
+                        : isChecked
+                        ? 'border-sky-400 dark:border-sky-500 bg-sky-50/20'
+                        : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md'
                     }`}
                   >
-                    {/* Thumbnail */}
-                    <div className="aspect-[4/3] w-full bg-slate-100 dark:bg-slate-900 relative overflow-hidden flex items-center justify-center">
+                    {/* Image Thumbnail */}
+                    <div className="relative aspect-[4/3] bg-slate-100 dark:bg-slate-800 overflow-hidden">
                       <img
                         src={img.url}
                         alt={img.filename}
-                        loading="lazy"
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        loading="lazy"
+                        onError={(e) => {
+                          // Fallback placeholder on broken URL
+                          (e.target as HTMLElement).style.display = 'none';
+                        }}
                       />
 
-                      {/* Selected Checkmark overlay */}
+                      {/* Multi-Select Checkbox in top-left */}
+                      <button
+                        type="button"
+                        onClick={(e) => handleToggleCheck(img.url, e)}
+                        className={`absolute top-2 left-2 w-6 h-6 rounded-md flex items-center justify-center transition-all ${
+                          isChecked
+                            ? 'bg-sky-600 text-white shadow-md'
+                            : 'bg-black/50 text-white opacity-60 hover:opacity-100 group-hover:opacity-100'
+                        }`}
+                        title={isChecked ? 'Deselect photo' : 'Select photo for batch move or delete'}
+                      >
+                        {isChecked ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+                      </button>
+
+                      {/* Selected Indicator Badge in top-right */}
                       {isSelected && (
-                        <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-sky-500 text-white flex items-center justify-center shadow-md animate-in zoom-in-75">
+                        <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-sky-500 text-white flex items-center justify-center shadow-md animate-in zoom-in-50">
                           <Check className="w-3.5 h-3.5 stroke-[3]" />
                         </div>
                       )}
 
-                      {/* Hover external link button */}
-                      <a
-                        href={img.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="absolute bottom-2 right-2 p-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                        title="View full resolution"
-                      >
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
+                      {/* Hover Action Strip */}
+                      <div className="absolute bottom-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigator.clipboard.writeText(img.url);
+                            showNotification('info', 'Photo URL copied to clipboard');
+                          }}
+                          className="p-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-white"
+                          title="Copy Photo URL"
+                        >
+                          <Copy className="w-3 h-3" />
+                        </button>
+                        <a
+                          href={img.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="p-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-white"
+                          title="View full resolution in new tab"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
                     </div>
 
                     {/* Metadata strip */}
-                    <div className="p-2.5 space-y-1">
+                    <div className="p-2.5 space-y-1.5">
                       <div className="flex items-center justify-between gap-1">
                         <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono uppercase tracking-wider font-semibold border ${catColor.bg} ${catColor.text} ${catColor.border}`}>
                           {img.category}
                         </span>
                         {img.source === 'uploaded' && (
-                          <span className="text-[9px] font-mono text-emerald-500 flex items-center gap-0.5">
+                          <span className="text-[9px] font-mono text-emerald-500">
                             Disk
                           </span>
                         )}
@@ -371,6 +685,44 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
                       <p className="text-xs font-medium text-slate-800 dark:text-slate-200 truncate" title={img.filename}>
                         {img.filename}
                       </p>
+                      
+                      {/* Quick Move / Delete Actions */}
+                      <div className="pt-1 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500">
+                        <select
+                          value={img.category}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={async (e) => {
+                            e.stopPropagation();
+                            const newCat = e.target.value;
+                            if (newCat === img.category) return;
+                            const res = await moveMediaImages([img.url], newCat);
+                            if (res.success) {
+                              showNotification('success', `Moved to "${newCat}". References updated.`);
+                              await loadPhotos();
+                            }
+                          }}
+                          className="text-[10px] py-0.5 px-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-none focus:ring-1 focus:ring-sky-500"
+                          title="Quick move to folder"
+                        >
+                          {ALL_CATEGORY_OPTIONS.map((c) => (
+                            <option key={c} value={c}>
+                              {c}
+                            </option>
+                          ))}
+                        </select>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmDeleteUrls([img.url]);
+                          }}
+                          className="p-1 rounded text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
+                          title="Delete photo completely"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -401,8 +753,8 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
               </>
             ) : (
               <div className="flex items-center gap-2 text-xs text-slate-400">
-                <Sparkles className="w-4 h-4 text-amber-500" />
-                <span>Click on any photo above to select it for <span className="font-semibold text-slate-600 dark:text-slate-300">{targetCategoryLabel}</span>.</span>
+                <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+                <span>Click on any photo to choose it for <span className="font-semibold text-slate-600 dark:text-slate-300">{targetCategoryLabel}</span>, or select checkboxes to batch move/delete.</span>
               </div>
             )}
           </div>
@@ -413,7 +765,7 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
               onClick={onClose}
               className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs sm:text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
-              Cancel
+              Close
             </button>
             <button
               type="button"
@@ -422,7 +774,7 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
               className="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs sm:text-sm font-semibold shadow-sm flex items-center gap-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <Check className="w-4 h-4" />
-              <span>Use as {targetCategoryLabel} Photo</span>
+              <span>Select as {targetCategoryLabel} Photo</span>
             </button>
           </div>
         </div>

@@ -661,7 +661,7 @@
       ]
     }
   ],
-  "lastUpdated": "2026-09-13T11:43:44.018Z",
+  "lastUpdated": "2026-09-13T12:45:33.069Z",
   "messages": [
     {
       "date": "2026-09-12T12:16:48Z",
@@ -685,7 +685,7 @@
     }
   ],
   "profile": {
-    "avatarUrl": "/static/images/profile/timothy-ododo-avatar.jpg",
+    "avatarUrl": "/static/images/carousel/carousel-photo-1.jpg",
     "bio": "Multidisciplinary technology professional and mentor with demonstrated ability in software development, technical education, IT systems management, and community leadership. Experienced in training hundreds of young people in computing and hardware programming, organizing state-level hackathons, and developing performant applications with Go, Python, and modern cloud technologies.",
     "capabilities": [
       {
@@ -1233,7 +1233,7 @@
       "period": "August – September 2024",
       "learnersCount": "200+ Students",
       "focus": "Raspberry Pi Pico, MicroPython, Scratch & Sensor Prototyping",
-      "imageUrl": "/static/images/mentoring/buildathon-holiday-camp.jpg",
+      "imageUrl": "/static/images/carousel/buildathon-holiday-camp.jpg",
       "description": "Designed and delivered an immersive 4-week physical computing program for junior and senior secondary school students across Anambra State.",
       "highlights": [
         "Rapidly developed and deployed hands-on curriculum within 72 hours of camp kick-off",

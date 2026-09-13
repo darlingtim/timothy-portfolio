@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { X, Plus, Trash2, Calendar, MapPin, Users, Sparkles, Upload, Check, FolderOpen, Image as ImageIcon } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Plus, Trash2, Calendar, MapPin, Users, Sparkles } from 'lucide-react';
 import { EventContribution, CustomField } from '../../types';
 import { CustomFieldEditor } from './CustomFieldEditor';
-import { uploadImageFile } from '../../utils/imageUpload';
-import { MediaLibraryModal } from './MediaLibraryModal';
+import { MultiPhotoField } from './MultiPhotoField';
 
 interface EventModalProps {
   isOpen: boolean;
@@ -41,14 +40,13 @@ export const EventModal: React.FC<EventModalProps> = ({
     highlights: [''],
     technologies: [],
     imageUrl: '',
+    photos: [],
     eventUrl: '',
     certificateUrl: '',
     customFields: []
   });
 
-  const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
   const [techInput, setTechInput] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (eventToEdit) {
@@ -56,6 +54,7 @@ export const EventModal: React.FC<EventModalProps> = ({
         ...eventToEdit,
         highlights: eventToEdit.highlights?.length ? eventToEdit.highlights : [''],
         technologies: eventToEdit.technologies || [],
+        photos: eventToEdit.photos || [],
         customFields: eventToEdit.customFields || []
       });
     } else {
@@ -73,6 +72,7 @@ export const EventModal: React.FC<EventModalProps> = ({
         highlights: [''],
         technologies: [],
         imageUrl: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80',
+        photos: [],
         eventUrl: '',
         certificateUrl: '',
         customFields: []
@@ -81,20 +81,6 @@ export const EventModal: React.FC<EventModalProps> = ({
   }, [eventToEdit, isOpen]);
 
   if (!isOpen) return null;
-
-  const handleImageFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    uploadImageFile(file, { category: 'events' })
-      .then((result) => {
-        if (result.url) {
-          setFormData({ ...formData, imageUrl: result.url });
-        }
-      })
-      .catch((err) => {
-        console.error('Failed to upload event image:', err);
-      });
-  };
 
   const handleHighlightChange = (index: number, val: string) => {
     const next = [...formData.highlights];
@@ -318,90 +304,16 @@ export const EventModal: React.FC<EventModalProps> = ({
             </div>
           </div>
 
-          {/* Cover Photo */}
-          <div className="space-y-3 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <ImageIcon className="w-4 h-4 text-sky-500" />
-                <label className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-300 block">
-                  Event Cover Photo
-                </label>
-              </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/10 text-sky-500 font-semibold">
-                Folder: static/images/events
-              </span>
-            </div>
-
-            {formData.imageUrl ? (
-              <div className="flex items-center gap-4">
-                <div className="w-32 h-20 rounded-xl overflow-hidden bg-slate-900 border border-slate-700 shrink-0">
-                  <img src={formData.imageUrl} alt="" className="w-full h-full object-cover" />
-                </div>
-                <div className="flex-1 w-full space-y-2 min-w-0">
-                  <p className="text-xs font-mono text-slate-500 truncate">{formData.imageUrl}</p>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setIsMediaLibraryOpen(true)}
-                      className="px-3 py-1.5 rounded-lg border border-sky-300 dark:border-sky-800 text-sky-600 dark:text-sky-400 text-xs hover:bg-sky-50 dark:hover:bg-sky-950/40 flex items-center gap-1.5 transition-colors font-medium"
-                    >
-                      <FolderOpen className="w-3.5 h-3.5" />
-                      <span>Change from Library</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, imageUrl: '' })}
-                      className="px-3 py-1.5 rounded-lg border border-rose-300 dark:border-rose-800 text-rose-500 text-xs hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-1.5 transition-colors"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>Remove</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex flex-col items-center justify-center h-20 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-sky-500 rounded-xl bg-white dark:bg-slate-900 transition-colors p-2 text-center group"
-                  >
-                    <Upload className="w-5 h-5 text-slate-400 group-hover:text-sky-500 mb-1 transition-colors" />
-                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                      Upload Event Image
-                    </span>
-                  </button>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleImageFile}
-                    accept="image/*"
-                    className="hidden"
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() => setIsMediaLibraryOpen(true)}
-                    className="flex flex-col items-center justify-center h-20 border-2 border-dashed border-sky-300 dark:border-sky-800/80 hover:border-sky-500 rounded-xl bg-sky-50/50 dark:bg-sky-950/20 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors p-2 text-center group"
-                  >
-                    <FolderOpen className="w-5 h-5 text-sky-500 mb-1 transition-transform group-hover:scale-110" />
-                    <span className="text-xs font-semibold text-sky-600 dark:text-sky-400">
-                      Choose from Photo Library
-                    </span>
-                  </button>
-                </div>
-
-                <input
-                  type="url"
-                  value={formData.imageUrl || ''}
-                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                  placeholder="https://images.unsplash.com/... or /static/images/events/..."
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
-                />
-              </div>
-            )}
-          </div>
+          {/* Event Photos & Gallery (Multi-photo support) */}
+          <MultiPhotoField
+            label="Event Photos & Gallery"
+            category="events"
+            primaryPhoto={formData.imageUrl || ''}
+            onChangePrimaryPhoto={(url) => setFormData({ ...formData, imageUrl: url })}
+            photos={formData.photos || []}
+            onChangePhotos={(photos) => setFormData({ ...formData, photos })}
+            description="Add a primary banner and multiple photo records from this event or summit."
+          />
 
           {/* Summary */}
           <div className="space-y-1.5">
@@ -524,16 +436,6 @@ export const EventModal: React.FC<EventModalProps> = ({
 
         </form>
       </div>
-
-      <MediaLibraryModal
-        isOpen={isMediaLibraryOpen}
-        onClose={() => setIsMediaLibraryOpen(false)}
-        targetCategoryLabel="Event Contribution"
-        defaultCategoryFilter="events"
-        onSelectPhoto={(url) => {
-          setFormData((prev) => ({ ...prev, imageUrl: url }));
-        }}
-      />
     </div>
   );
 };

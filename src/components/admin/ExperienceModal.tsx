@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Briefcase, Check, Upload, Image as ImageIcon, ExternalLink, Sparkles, FolderOpen } from 'lucide-react';
+import { X, Plus, Trash2, Briefcase, Check, Sparkles } from 'lucide-react';
 import { Experience, CustomField } from '../../types';
 import { CustomFieldEditor } from './CustomFieldEditor';
-import { uploadImageFile } from '../../utils/imageUpload';
-import { MediaLibraryModal } from './MediaLibraryModal';
+import { MultiPhotoField } from './MultiPhotoField';
 
 interface ExperienceModalProps {
   isOpen: boolean;
@@ -31,18 +30,20 @@ export const ExperienceModal: React.FC<ExperienceModalProps> = ({
     highlights: [''],
     technologies: ['Go', 'TypeScript'],
     imageUrl: '',
+    photos: [],
     companyUrl: '',
     customFields: []
   });
 
   const [highlightInput, setHighlightInput] = useState('');
   const [techInput, setTechInput] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
-  const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
 
   useEffect(() => {
     if (experienceToEdit) {
-      setFormData({ ...experienceToEdit });
+      setFormData({
+        ...experienceToEdit,
+        photos: experienceToEdit.photos || []
+      });
     } else {
       setFormData({
         role: '',
@@ -58,30 +59,12 @@ export const ExperienceModal: React.FC<ExperienceModalProps> = ({
         ],
         technologies: ['Go', 'Docker', 'Linux', 'REST APIs'],
         imageUrl: '',
+        photos: [],
         companyUrl: '',
         customFields: []
       });
     }
   }, [experienceToEdit]);
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    uploadImageFile(file, { category: 'experience' })
-      .then((result) => {
-        if (result.url) {
-          setFormData((prev) => ({ ...prev, imageUrl: result.url }));
-        }
-      })
-      .catch((err) => {
-        console.error('Upload error:', err);
-      })
-      .finally(() => {
-        setIsUploading(false);
-      });
-  };
 
   const handleAddHighlight = () => {
     if (!highlightInput.trim()) return;
@@ -252,108 +235,16 @@ export const ExperienceModal: React.FC<ExperienceModalProps> = ({
               </div>
             </div>
 
-            {/* Experience Photo / Workplace / Team Badge (Category: experience) */}
-            <div className="space-y-3 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <ImageIcon className="w-4 h-4 text-cyan-500" />
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    Experience / Workplace / Team Photo
-                  </label>
-                </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-500 font-semibold">
-                  Folder: static/images/experience
-                </span>
-              </div>
-
-              {formData.imageUrl ? (
-                <div className="flex items-center gap-4">
-                  <div className="relative w-36 h-24 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 group shrink-0">
-                    <img
-                      src={formData.imageUrl}
-                      alt="Experience preview"
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <a
-                        href={formData.imageUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="p-1.5 rounded bg-white/20 text-white hover:bg-white/40"
-                        title="View photo"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                    </div>
-                  </div>
-                  <div className="space-y-2 flex-1 min-w-0">
-                    <p className="text-xs font-mono text-slate-500 truncate">{formData.imageUrl}</p>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setIsMediaLibraryOpen(true)}
-                        className="px-3 py-1.5 rounded-lg border border-sky-300 dark:border-sky-800 text-sky-600 dark:text-sky-400 text-xs hover:bg-sky-50 dark:hover:bg-sky-950/40 flex items-center gap-1.5 transition-colors font-medium"
-                      >
-                        <FolderOpen className="w-3.5 h-3.5" />
-                        <span>Change from Library</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setFormData({ ...formData, imageUrl: '' })}
-                        className="px-3 py-1.5 rounded-lg border border-rose-300 dark:border-rose-800 text-rose-500 text-xs hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-1.5 transition-colors"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>Remove</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    {/* Upload from Computer */}
-                    <label className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-cyan-500 rounded-xl cursor-pointer bg-white dark:bg-slate-900 transition-colors p-2 text-center group">
-                      <Upload className="w-5 h-5 text-slate-400 group-hover:text-cyan-500 mb-1 transition-colors" />
-                      <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                        {isUploading ? 'Uploading to static/images/experience...' : 'Upload New Photo'}
-                      </span>
-                      <span className="text-[10px] text-slate-400">PNG, JPG, WebP</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        disabled={isUploading}
-                        className="hidden"
-                      />
-                    </label>
-
-                    {/* Choose from Library (Cross-category) */}
-                    <button
-                      type="button"
-                      onClick={() => setIsMediaLibraryOpen(true)}
-                      className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-sky-300 dark:border-sky-800/80 hover:border-sky-500 rounded-xl bg-sky-50/50 dark:bg-sky-950/20 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors p-2 text-center group"
-                    >
-                      <FolderOpen className="w-5 h-5 text-sky-500 mb-1 transition-transform group-hover:scale-110" />
-                      <span className="text-xs font-semibold text-sky-600 dark:text-sky-400">
-                        Choose from Photo Library
-                      </span>
-                      <span className="text-[10px] text-slate-400">Pick any photo from any category</span>
-                    </button>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] text-slate-400 shrink-0">or enter image path / URL:</span>
-                    <input
-                      type="text"
-                      value={formData.imageUrl || ''}
-                      onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                      placeholder="/static/images/experience/... or https://..."
-                      className="flex-1 px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* Experience Cover & Photos */}
+            <MultiPhotoField
+              label="Experience & Workplace Photos"
+              category="experience"
+              primaryPhoto={formData.imageUrl || ''}
+              onChangePrimaryPhoto={(url) => setFormData({ ...formData, imageUrl: url })}
+              photos={formData.photos || []}
+              onChangePhotos={(photos) => setFormData({ ...formData, photos })}
+              description="Attach primary organizational photo and multiple workplace, team, or project pictures."
+            />
 
             {/* Summary */}
             <div className="space-y-1.5">
@@ -478,16 +369,6 @@ export const ExperienceModal: React.FC<ExperienceModalProps> = ({
         </div>
 
       </div>
-
-      <MediaLibraryModal
-        isOpen={isMediaLibraryOpen}
-        onClose={() => setIsMediaLibraryOpen(false)}
-        targetCategoryLabel="Experience"
-        defaultCategoryFilter="experience"
-        onSelectPhoto={(url) => {
-          setFormData((prev) => ({ ...prev, imageUrl: url }));
-        }}
-      />
     </div>
   );
 };

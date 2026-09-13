@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, Users, Upload, Trash2, Check, Plus, ExternalLink, Image as ImageIcon, FolderOpen } from 'lucide-react';
+import { X, Users, Check, Plus, Trash2 } from 'lucide-react';
 import { MentoringProgram, CustomField } from '../../types';
-import { uploadImageFile } from '../../utils/imageUpload';
 import { CustomFieldEditor } from './CustomFieldEditor';
-import { MediaLibraryModal } from './MediaLibraryModal';
+import { MultiPhotoField } from './MultiPhotoField';
 
 interface MentoringModalProps {
   isOpen: boolean;
@@ -30,14 +29,13 @@ export const MentoringModal: React.FC<MentoringModalProps> = ({
     highlights: [],
     technologies: [],
     imageUrl: '',
+    photos: [],
     testimonials: [],
     customFields: []
   });
 
   const [highlightInput, setHighlightInput] = useState('');
   const [techInput, setTechInput] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
-  const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
 
   // New testimonial form state
   const [testimonialAuthor, setTestimonialAuthor] = useState('');
@@ -48,6 +46,7 @@ export const MentoringModal: React.FC<MentoringModalProps> = ({
     if (programToEdit) {
       setFormData({
         ...programToEdit,
+        photos: programToEdit.photos || [],
         highlights: programToEdit.highlights || [],
         technologies: programToEdit.technologies || [],
         testimonials: programToEdit.testimonials || [],
@@ -64,30 +63,12 @@ export const MentoringModal: React.FC<MentoringModalProps> = ({
         highlights: [],
         technologies: [],
         imageUrl: '',
+        photos: [],
         testimonials: [],
         customFields: []
       });
     }
   }, [programToEdit]);
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    uploadImageFile(file, { category: 'mentoring' })
-      .then((result) => {
-        if (result.url) {
-          setFormData((prev) => ({ ...prev, imageUrl: result.url }));
-        }
-      })
-      .catch((err) => {
-        console.error('Failed to upload mentoring photo:', err);
-      })
-      .finally(() => {
-        setIsUploading(false);
-      });
-  };
 
   const handleAddHighlight = () => {
     if (!highlightInput.trim()) return;
@@ -272,102 +253,16 @@ export const MentoringModal: React.FC<MentoringModalProps> = ({
             />
           </div>
 
-          {/* Mentoring Photo Upload (Category: mentoring) */}
-          <div className="space-y-3 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
-            <div className="flex items-center justify-between">
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-                Mentoring Workshop Photo / Session Banner
-              </label>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/10 text-sky-500">
-                Folder: static/images/mentoring
-              </span>
-            </div>
-
-            {formData.imageUrl ? (
-              <div className="flex items-center gap-4">
-                <div className="relative w-36 h-24 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 group shrink-0">
-                  <img
-                    src={formData.imageUrl}
-                    alt="Mentoring Photo Preview"
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <a
-                      href={formData.imageUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="p-1 rounded bg-white/20 text-white hover:bg-white/40"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
-                  </div>
-                </div>
-                <div className="space-y-2 flex-1 min-w-0">
-                  <p className="text-xs font-mono text-slate-500 truncate">{formData.imageUrl}</p>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setIsMediaLibraryOpen(true)}
-                      className="px-3 py-1.5 rounded-lg border border-sky-300 dark:border-sky-800 text-sky-600 dark:text-sky-400 text-xs hover:bg-sky-50 dark:hover:bg-sky-950/40 flex items-center gap-1.5 transition-colors font-medium"
-                    >
-                      <FolderOpen className="w-3.5 h-3.5" />
-                      <span>Change from Library</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, imageUrl: '' })}
-                      className="px-3 py-1.5 rounded-lg border border-rose-300 dark:border-rose-800 text-rose-500 text-xs hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-1.5 transition-colors"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>Remove Photo</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  <label className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-sky-500 rounded-xl cursor-pointer bg-white dark:bg-slate-900 transition-colors p-2 text-center group">
-                    <Upload className="w-5 h-5 text-slate-400 group-hover:text-sky-500 mb-1 transition-colors" />
-                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                      {isUploading ? 'Uploading to static/images/mentoring...' : 'Upload Session Photo'}
-                    </span>
-                    <span className="text-[10px] text-slate-400">PNG, JPG, WebP</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      disabled={isUploading}
-                      className="hidden"
-                    />
-                  </label>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsMediaLibraryOpen(true)}
-                    className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-sky-300 dark:border-sky-800/80 hover:border-sky-500 rounded-xl bg-sky-50/50 dark:bg-sky-950/20 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors p-2 text-center group"
-                  >
-                    <FolderOpen className="w-5 h-5 text-sky-500 mb-1 transition-transform group-hover:scale-110" />
-                    <span className="text-xs font-semibold text-sky-600 dark:text-sky-400">
-                      Choose from Photo Library
-                    </span>
-                    <span className="text-[10px] text-slate-400">Pick any photo from any category</span>
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-slate-400 shrink-0">or enter image path / URL:</span>
-                  <input
-                    type="text"
-                    value={formData.imageUrl || ''}
-                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                    placeholder="/static/images/mentoring/... or https://..."
-                    className="flex-1 px-2.5 py-1 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                  />
-                </div>
-              </div>
-            )}
-          </div>
+          {/* Mentoring Photos & Gallery */}
+          <MultiPhotoField
+            label="Mentoring Workshop & Session Photos"
+            category="mentoring"
+            primaryPhoto={formData.imageUrl || ''}
+            onChangePrimaryPhoto={(url) => setFormData({ ...formData, imageUrl: url })}
+            photos={formData.photos || []}
+            onChangePhotos={(photos) => setFormData({ ...formData, photos })}
+            description="Add session cover and multiple photos of student workshops, cohorts, or presentations."
+          />
 
           {/* Highlights & Key Outcomes */}
           <div className="space-y-2">
@@ -526,7 +421,7 @@ export const MentoringModal: React.FC<MentoringModalProps> = ({
           </div>
 
           <CustomFieldEditor
-            fields={formData.customFields || []}
+            customFields={formData.customFields || []}
             onChange={(fields) => setFormData({ ...formData, customFields: fields })}
           />
 
@@ -548,16 +443,6 @@ export const MentoringModal: React.FC<MentoringModalProps> = ({
           </div>
         </form>
       </div>
-
-      <MediaLibraryModal
-        isOpen={isMediaLibraryOpen}
-        onClose={() => setIsMediaLibraryOpen(false)}
-        targetCategoryLabel="Mentoring Program"
-        defaultCategoryFilter="mentoring"
-        onSelectPhoto={(url) => {
-          setFormData((prev) => ({ ...prev, imageUrl: url }));
-        }}
-      />
     </div>
   );
 };
