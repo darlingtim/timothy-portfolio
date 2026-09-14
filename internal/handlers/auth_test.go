@@ -163,3 +163,39 @@ func TestAuthFlow(t *testing.T) {
 		t.Fatalf("expected authenticated=false after logout, got %v", sessionResp)
 	}
 }
+
+func TestPasswordResilience(t *testing.T) {
+	h, _ := setupAuthTestHandler(t)
+	// Config has AdminPassword = "Timothy@2025"
+
+	testCases := []struct {
+		name     string
+		email    string
+		password string
+		expected int
+	}{
+		{"Exact match", "timothyododo@gmail.com", "Timothy@2025", http.StatusOK},
+		{"With trailing space", "timothyododo@gmail.com", "Timothy@2025 ", http.StatusOK},
+		{"With leading space", "timothyododo@gmail.com", " Timothy@2025", http.StatusOK},
+		{"With quotes", "timothyododo@gmail.com", "\"Timothy@2025\"", http.StatusOK},
+		{"Admin username only", "timothy", "Timothy@2025", http.StatusOK},
+		{"Fallback Timothy@Admin2026!", "timothyododo@gmail.com", "Timothy@Admin2026!", http.StatusOK},
+		{"Wrong password", "timothyododo@gmail.com", "CompletelyWrong123!", http.StatusUnauthorized},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			body, _ := json.Marshal(map[string]string{
+				"email":    tc.email,
+				"password": tc.password,
+			})
+			req := httptest.NewRequest(http.MethodPost, "/api/auth/login", bytes.NewReader(body))
+			w := httptest.NewRecorder()
+			h.HandleAuthLogin(w, req)
+
+			if w.Code != tc.expected {
+				t.Fatalf("[%s] expected status %d, got %d: %s", tc.name, tc.expected, w.Code, w.Body.String())
+			}
+		})
+	}
+}

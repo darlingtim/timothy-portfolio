@@ -946,7 +946,7 @@
       "title": "Certificate - Microsoft Azure Cloud"
     }
   ],
-  "lastUpdated": "2026-09-14T13:51:29Z",
+  "lastUpdated": "2026-09-14T15:14:25Z",
   "mentoring": [
     {
       "description": "Designed and delivered an immersive 4-week physical computing program for junior and senior secondary school students across Anambra State.",
@@ -1019,6 +1019,16 @@
     }
   ],
   "messages": [
+    {
+      "date": "2026-09-14T15:14:25Z",
+      "email": "ada@example.com",
+      "id": "msg-1789398865800-1381",
+      "isRead": false,
+      "message": "Hello Timothy, I would love to connect regarding technology mentorship.",
+      "name": "Ada Lovelace",
+      "status": "New",
+      "subject": "Mentorship Inquiry"
+    },
     {
       "date": "2026-09-14T13:51:29Z",
       "email": "ada@example.com",
