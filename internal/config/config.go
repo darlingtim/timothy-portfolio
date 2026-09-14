@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -70,18 +71,29 @@ func Load() *Config {
 	if smtpUser == "" {
 		smtpUser = adminEmail
 	}
+	smtpUser = strings.Trim(strings.TrimSpace(smtpUser), "\"'`")
 
 	smtpPass := os.Getenv("SMTP_PASS")
 	if smtpPass == "" {
 		smtpPass = os.Getenv("GMAIL_APP_PASSWORD")
 	}
+	if smtpPass == "" {
+		smtpPass = os.Getenv("SMTP_PASSWORD")
+	}
+	smtpPass = strings.Trim(strings.TrimSpace(smtpPass), "\"'`")
+	// If it's a Gmail App Password or contains spaces, strip all whitespace/spaces.
+	// Google displays 16-character App Passwords with spaces like "xxxx xxxx xxxx xxxx",
+	// but the SMTP server requires all spaces to be removed ("xxxxxxxxxxxxxxxx").
+	if strings.Contains(smtpUser, "@gmail.com") || strings.Contains(smtpPass, " ") {
+		smtpPass = strings.ReplaceAll(smtpPass, " ", "")
+	}
 
-	smtpHost := os.Getenv("SMTP_HOST")
+	smtpHost := strings.Trim(strings.TrimSpace(os.Getenv("SMTP_HOST")), "\"'`")
 	if smtpHost == "" {
 		smtpHost = "smtp.gmail.com"
 	}
 
-	smtpPort := os.Getenv("SMTP_PORT")
+	smtpPort := strings.Trim(strings.TrimSpace(os.Getenv("SMTP_PORT")), "\"'`")
 	if smtpPort == "" {
 		smtpPort = "587"
 	}

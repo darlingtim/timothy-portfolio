@@ -497,9 +497,16 @@ func (h *Handler) HandleMailStatus(w http.ResponseWriter, r *http.Request) {
 // DispatchOTP sends the code via email or SMS
 func (h *Handler) DispatchOTP(channel, target, otpCode string) {
 	if channel == "email" {
+		cleanTarget := strings.Trim(strings.TrimSpace(target), "\"'`")
+		if !strings.Contains(cleanTarget, "@") {
+			cleanTarget = h.cfg.AdminEmail
+			if cleanTarget == "" {
+				cleanTarget = "timothyododo@gmail.com"
+			}
+		}
 		subject := fmt.Sprintf("Your Admin Verification Code: %s", otpCode)
 		text := fmt.Sprintf("Hello Timothy,\n\nYour Portfolio Admin 2FA verification code is: %s\n\nThis code will expire in 5 minutes.\n\nTimothy Ododo Portfolio Security System", otpCode)
-		h.SendEmailNotification(target, subject, text, "", target, "Timothy Ododo Security")
+		h.SendEmailNotification(cleanTarget, subject, text, "", cleanTarget, "Timothy Ododo Security")
 		return
 	}
 
@@ -537,10 +544,35 @@ func (h *Handler) DispatchOTP(channel, target, otpCode string) {
 
 // SendEmailNotification sends an email via SMTP or Resend
 func (h *Handler) SendEmailNotification(to, subject, text, html, replyTo, fromName string) bool {
-	smtpUser := h.cfg.SMTPUser
-	smtpPass := strings.TrimSpace(h.cfg.SMTPPass)
-	smtpHost := h.cfg.SMTPHost
-	smtpPort := h.cfg.SMTPPort
+	smtpUser := strings.Trim(strings.TrimSpace(h.cfg.SMTPUser), "\"'`")
+	smtpPass := strings.Trim(strings.TrimSpace(h.cfg.SMTPPass), "\"'`")
+	smtpHost := strings.Trim(strings.TrimSpace(h.cfg.SMTPHost), "\"'`")
+	smtpPort := strings.Trim(strings.TrimSpace(h.cfg.SMTPPort), "\"'`")
+
+	if smtpHost == "" {
+		smtpHost = "smtp.gmail.com"
+	}
+	if smtpPort == "" {
+		smtpPort = "587"
+	}
+	if smtpUser == "" {
+		smtpUser = h.cfg.AdminEmail
+	}
+
+	// Clean target recipient
+	to = strings.Trim(strings.TrimSpace(to), "\"'`")
+	if !strings.Contains(to, "@") {
+		to = h.cfg.AdminEmail
+		if to == "" {
+			to = "timothyododo@gmail.com"
+		}
+	}
+
+	// If it's a Gmail App Password or contains spaces, strip all whitespace/spaces.
+	// Google generates App Passwords in 4-character blocks: "xxxx xxxx xxxx xxxx" (16 chars without spaces).
+	if strings.Contains(smtpUser, "@gmail.com") || strings.Contains(smtpHost, "gmail") || strings.Contains(smtpPass, " ") {
+		smtpPass = strings.ReplaceAll(smtpPass, " ", "")
+	}
 
 	if fromName == "" {
 		fromName = "Timothy Ododo Portfolio"
@@ -597,7 +629,9 @@ func (h *Handler) SendEmailNotification(to, subject, text, html, replyTo, fromNa
 			h.logger.Info("email delivered via SMTP", "to", maskEmail(to))
 			return true
 		}
-		h.logger.Warn("SMTP dispatch failed", "err", err, "to", maskEmail(to))
+		h.logger.Warn("SMTP dispatch failed", "err", err, "to", maskEmail(to), "host", smtpHost, "port", smtpPort, "user", maskEmail(smtpUser))
+	} else {
+		h.logger.Warn("SMTP dispatch skipped: no SMTP_PASS or GMAIL_APP_PASSWORD configured", "user", maskEmail(smtpUser))
 	}
 
 	// 2. Resend API

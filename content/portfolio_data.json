@@ -946,7 +946,7 @@
       "title": "Certificate - Microsoft Azure Cloud"
     }
   ],
-  "lastUpdated": "2026-09-14T15:14:25Z",
+  "lastUpdated": "2026-09-14T18:31:43Z",
   "mentoring": [
     {
       "description": "Designed and delivered an immersive 4-week physical computing program for junior and senior secondary school students across Anambra State.",
@@ -1019,6 +1019,36 @@
     }
   ],
   "messages": [
+    {
+      "date": "2026-09-14T18:31:43Z",
+      "email": "ada@example.com",
+      "id": "msg-1789410703481-2657",
+      "isRead": false,
+      "message": "Hello Timothy, I would love to connect regarding technology mentorship.",
+      "name": "Ada Lovelace",
+      "status": "New",
+      "subject": "Mentorship Inquiry"
+    },
+    {
+      "date": "2026-09-14",
+      "email": "timothyododo@gmail.com",
+      "id": "msg-1789404502326-xpkes",
+      "isRead": true,
+      "isStarred": false,
+      "message": "lets get to talk more",
+      "name": "Timmy",
+      "replies": [
+        {
+          "body": "Hello Timmy,\n\nThank you for reaching out through my portfolio website and for loving what you do.\nI am eager to discuss how my skills and experience could be beneficial to you.\n\n\n\nBest regards,\nTimothy Ododo\nTechnology Mentor \u0026 Software Engineer\ntimothyododo@gmail.com",
+          "date": "2026-09-14T16:52:29.638Z",
+          "id": "reply-1789404749638",
+          "sentBy": "Timothy Ododo (timothyododo@gmail.com)",
+          "subject": "Re: I  love what you do"
+        }
+      ],
+      "status": "Replied",
+      "subject": "I  love what you do"
+    },
     {
       "date": "2026-09-14T15:14:25Z",
       "email": "ada@example.com",
