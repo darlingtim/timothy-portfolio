@@ -96,7 +96,20 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
         })
       });
 
-      const data = await res.json();
+      const contentType = res.headers.get('content-type') || '';
+      let data: any = {};
+      if (contentType.includes('application/json')) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        if (!res.ok) {
+          setError(res.status === 404
+            ? 'Authentication service endpoint not found (404). Please ensure the latest server code is deployed.'
+            : (text || `Server returned error (${res.status})`));
+          setIsLoading(false);
+          return;
+        }
+      }
 
       if (!res.ok || !data.success) {
         setError(data.error || 'Invalid credentials. Please check your admin details.');
@@ -121,7 +134,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
         }, 150);
       }
     } catch (err: any) {
-      setError('Connection error. Please check your network or server status.');
+      setError(err?.message || 'Connection error. Please check your network or server status.');
     } finally {
       setIsLoading(false);
     }
@@ -143,7 +156,19 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
         })
       });
 
-      const data = await res.json();
+      const contentType = res.headers.get('content-type') || '';
+      let data: any = {};
+      if (contentType.includes('application/json')) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        if (!res.ok) {
+          setError(text || `Server returned error (${res.status})`);
+          setIsResending(false);
+          return;
+        }
+      }
+
       if (data.success) {
         setChannel(targetChannel);
         setResendCooldown(60);
@@ -151,8 +176,8 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
       } else {
         setError(data.error || 'Failed to resend verification code.');
       }
-    } catch (err) {
-      setError('Network error while requesting code.');
+    } catch (err: any) {
+      setError(err?.message || 'Network error while requesting code.');
     } finally {
       setIsResending(false);
     }
@@ -223,7 +248,18 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
         })
       });
 
-      const data = await res.json();
+      const contentType = res.headers.get('content-type') || '';
+      let data: any = {};
+      if (contentType.includes('application/json')) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        if (!res.ok) {
+          setError(text || `Server returned error (${res.status})`);
+          setIsLoading(false);
+          return;
+        }
+      }
 
       if (!res.ok || !data.success) {
         setError(data.error || 'Invalid verification code. Please check and try again.');

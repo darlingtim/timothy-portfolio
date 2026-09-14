@@ -8,14 +8,27 @@ import (
 
 // Config holds runtime configuration loaded from environment variables
 type Config struct {
-	Port            string
-	AppEnv          string
-	ContactEmail    string
-	ReadTimeout     time.Duration
-	WriteTimeout    time.Duration
-	IdleTimeout     time.Duration
-	MaxBodyBytes    int64
-	EnableAnalytics bool
+	Port              string
+	AppEnv            string
+	ContactEmail      string
+	AdminEmail        string
+	AdminPassword     string
+	Admin2FAPhone     string
+	AdminRecoveryCode string
+	SMTPHost          string
+	SMTPPort          string
+	SMTPUser          string
+	SMTPPass          string
+	ResendAPIKey      string
+	TermiiAPIKey      string
+	TwilioAccountSID  string
+	TwilioAuthToken   string
+	TwilioFromPhone   string
+	ReadTimeout       time.Duration
+	WriteTimeout      time.Duration
+	IdleTimeout       time.Duration
+	MaxBodyBytes      int64
+	EnableAnalytics   bool
 }
 
 // Load loads configuration from environment variables with sensible defaults
@@ -35,16 +48,67 @@ func Load() *Config {
 		contactEmail = "timothyododo@gmail.com"
 	}
 
+	adminEmail := os.Getenv("ADMIN_EMAIL")
+	if adminEmail == "" {
+		adminEmail = "timothyododo@gmail.com"
+	}
+
+	adminPassword := os.Getenv("ADMIN_PASSWORD")
+	if adminPassword == "" {
+		adminPassword = "Timothy@2025"
+	}
+
+	adminPhone := os.Getenv("ADMIN_2FA_PHONE")
+	if adminPhone == "" {
+		adminPhone = "+2348140004589"
+	}
+
+	smtpUser := os.Getenv("SMTP_USER")
+	if smtpUser == "" {
+		smtpUser = os.Getenv("GMAIL_USER")
+	}
+	if smtpUser == "" {
+		smtpUser = adminEmail
+	}
+
+	smtpPass := os.Getenv("SMTP_PASS")
+	if smtpPass == "" {
+		smtpPass = os.Getenv("GMAIL_APP_PASSWORD")
+	}
+
+	smtpHost := os.Getenv("SMTP_HOST")
+	if smtpHost == "" {
+		smtpHost = "smtp.gmail.com"
+	}
+
+	smtpPort := os.Getenv("SMTP_PORT")
+	if smtpPort == "" {
+		smtpPort = "587"
+	}
+
 	enableAnalytics, _ := strconv.ParseBool(os.Getenv("ENABLE_ANALYTICS"))
 
 	return &Config{
-		Port:            port,
-		AppEnv:          appEnv,
-		ContactEmail:    contactEmail,
-		ReadTimeout:     10 * time.Second,
-		WriteTimeout:    15 * time.Second,
-		IdleTimeout:     120 * time.Second,
-		MaxBodyBytes:    1024 * 64, // 64 KB
-		EnableAnalytics: enableAnalytics,
+		Port:              port,
+		AppEnv:            appEnv,
+		ContactEmail:      contactEmail,
+		AdminEmail:        adminEmail,
+		AdminPassword:     adminPassword,
+		Admin2FAPhone:     adminPhone,
+		AdminRecoveryCode: os.Getenv("ADMIN_RECOVERY_CODE"),
+		SMTPHost:          smtpHost,
+		SMTPPort:          smtpPort,
+		SMTPUser:          smtpUser,
+		SMTPPass:          smtpPass,
+		ResendAPIKey:      os.Getenv("RESEND_API_KEY"),
+		TermiiAPIKey:      os.Getenv("TERMII_API_KEY"),
+		TwilioAccountSID:  os.Getenv("TWILIO_ACCOUNT_SID"),
+		TwilioAuthToken:   os.Getenv("TWILIO_AUTH_TOKEN"),
+		TwilioFromPhone:   os.Getenv("TWILIO_FROM_PHONE"),
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      15 * time.Second,
+		IdleTimeout:       120 * time.Second,
+		MaxBodyBytes:      1024 * 64, // 64 KB
+		EnableAnalytics:   enableAnalytics,
 	}
 }
