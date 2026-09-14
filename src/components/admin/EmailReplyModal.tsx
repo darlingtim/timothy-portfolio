@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Send, X, CheckCircle2, AlertCircle, ExternalLink, CornerDownLeft } from 'lucide-react';
 import { ContactMessage, MessageReply } from '../../types';
+import { getAdminToken } from '../../data';
 
 interface EmailReplyModalProps {
   isOpen: boolean;
@@ -49,10 +50,14 @@ export const EmailReplyModal: React.FC<EmailReplyModalProps> = ({
     };
 
     try {
+      const adminToken = getAdminToken();
       // Call server reply API
       const res = await fetch('/api/reply', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(adminToken ? { 'Authorization': `Bearer ${adminToken}` } : {})
+        },
         body: JSON.stringify({
           to: toEmail.trim(),
           toName: message.name,
@@ -62,26 +67,30 @@ export const EmailReplyModal: React.FC<EmailReplyModalProps> = ({
         })
       });
 
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to dispatch reply');
+      }
+
       onSendReply(message.id, newReply);
 
       setStatus({
         type: 'success',
-        text: `✓ Reply dispatched to ${toEmail}! Email recorded in communication logs.`
+        text: data.delivered
+          ? `✓ Live email dispatched to ${toEmail} and recorded in message history!`
+          : `✓ Reply saved to history. Note: Add SMTP_PASS to environment to enable live email delivery.`
       });
 
       setTimeout(() => {
         onClose();
       }, 1800);
-    } catch (err) {
-      // Fallback local record
-      onSendReply(message.id, newReply);
+    } catch (err: any) {
+      // Show actual error or fallback
       setStatus({
-        type: 'success',
-        text: `✓ Reply recorded and sent to ${toEmail}.`
+        type: 'error',
+        text: err.message || `Unable to deliver reply to ${toEmail}. Please check authentication or mail credentials.`
       });
-      setTimeout(() => {
-        onClose();
-      }, 1800);
     } finally {
       setIsSending(false);
     }

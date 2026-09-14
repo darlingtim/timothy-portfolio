@@ -256,6 +256,103 @@ async function startServer() {
   app.use('/static', express.static(STATIC_DIR, { maxAge: '1d' }));
   app.use('/images', express.static(STATIC_IMAGES_DIR, { maxAge: '1d' }));
 
+  // Generic email notification service supporting Gmail SMTP, custom SMTP, and Resend
+  interface SendEmailOptions {
+    to: string;
+    subject: string;
+    text?: string;
+    html?: string;
+    replyTo?: string;
+    fromName?: string;
+  }
+
+  async function sendEmailNotification(options: SendEmailOptions): Promise<{ delivered: boolean; method?: string; error?: string }> {
+    const smtpUser = process.env.SMTP_USER || process.env.GMAIL_USER || ADMIN_EMAIL || 'timothyododo@gmail.com';
+    const smtpPass = (process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || '').trim().replace(/\s+/g, '');
+    const smtpHost = process.env.SMTP_HOST?.trim();
+    const fromName = options.fromName || 'Timothy Ododo Portfolio';
+    const fromHeader = `"${fromName}" <${smtpUser}>`;
+
+    // 1. Gmail SMTP or Custom SMTP via Nodemailer
+    if (smtpPass) {
+      try {
+        const isGmail = (!smtpHost || smtpHost.toLowerCase().includes('gmail')) && smtpUser.includes('@gmail.com');
+        const transporter = isGmail
+          ? nodemailer.createTransport({
+              service: 'gmail',
+              auth: {
+                user: smtpUser,
+                pass: smtpPass
+              }
+            })
+          : nodemailer.createTransport({
+              host: smtpHost || 'smtp.gmail.com',
+              port: Number(process.env.SMTP_PORT) || 587,
+              secure: process.env.SMTP_PORT === '465',
+              auth: {
+                user: smtpUser,
+                pass: smtpPass
+              }
+            });
+
+        const info = await transporter.sendMail({
+          from: fromHeader,
+          to: options.to,
+          replyTo: options.replyTo,
+          subject: options.subject,
+          text: options.text,
+          html: options.html
+        });
+
+        console.log(`[EMAIL DISPATCH SUCCESS via SMTP] MessageId: ${info.messageId} delivered to ${maskEmail(options.to)}`);
+        return { delivered: true, method: 'smtp' };
+      } catch (smtpErr: any) {
+        console.error(`[EMAIL DISPATCH ERROR via SMTP] Could not deliver to ${maskEmail(options.to)}:`, smtpErr.message || smtpErr);
+        return { delivered: false, method: 'smtp', error: smtpErr.message || String(smtpErr) };
+      }
+    }
+
+    // 2. Resend API (if configured)
+    if (process.env.RESEND_API_KEY) {
+      try {
+        const res = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            from: `${fromName} <onboarding@resend.dev>`,
+            to: [options.to],
+            reply_to: options.replyTo,
+            subject: options.subject,
+            text: options.text,
+            html: options.html
+          })
+        });
+
+        if (res.ok) {
+          console.log(`[EMAIL DISPATCH SUCCESS via Resend] Delivered to ${maskEmail(options.to)}`);
+          return { delivered: true, method: 'resend' };
+        } else {
+          const errData = await res.text();
+          console.error(`[EMAIL DISPATCH ERROR via Resend]:`, errData);
+          return { delivered: false, method: 'resend', error: errData };
+        }
+      } catch (resendErr: any) {
+        console.error(`[EMAIL DISPATCH ERROR via Resend]:`, resendErr.message || resendErr);
+        return { delivered: false, method: 'resend', error: resendErr.message || String(resendErr) };
+      }
+    }
+
+    // Notice when no outbound credentials are set
+    console.warn(`[EMAIL DISPATCH NOTICE] Email notification to ${maskEmail(options.to)} was not dispatched over the network because outbound SMTP credentials are not configured. To enable live inbox delivery, set SMTP_PASS (or GMAIL_APP_PASSWORD) in your environment settings.`);
+    return {
+      delivered: false,
+      error: 'SMTP credentials (SMTP_PASS or GMAIL_APP_PASSWORD) or RESEND_API_KEY not configured'
+    };
+  }
+
   // Dispatch 2FA OTP securely to Email (Gmail) or SMS
   async function dispatchOTP(channel: 'email' | 'sms', target: string, otpCode: string): Promise<boolean> {
     const timestamp = new Date().toISOString();
@@ -264,66 +361,29 @@ async function startServer() {
     // Only log operational audit trail - NEVER log plaintext OTP secrets to server logs
     console.log(`[AUTH-AUDIT] 2FA OTP security code dispatched via ${channel.toUpperCase()} to ${maskedTarget} at ${timestamp}`);
 
-    // 1. Dispatch via Gmail SMTP (if configured)
-    if (channel === 'email' && process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-      try {
-        const transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST,
-          port: Number(process.env.SMTP_PORT) || 587,
-          secure: process.env.SMTP_PORT === '465',
-          auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS
-          }
-        });
-
-        await transporter.sendMail({
-          from: `"Timothy Ododo Security" <${process.env.SMTP_USER}>`,
-          to: target,
-          subject: `Your Admin Verification Code: ${otpCode}`,
-          text: `Hello Timothy,\n\nYour Portfolio Admin 2FA verification code is: ${otpCode}\n\nThis code will expire in 5 minutes.\n\nIf you did not request this code, please secure your account credentials immediately.\n\nTimothy Ododo Portfolio Security System`,
-          html: `
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 540px; margin: 0 auto; padding: 28px; border: 1px solid #e2e8f0; border-radius: 16px; background: #ffffff;">
-              <h2 style="color: #0f172a; margin-top: 0; font-size: 20px;">Portfolio Administrator 2FA Code</h2>
-              <p style="color: #475569; font-size: 14px; line-height: 1.6;">A login request was initiated for your portfolio administration portal.</p>
-              <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px; padding: 20px; text-align: center; margin: 24px 0;">
-                <span style="font-family: monospace; font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #0284c7;">${otpCode}</span>
-              </div>
-              <p style="color: #64748b; font-size: 12px; line-height: 1.5;">This code will expire in <strong>5 minutes</strong>. Do not share this code with anyone.</p>
-              <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
-              <p style="color: #94a3b8; font-size: 11px; margin: 0;">Timothy Ododo Portfolio &bull; Multi-Factor Authentication</p>
+    if (channel === 'email') {
+      await sendEmailNotification({
+        to: target,
+        fromName: 'Timothy Ododo Security',
+        subject: `Your Admin Verification Code: ${otpCode}`,
+        text: `Hello Timothy,\n\nYour Portfolio Admin 2FA verification code is: ${otpCode}\n\nThis code will expire in 5 minutes.\n\nIf you did not request this code, please secure your account credentials immediately.\n\nTimothy Ododo Portfolio Security System`,
+        html: `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 540px; margin: 0 auto; padding: 28px; border: 1px solid #e2e8f0; border-radius: 16px; background: #ffffff;">
+            <h2 style="color: #0f172a; margin-top: 0; font-size: 20px;">Portfolio Administrator 2FA Code</h2>
+            <p style="color: #475569; font-size: 14px; line-height: 1.6;">A login request was initiated for your portfolio administration portal.</p>
+            <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px; padding: 20px; text-align: center; margin: 24px 0;">
+              <span style="font-family: monospace; font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #0284c7;">${otpCode}</span>
             </div>
-          `
-        });
-        console.log(`[2FA SMTP DISPATCH SUCCESS] Real email sent to ${target}`);
-      } catch (mailErr) {
-        console.warn(`[2FA SMTP DISPATCH WARNING] Could not send via SMTP:`, mailErr);
-      }
+            <p style="color: #64748b; font-size: 12px; line-height: 1.5;">This code will expire in <strong>5 minutes</strong>. Do not share this code with anyone.</p>
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+            <p style="color: #94a3b8; font-size: 11px; margin: 0;">Timothy Ododo Portfolio &bull; Multi-Factor Authentication</p>
+          </div>
+        `
+      });
+      return true;
     }
 
-    // 2. Dispatch via Resend API (if configured)
-    if (channel === 'email' && process.env.RESEND_API_KEY) {
-      try {
-        await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            from: 'Timothy Ododo Admin <security@timothyododo.com>',
-            to: [target],
-            subject: `Admin 2FA Security Code: ${otpCode}`,
-            html: `<p>Your 2FA verification code is: <strong>${otpCode}</strong>. Expires in 5 minutes.</p>`
-          })
-        });
-        console.log(`[2FA RESEND DISPATCH SUCCESS] Sent to ${target}`);
-      } catch (resendErr) {
-        console.warn(`[2FA RESEND WARNING]`, resendErr);
-      }
-    }
-
-    // 3. Dispatch via Termii SMS (Nigeria / International SMS gateway) (if configured)
+    // 1. Dispatch via Termii SMS (Nigeria / International SMS gateway) (if configured)
     if (channel === 'sms' && process.env.TERMII_API_KEY) {
       try {
         await fetch('https://api.ng.termii.com/api/sms/send', {
@@ -338,9 +398,42 @@ async function startServer() {
             api_key: process.env.TERMII_API_KEY
           })
         });
-        console.log(`[2FA SMS DISPATCH SUCCESS] Termii SMS sent to ${target}`);
+        console.log(`[2FA SMS DISPATCH SUCCESS] Termii SMS sent to ${maskedTarget}`);
       } catch (smsErr) {
         console.warn(`[2FA SMS WARNING]`, smsErr);
+      }
+    }
+
+    // 2. Dispatch via Twilio SMS (if configured)
+    if (channel === 'sms' && process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_FROM_PHONE) {
+      try {
+        const sid = process.env.TWILIO_ACCOUNT_SID;
+        const auth = process.env.TWILIO_AUTH_TOKEN;
+        const from = process.env.TWILIO_FROM_PHONE;
+        const authHeader = 'Basic ' + Buffer.from(`${sid}:${auth}`).toString('base64');
+        const body = new URLSearchParams({
+          To: target,
+          From: from,
+          Body: `Your Timothy Ododo Portfolio 2FA code is: ${otpCode}. Valid for 5 mins.`
+        });
+
+        const twilioRes = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
+          method: 'POST',
+          headers: {
+            'Authorization': authHeader,
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: body.toString()
+        });
+
+        if (twilioRes.ok) {
+          console.log(`[2FA TWILIO SMS DISPATCH SUCCESS] Sent to ${maskedTarget}`);
+        } else {
+          const twilioErr = await twilioRes.text();
+          console.warn(`[2FA TWILIO WARNING]`, twilioErr);
+        }
+      } catch (twilioErr) {
+        console.warn(`[2FA TWILIO WARNING]`, twilioErr);
       }
     }
 
@@ -601,8 +694,8 @@ async function startServer() {
     }
   });
 
-  // Contact endpoint: receives message, writes to messages array on disk, and logs notification to timothyododo@gmail.com
-  app.post('/api/contact', (req, res) => {
+  // Contact endpoint: receives message, writes to messages array on disk, and sends real email notification to timothyododo@gmail.com
+  app.post('/api/contact', async (req, res) => {
     try {
       const { name, email, subject, message } = req.body;
       if (!name || !email || !message) {
@@ -627,19 +720,51 @@ async function startServer() {
       saveServerData(currentData);
       serverData = currentData;
 
-      // Email notification delivery simulation / dispatch log to timothyododo@gmail.com
-      console.log(`[EMAIL NOTIFICATION TO timothyododo@gmail.com]
-=========================================
-New Contact Inquiry from: ${name} (${email})
-Subject: ${subject}
-Date: ${new Date().toLocaleString()}
-Message:
-${message}
-=========================================`);
+      // Dispatch real email notification directly to Timothy's inbox
+      const targetEmail = currentData.settings?.contactEmail || ADMIN_EMAIL || 'timothyododo@gmail.com';
+      const emailResult = await sendEmailNotification({
+        to: targetEmail,
+        replyTo: email,
+        fromName: `${name} (via Portfolio)`,
+        subject: `[Portfolio Inquiry] ${subject || 'New message from ' + name}`,
+        text: `You have received a new contact inquiry through your portfolio website:\n\nFrom: ${name} <${email}>\nSubject: ${subject || 'Portfolio Inquiry'}\nDate: ${new Date().toLocaleString()}\n\nMessage:\n${message}\n\n---\nYou can reply directly to this email to respond to ${name}.`,
+        html: `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 14px; background: #ffffff;">
+            <div style="border-bottom: 2px solid #0284c7; padding-bottom: 12px; margin-bottom: 20px;">
+              <span style="font-size: 11px; font-weight: 700; color: #0284c7; text-transform: uppercase; letter-spacing: 1.5px;">Portfolio Contact Notification</span>
+              <h2 style="color: #0f172a; margin: 6px 0 0 0; font-size: 20px;">New Message from ${name}</h2>
+            </div>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
+              <tr>
+                <td style="padding: 6px 0; color: #64748b; width: 85px; font-weight: 600;">Sender:</td>
+                <td style="padding: 6px 0; color: #0f172a; font-weight: 700;">${name} &lt;<a href="mailto:${email}" style="color: #0284c7; text-decoration: none;">${email}</a>&gt;</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; color: #64748b; font-weight: 600;">Subject:</td>
+                <td style="padding: 6px 0; color: #0f172a;">${subject || 'No subject'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; color: #64748b; font-weight: 600;">Date:</td>
+                <td style="padding: 6px 0; color: #64748b;">${new Date().toLocaleString()}</td>
+              </tr>
+            </table>
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; margin-bottom: 20px;">
+              <p style="color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase; margin: 0 0 8px 0; letter-spacing: 0.5px;">Message Content:</p>
+              <div style="color: #1e293b; font-size: 14px; line-height: 1.7; white-space: pre-wrap;">${message.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+            </div>
+            <p style="color: #64748b; font-size: 12px; margin: 0;">
+              💡 <strong>Tip:</strong> Simply reply directly to this email to respond to <strong>${name}</strong> (${email}).
+            </p>
+          </div>
+        `
+      });
 
       return res.json({
         success: true,
-        message: 'Message delivered successfully. Notification sent to timothyododo@gmail.com',
+        message: emailResult.delivered
+          ? `Message delivered successfully and email notification forwarded to ${maskEmail(targetEmail)}`
+          : 'Message saved to portfolio inbox.',
+        emailDelivered: emailResult.delivered,
         messageRecord: newMsg
       });
     } catch (err: any) {
@@ -649,7 +774,7 @@ ${message}
 
   // Direct Reply endpoint: allows replying to an email directly from the admin dashboard
   // Guarded: Authenticated Admin only
-  app.post('/api/reply', (req, res) => {
+  app.post('/api/reply', async (req, res) => {
     try {
       if (!checkAdminAuth(req)) {
         return res.status(403).json({
@@ -700,24 +825,55 @@ ${message}
         serverData = currentData;
       }
 
-      console.log(`[OUTGOING EMAIL SENT FROM timothyododo@gmail.com]
-=========================================
-To: ${toName ? `${toName} <${to}>` : to}
-From: Timothy Ododo <timothyododo@gmail.com>
-Subject: ${subject}
-Date: ${new Date().toLocaleString()}
-Body:
-${body}
-=========================================`);
+      // Dispatch real email to the recipient
+      const emailResult = await sendEmailNotification({
+        to,
+        fromName: 'Timothy Ododo',
+        replyTo: 'timothyododo@gmail.com',
+        subject: replyRecord.subject,
+        text: body,
+        html: `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 14px; background: #ffffff;">
+            <div style="border-bottom: 2px solid #0284c7; padding-bottom: 12px; margin-bottom: 20px;">
+              <h2 style="color: #0f172a; margin: 0; font-size: 20px;">Message from Timothy Ododo</h2>
+              <p style="color: #64748b; font-size: 13px; margin: 4px 0 0 0;">Technology Mentor &amp; Software Engineer</p>
+            </div>
+            <div style="color: #1e293b; font-size: 15px; line-height: 1.7; white-space: pre-wrap; margin-bottom: 24px;">${body.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+            <p style="color: #94a3b8; font-size: 12px; margin: 0;">Sent via Timothy Ododo Portfolio Portal &bull; timothyododo@gmail.com</p>
+          </div>
+        `
+      });
 
       return res.json({
         success: true,
-        message: `Reply sent successfully to ${to}`,
+        delivered: emailResult.delivered,
+        message: emailResult.delivered
+          ? `Reply sent successfully to ${to}`
+          : `Reply recorded in dashboard. (Live outbound delivery requires SMTP credentials in environment settings)`,
         reply: replyRecord
       });
     } catch (err: any) {
       return res.status(500).json({ error: err.message || 'Internal server error' });
     }
+  });
+
+  // Outgoing mail configuration status (safe inspection endpoint)
+  app.get('/api/mail/status', (req, res) => {
+    const smtpUser = process.env.SMTP_USER || process.env.GMAIL_USER || ADMIN_EMAIL || 'timothyododo@gmail.com';
+    const hasSmtpPass = Boolean((process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || '').trim());
+    const hasResend = Boolean((process.env.RESEND_API_KEY || '').trim());
+    const smtpHost = process.env.SMTP_HOST?.trim() || 'smtp.gmail.com';
+
+    return res.json({
+      configured: hasSmtpPass || hasResend,
+      provider: hasSmtpPass ? 'smtp' : hasResend ? 'resend' : 'none',
+      smtpUser: maskEmail(smtpUser),
+      smtpHost,
+      instructions: hasSmtpPass || hasResend
+        ? 'Active: Real email dispatch is configured.'
+        : 'Pending configuration: Provide SMTP_PASS (or GMAIL_APP_PASSWORD) in environment settings to enable live Gmail forwarding to your inbox.'
+    });
   });
 
   // Profile & categorized photo upload API: saves images to static/images/<category>/ and updates disk
