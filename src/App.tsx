@@ -33,7 +33,9 @@ import {
   getCarouselConfig,
   getEventContributions,
   fetchServerData,
-  saveStored
+  saveStored,
+  getAdminToken,
+  clearAdminSession
 } from './data';
 import { 
   Profile, 
@@ -70,12 +72,8 @@ export default function App() {
   });
 
   // Admin Auth state
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('timothy_admin_auth') === 'true';
-    }
-    return false;
-  });
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(false);
+  const [adminUser, setAdminUser] = useState<any>(null);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState<boolean>(false);
   const [inAdminDashboard, setInAdminDashboard] = useState<boolean>(false);
 
@@ -95,27 +93,58 @@ export default function App() {
   const [carouselConfig, setCarouselConfig] = useState<CarouselConfig>(getCarouselConfig);
   const [events, setEvents] = useState<EventContribution[]>(getEventContributions);
 
-  // Hydrate from server on mount to ensure cross-device consistency
+  // Check admin session on mount & fetch server data
   useEffect(() => {
-    fetchServerData().then((serverData) => {
-      if (serverData) {
-        if (serverData.profile) setProfile(serverData.profile);
-        if (serverData.projects) setProjects(serverData.projects);
-        if (serverData.experiences) setExperiences(serverData.experiences);
-        if (serverData.gallery || serverData.galleryItems) setGalleryItems(serverData.gallery || serverData.galleryItems);
-        if (serverData.achievements) setAchievements(serverData.achievements);
-        if (serverData.skills) setSkills(serverData.skills);
-        if (serverData.certifications) setCertifications(serverData.certifications);
-        if (serverData.education) setEducation(serverData.education);
-        if (serverData.messages) setMessages(serverData.messages);
-        if (serverData.settings || serverData.siteSettings) setSiteSettings(serverData.settings || serverData.siteSettings);
-        if (serverData.carouselConfig) setCarouselConfig(serverData.carouselConfig);
-        if (serverData.eventContributions || serverData.events) setEvents(serverData.eventContributions || serverData.events);
-        if (serverData.community) setCommunity(serverData.community);
-        if (serverData.mentoring) setMentoringPrograms(serverData.mentoring);
-      }
-    });
+    const token = getAdminToken();
+    if (token) {
+      fetch('/api/auth/session', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.valid) {
+            setIsAdminLoggedIn(true);
+            if (data.user) setAdminUser(data.user);
+            // Fetch live unmasked data for authenticated admin
+            fetchServerData(token).then((serverData) => {
+              if (serverData) hydrateState(serverData);
+            });
+          } else {
+            clearAdminSession();
+            setIsAdminLoggedIn(false);
+            fetchServerData().then((serverData) => {
+              if (serverData) hydrateState(serverData);
+            });
+          }
+        })
+        .catch(() => {
+          fetchServerData().then((serverData) => {
+            if (serverData) hydrateState(serverData);
+          });
+        });
+    } else {
+      fetchServerData().then((serverData) => {
+        if (serverData) hydrateState(serverData);
+      });
+    }
   }, []);
+
+  const hydrateState = (serverData: any) => {
+    if (serverData.profile) setProfile(serverData.profile);
+    if (serverData.projects) setProjects(serverData.projects);
+    if (serverData.experiences) setExperiences(serverData.experiences);
+    if (serverData.gallery || serverData.galleryItems) setGalleryItems(serverData.gallery || serverData.galleryItems);
+    if (serverData.achievements) setAchievements(serverData.achievements);
+    if (serverData.skills) setSkills(serverData.skills);
+    if (serverData.certifications) setCertifications(serverData.certifications);
+    if (serverData.education) setEducation(serverData.education);
+    if (serverData.messages) setMessages(serverData.messages);
+    if (serverData.settings || serverData.siteSettings) setSiteSettings(serverData.settings || serverData.siteSettings);
+    if (serverData.carouselConfig) setCarouselConfig(serverData.carouselConfig);
+    if (serverData.eventContributions || serverData.events) setEvents(serverData.eventContributions || serverData.events);
+    if (serverData.community) setCommunity(serverData.community);
+    if (serverData.mentoring) setMentoringPrograms(serverData.mentoring);
+  };
 
   // Apply dark mode class to html document
   useEffect(() => {
@@ -133,6 +162,11 @@ export default function App() {
   };
 
   const handleNavigate = (path: string) => {
+    if (path === '/admin') {
+      setInAdminDashboard(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     setCurrentPath(path);
     setSelectedProjectSlug(null);
     setInAdminDashboard(false);
@@ -145,17 +179,36 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleAdminLogin = () => {
+  const handleAdminLogin = (user?: any) => {
     setIsAdminLoggedIn(true);
-    localStorage.setItem('timothy_admin_auth', 'true');
+    if (user) setAdminUser(user);
+    const token = getAdminToken();
+    if (token) {
+      fetchServerData(token).then((serverData) => {
+        if (serverData) hydrateState(serverData);
+      });
+    }
     setInAdminDashboard(true);
+    setIsAdminModalOpen(false);
   };
 
   const handleAdminLogout = () => {
+    const token = getAdminToken();
+    if (token) {
+      fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      }).catch(() => {});
+    }
+    clearAdminSession();
     setIsAdminLoggedIn(false);
-    localStorage.removeItem('timothy_admin_auth');
+    setAdminUser(null);
     setInAdminDashboard(false);
     setCurrentPath('/');
+    // Re-fetch public data
+    fetchServerData().then((serverData) => {
+      if (serverData) hydrateState(serverData);
+    });
   };
 
   const selectedProject = selectedProjectSlug 
@@ -163,40 +216,51 @@ export default function App() {
     : null;
 
   // Render Full Admin Dashboard View if active
-  if (inAdminDashboard && isAdminLoggedIn) {
+  if (inAdminDashboard) {
     return (
-      <AdminDashboard
-        profile={profile}
-        setProfile={setProfile}
-        projects={projects}
-        setProjects={setProjects}
-        experiences={experiences}
-        setExperiences={setExperiences}
-        galleryItems={galleryItems}
-        setGalleryItems={setGalleryItems}
-        achievements={achievements}
-        setAchievements={setAchievements}
-        skills={skills}
-        setSkills={setSkills}
-        certifications={certifications}
-        setCertifications={setCertifications}
-        education={education}
-        setEducation={setEducation}
-        messages={messages}
-        setMessages={setMessages}
-        siteSettings={siteSettings}
-        setSiteSettings={setSiteSettings}
-        carouselConfig={carouselConfig}
-        setCarouselConfig={setCarouselConfig}
-        events={events}
-        setEvents={setEvents}
-        mentoringPrograms={mentoringPrograms}
-        setMentoringPrograms={setMentoringPrograms}
-        isDark={isDark}
-        onToggleTheme={handleToggleTheme}
-        onVisitPortfolio={() => { setInAdminDashboard(false); handleNavigate('/'); }}
-        onLogout={handleAdminLogout}
-      />
+      <div className="min-h-screen bg-slate-50 dark:bg-[#070e24] text-slate-900 dark:text-slate-100">
+        <AdminDashboard
+          profile={profile}
+          setProfile={setProfile}
+          projects={projects}
+          setProjects={setProjects}
+          experiences={experiences}
+          setExperiences={setExperiences}
+          galleryItems={galleryItems}
+          setGalleryItems={setGalleryItems}
+          achievements={achievements}
+          setAchievements={setAchievements}
+          skills={skills}
+          setSkills={setSkills}
+          certifications={certifications}
+          setCertifications={setCertifications}
+          education={education}
+          setEducation={setEducation}
+          messages={messages}
+          setMessages={setMessages}
+          siteSettings={siteSettings}
+          setSiteSettings={setSiteSettings}
+          carouselConfig={carouselConfig}
+          setCarouselConfig={setCarouselConfig}
+          events={events}
+          setEvents={setEvents}
+          mentoringPrograms={mentoringPrograms}
+          setMentoringPrograms={setMentoringPrograms}
+          isDark={isDark}
+          onToggleTheme={handleToggleTheme}
+          onVisitPortfolio={() => { setInAdminDashboard(false); handleNavigate('/'); }}
+          onLogout={handleAdminLogout}
+          isDemoMode={!isAdminLoggedIn}
+          onOpenAdminLogin={() => setIsAdminModalOpen(true)}
+          adminUser={adminUser}
+        />
+
+        <AdminLoginModal
+          isOpen={isAdminModalOpen}
+          onClose={() => setIsAdminModalOpen(false)}
+          onLoginSuccess={handleAdminLogin}
+        />
+      </div>
     );
   }
 

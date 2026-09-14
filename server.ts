@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 
@@ -176,30 +177,397 @@ async function startServer() {
   // In-memory / server-side log storage (hydrated from disk if exists)
   let serverData = loadServerData() || {};
 
+  // Administrator Credentials & 2FA Configuration
+  const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'timothyododo@gmail.com';
+  const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Timothy@Admin2026!';
+  const ADMIN_2FA_PHONE = process.env.ADMIN_2FA_PHONE || '+234 814 000 4589';
+  const ADMIN_RECOVERY_CODE = process.env.ADMIN_RECOVERY_CODE ? process.env.ADMIN_RECOVERY_CODE.trim() : '';
+
+  // In-memory 2FA OTP & Admin Session Registry
+  interface PendingOTP {
+    email: string;
+    phone: string;
+    code: string;
+    channel: 'email' | 'sms';
+    createdAt: number;
+    expiresAt: number;
+    attempts: number;
+  }
+  const activeOTPs = new Map<string, PendingOTP>();
+  const activeAdminSessions = new Map<string, { email: string; createdAt: number; expiresAt: number; role: string }>();
+
+  // Helper to verify admin bearer token or session header
+  function checkAdminAuth(req: express.Request): boolean {
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.startsWith('Bearer ')
+      ? authHeader.substring(7)
+      : (req.headers['x-admin-token'] as string);
+    if (!token) return false;
+    const session = activeAdminSessions.get(token);
+    if (!session) return false;
+    if (Date.now() > session.expiresAt) {
+      activeAdminSessions.delete(token);
+      return false;
+    }
+    return true;
+  }
+
+  // Sanitized Demo Contact Messages for Visitors
+  const DEMO_PLACEHOLDER_MESSAGES = [
+    {
+      id: 'demo-msg-1',
+      name: 'Ada Lovelace (Demo Preview)',
+      email: 'a***@example.com',
+      subject: 'Technology Mentorship & STEM Camp Collaboration',
+      message: 'Hello Timothy, this is a simulated sample message for demo preview. Real contact submissions sent by visitors are encrypted and hidden to preserve privacy.',
+      date: '2026-09-12T12:16:48Z',
+      isRead: false,
+      status: 'New'
+    },
+    {
+      id: 'demo-msg-2',
+      name: 'Tech Innovation Lead (Demo Preview)',
+      email: 'i***@anambrahack.org',
+      subject: 'Hackathon Keynote & Physical Computing Workshop',
+      message: 'Sample inquiry for demo mode: Exploring a collaboration on IoT hardware engineering. Real messages are only accessible to the authenticated administrator.',
+      date: '2026-09-10T14:30:00Z',
+      isRead: true,
+      status: 'New'
+    }
+  ];
+
+  // Helper to mask email/phone for 2FA screen
+  function maskEmail(email: string): string {
+    const [name, domain] = email.split('@');
+    if (!domain) return 't***@gmail.com';
+    const maskedName = name.length > 2 ? `${name[0]}***${name[name.length - 1]}` : `${name[0]}***`;
+    return `${maskedName}@${domain}`;
+  }
+
+  function maskPhone(phone: string): string {
+    const clean = phone.replace(/[^0-9+]/g, '');
+    if (clean.length < 7) return '+234 ••• ••• 0002';
+    const prefix = clean.substring(0, 4);
+    const suffix = clean.substring(clean.length - 4);
+    return `${prefix} ••• ••• ${suffix}`;
+  }
+
   // Serve static files from static/ and static/images/
   app.use('/static', express.static(STATIC_DIR, { maxAge: '1d' }));
   app.use('/images', express.static(STATIC_IMAGES_DIR, { maxAge: '1d' }));
+
+  // Dispatch 2FA OTP securely to Email (Gmail) or SMS
+  async function dispatchOTP(channel: 'email' | 'sms', target: string, otpCode: string): Promise<boolean> {
+    const timestamp = new Date().toISOString();
+    const maskedTarget = channel === 'email' ? maskEmail(target) : maskPhone(target);
+    
+    // Only log operational audit trail - NEVER log plaintext OTP secrets to server logs
+    console.log(`[AUTH-AUDIT] 2FA OTP security code dispatched via ${channel.toUpperCase()} to ${maskedTarget} at ${timestamp}`);
+
+    // 1. Dispatch via Gmail SMTP (if configured)
+    if (channel === 'email' && process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+      try {
+        const transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST,
+          port: Number(process.env.SMTP_PORT) || 587,
+          secure: process.env.SMTP_PORT === '465',
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS
+          }
+        });
+
+        await transporter.sendMail({
+          from: `"Timothy Ododo Security" <${process.env.SMTP_USER}>`,
+          to: target,
+          subject: `Your Admin Verification Code: ${otpCode}`,
+          text: `Hello Timothy,\n\nYour Portfolio Admin 2FA verification code is: ${otpCode}\n\nThis code will expire in 5 minutes.\n\nIf you did not request this code, please secure your account credentials immediately.\n\nTimothy Ododo Portfolio Security System`,
+          html: `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 540px; margin: 0 auto; padding: 28px; border: 1px solid #e2e8f0; border-radius: 16px; background: #ffffff;">
+              <h2 style="color: #0f172a; margin-top: 0; font-size: 20px;">Portfolio Administrator 2FA Code</h2>
+              <p style="color: #475569; font-size: 14px; line-height: 1.6;">A login request was initiated for your portfolio administration portal.</p>
+              <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px; padding: 20px; text-align: center; margin: 24px 0;">
+                <span style="font-family: monospace; font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #0284c7;">${otpCode}</span>
+              </div>
+              <p style="color: #64748b; font-size: 12px; line-height: 1.5;">This code will expire in <strong>5 minutes</strong>. Do not share this code with anyone.</p>
+              <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+              <p style="color: #94a3b8; font-size: 11px; margin: 0;">Timothy Ododo Portfolio &bull; Multi-Factor Authentication</p>
+            </div>
+          `
+        });
+        console.log(`[2FA SMTP DISPATCH SUCCESS] Real email sent to ${target}`);
+      } catch (mailErr) {
+        console.warn(`[2FA SMTP DISPATCH WARNING] Could not send via SMTP:`, mailErr);
+      }
+    }
+
+    // 2. Dispatch via Resend API (if configured)
+    if (channel === 'email' && process.env.RESEND_API_KEY) {
+      try {
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            from: 'Timothy Ododo Admin <security@timothyododo.com>',
+            to: [target],
+            subject: `Admin 2FA Security Code: ${otpCode}`,
+            html: `<p>Your 2FA verification code is: <strong>${otpCode}</strong>. Expires in 5 minutes.</p>`
+          })
+        });
+        console.log(`[2FA RESEND DISPATCH SUCCESS] Sent to ${target}`);
+      } catch (resendErr) {
+        console.warn(`[2FA RESEND WARNING]`, resendErr);
+      }
+    }
+
+    // 3. Dispatch via Termii SMS (Nigeria / International SMS gateway) (if configured)
+    if (channel === 'sms' && process.env.TERMII_API_KEY) {
+      try {
+        await fetch('https://api.ng.termii.com/api/sms/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: target.replace(/[^0-9]/g, ''),
+            from: 'Timothy',
+            sms: `Your Timothy Ododo Portfolio 2FA code is: ${otpCode}. Valid for 5 mins.`,
+            type: 'plain',
+            channel: 'generic',
+            api_key: process.env.TERMII_API_KEY
+          })
+        });
+        console.log(`[2FA SMS DISPATCH SUCCESS] Termii SMS sent to ${target}`);
+      } catch (smsErr) {
+        console.warn(`[2FA SMS WARNING]`, smsErr);
+      }
+    }
+
+    return true;
+  }
 
   // Health endpoint
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', time: new Date().toISOString() });
   });
 
+  // -------------------------------------------------------------
+  // AUTHENTICATION & 2FA ENDPOINTS
+  // -------------------------------------------------------------
+
+  // Step 1: Credentials verification & 2FA OTP Dispatch
+  app.post('/api/auth/login', async (req, res) => {
+    try {
+      const { email, password, channel = 'email' } = req.body;
+      if (!email || !password) {
+        return res.status(400).json({ error: 'Email and password are required.' });
+      }
+
+      const cleanEmail = email.trim().toLowerCase();
+      const validEmails = [ADMIN_EMAIL.toLowerCase(), 'timothyododo@gmail.com'];
+
+      const isEmailValid = validEmails.includes(cleanEmail);
+      const isPasswordValid = password === ADMIN_PASSWORD;
+
+      if (!isEmailValid || !isPasswordValid) {
+        return res.status(401).json({ error: 'Invalid admin credentials. Please verify your email and password.' });
+      }
+
+      // Generate 6-digit numeric OTP code
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const tempToken = crypto.randomBytes(24).toString('hex');
+      const selectedChannel: 'email' | 'sms' = channel === 'sms' ? 'sms' : 'email';
+      const destination = selectedChannel === 'email' ? cleanEmail : ADMIN_2FA_PHONE;
+
+      activeOTPs.set(tempToken, {
+        email: cleanEmail,
+        phone: ADMIN_2FA_PHONE,
+        code: otpCode,
+        channel: selectedChannel,
+        createdAt: Date.now(),
+        expiresAt: Date.now() + 5 * 60 * 1000, // 5 minutes
+        attempts: 0
+      });
+
+      // Securely dispatch OTP to user's private email/phone (never exposed to public)
+      await dispatchOTP(selectedChannel, destination, otpCode);
+
+      // Return ONLY session token and masked destination (NO OTP CODE)
+      return res.json({
+        success: true,
+        require2FA: true,
+        tempToken,
+        maskedEmail: maskEmail(cleanEmail),
+        maskedPhone: maskPhone(ADMIN_2FA_PHONE),
+        channel: selectedChannel
+      });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || 'Authentication error' });
+    }
+  });
+
+  // Re-send / Switch 2FA OTP Channel (Gmail or SMS)
+  app.post('/api/auth/send-otp', async (req, res) => {
+    try {
+      const { tempToken, channel = 'email' } = req.body;
+      if (!tempToken || !activeOTPs.has(tempToken)) {
+        return res.status(400).json({ error: 'Invalid or expired 2FA session. Please log in again.' });
+      }
+
+      const pending = activeOTPs.get(tempToken)!;
+      const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      const selectedChannel: 'email' | 'sms' = channel === 'sms' ? 'sms' : 'email';
+      const destination = selectedChannel === 'email' ? pending.email : pending.phone;
+
+      pending.code = newOtp;
+      pending.channel = selectedChannel;
+      pending.expiresAt = Date.now() + 5 * 60 * 1000;
+      pending.attempts = 0;
+      activeOTPs.set(tempToken, pending);
+
+      // Securely re-dispatch OTP
+      await dispatchOTP(selectedChannel, destination, newOtp);
+
+      // Return message without exposing OTP code
+      return res.json({
+        success: true,
+        message: `Verification code sent via ${selectedChannel === 'sms' ? 'SMS OTP' : 'Gmail OTP'}`,
+        channel: selectedChannel
+      });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || 'Failed to dispatch OTP' });
+    }
+  });
+
+  // Step 2: Verify 2FA OTP & Issue Session Token
+  app.post('/api/auth/verify-2fa', (req, res) => {
+    try {
+      const { tempToken, code } = req.body;
+      if (!tempToken || !code) {
+        return res.status(400).json({ error: '2FA session token and verification code are required.' });
+      }
+
+      const pending = activeOTPs.get(tempToken);
+      if (!pending) {
+        return res.status(400).json({ error: '2FA session has expired or is invalid. Please sign in again.' });
+      }
+
+      const cleanCode = String(code).trim();
+      const hasCustomRecovery = Boolean(ADMIN_RECOVERY_CODE && ADMIN_RECOVERY_CODE.length >= 8);
+      const isRecoveryCode = hasCustomRecovery && cleanCode === ADMIN_RECOVERY_CODE;
+      const isOtpValid = cleanCode === pending.code;
+
+      if (Date.now() > pending.expiresAt) {
+        activeOTPs.delete(tempToken);
+        return res.status(400).json({ error: 'Verification code has expired. Please request a new code.' });
+      }
+
+      if (pending.attempts >= 5) {
+        activeOTPs.delete(tempToken);
+        return res.status(429).json({ error: 'Too many failed verification attempts. Please sign in again.' });
+      }
+
+      if (!isOtpValid && !isRecoveryCode) {
+        pending.attempts += 1;
+        activeOTPs.set(tempToken, pending);
+        return res.status(400).json({ error: `Invalid verification code. (${5 - pending.attempts} attempts remaining)` });
+      }
+
+      // 2FA Verified: Generate long-lived Admin session token
+      const adminToken = `adm_${crypto.randomBytes(32).toString('hex')}`;
+      const expiresAt = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+
+      activeAdminSessions.set(adminToken, {
+        email: pending.email,
+        createdAt: Date.now(),
+        expiresAt,
+        role: 'super_admin'
+      });
+
+      // Cleanup pending OTP
+      activeOTPs.delete(tempToken);
+
+      console.log(`[AUTH-AUDIT] Admin 2FA authentication verified successfully for ${maskEmail(pending.email)}`);
+
+      return res.json({
+        success: true,
+        adminToken,
+        expiresAt,
+        user: {
+          email: ADMIN_EMAIL,
+          name: 'Timothy Ododo',
+          role: 'super_admin',
+          verified2FA: true
+        }
+      });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || 'Verification failed' });
+    }
+  });
+
+  // Verify Session Token
+  app.get('/api/auth/session', (req, res) => {
+    const isAuth = checkAdminAuth(req);
+    return res.json({
+      authenticated: isAuth,
+      user: isAuth
+        ? { email: ADMIN_EMAIL, name: 'Timothy Ododo', role: 'super_admin', verified2FA: true }
+        : null
+    });
+  });
+
+  // Admin Logout
+  app.post('/api/auth/logout', (req, res) => {
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : (req.headers['x-admin-token'] as string);
+    if (token) {
+      activeAdminSessions.delete(token);
+    }
+    return res.json({ success: true, message: 'Logged out successfully.' });
+  });
+
+  // -------------------------------------------------------------
+  // DATA ACCESS & PERSISTENCE ENDPOINTS
+  // -------------------------------------------------------------
+
   // Global Data GET: returns all authoritative portfolio data from disk
+  // In visitor mode, contact messages are privacy-sanitized
   app.get('/api/data', (req, res) => {
     const current = loadServerData() || serverData;
+    const isAdmin = checkAdminAuth(req);
+
+    const safeData = {
+      ...current,
+      // Only authenticated admin can view real contact messages
+      messages: isAdmin ? (current.messages || []) : DEMO_PLACEHOLDER_MESSAGES,
+      isDemoMode: !isAdmin
+    };
+
     return res.json({
       success: true,
-      data: current
+      isAdmin,
+      data: safeData
     });
   });
 
   // Global Data POST: writes updated data to disk permanently across all devices
+  // Guarded: Restricted to authenticated 2FA Administrator
   app.post('/api/data', (req, res) => {
     try {
       const incomingData = req.body;
       if (!incomingData || typeof incomingData !== 'object') {
         return res.status(400).json({ error: 'Valid JSON payload is required' });
+      }
+
+      // Check admin authorization
+      const isAdmin = checkAdminAuth(req);
+      if (!isAdmin) {
+        return res.status(403).json({
+          success: false,
+          isDemo: true,
+          error: 'Demo Mode: Live publishing to the production database is restricted to the authenticated administrator. Please log in with 2FA.'
+        });
       }
 
       // Merge with existing server data
@@ -221,7 +589,7 @@ async function startServer() {
       saveServerData(merged);
       serverData = merged;
 
-      console.log(`[DATA PERSISTED TO DISK] Portfolio content updated globally at ${new Date().toLocaleTimeString()}`);
+      console.log(`[DATA PERSISTED TO DISK] Portfolio content updated globally by authenticated admin at ${new Date().toLocaleTimeString()}`);
 
       return res.json({
         success: true,
@@ -280,8 +648,17 @@ ${message}
   });
 
   // Direct Reply endpoint: allows replying to an email directly from the admin dashboard
+  // Guarded: Authenticated Admin only
   app.post('/api/reply', (req, res) => {
     try {
+      if (!checkAdminAuth(req)) {
+        return res.status(403).json({
+          success: false,
+          isDemo: true,
+          error: 'Demo Mode: Sending live email replies is restricted to the authenticated administrator. Please log in with 2FA.'
+        });
+      }
+
       const { to, toName, subject, body, originalMessageId } = req.body;
       if (!to || !body) {
         return res.status(400).json({ error: 'Recipient email and reply body are required.' });
@@ -344,8 +721,17 @@ ${body}
   });
 
   // Profile & categorized photo upload API: saves images to static/images/<category>/ and updates disk
+  // Guarded: Authenticated Admin only
   app.post(['/api/upload-photo', '/api/upload-image'], (req, res) => {
     try {
+      if (!checkAdminAuth(req)) {
+        return res.status(403).json({
+          success: false,
+          isDemo: true,
+          error: 'Demo Mode: Uploading images to persistent storage is restricted to authenticated administrator.'
+        });
+      }
+
       const { imageData, filename, isAvatar, caption, tag, category } = req.body;
       if (!imageData) {
         return res.status(400).json({ error: 'Image data is required.' });
@@ -564,6 +950,14 @@ ${body}
   // Move photo(s) from one category folder to another and update references in portfolio_data.json
   app.post('/api/images/move', (req, res) => {
     try {
+      if (!checkAdminAuth(req)) {
+        return res.status(403).json({
+          success: false,
+          isDemo: true,
+          error: 'Demo Mode: Media library file reorganizations are restricted to authenticated administrator.'
+        });
+      }
+
       const { urls, targetCategory } = req.body;
       if (!Array.isArray(urls) || urls.length === 0 || !targetCategory) {
         return res.status(400).json({ error: 'urls (string array) and targetCategory are required.' });
@@ -684,6 +1078,14 @@ ${body}
   // Permanently delete photo(s) from disk
   app.post('/api/images/delete', (req, res) => {
     try {
+      if (!checkAdminAuth(req)) {
+        return res.status(403).json({
+          success: false,
+          isDemo: true,
+          error: 'Demo Mode: Deleting media files from server storage is restricted to authenticated administrator.'
+        });
+      }
+
       const { urls } = req.body;
       if (!Array.isArray(urls) || urls.length === 0) {
         return res.status(400).json({ error: 'urls (string array) is required.' });
@@ -732,6 +1134,14 @@ ${body}
   // Scan all static/images, detect duplicate files by MD5 checksum, clean redundant duplicates, and update portfolio_data.json
   app.post('/api/images/deduplicate', (req, res) => {
     try {
+      if (!checkAdminAuth(req)) {
+        return res.status(403).json({
+          success: false,
+          isDemo: true,
+          error: 'Demo Mode: Deduplication on disk storage is restricted to authenticated administrator.'
+        });
+      }
+
       interface FileEntry {
         filePath: string;
         url: string;
@@ -921,6 +1331,14 @@ ${body}
   // Git & Auto-Deploy: Commit portfolio content directly to GitHub repo
   app.post('/api/git/commit', async (req, res) => {
     try {
+      if (!checkAdminAuth(req)) {
+        return res.status(403).json({
+          success: false,
+          isDemo: true,
+          error: 'Demo Mode: Git commit and automated deployments are restricted to authenticated administrator.'
+        });
+      }
+
       const { owner, repo, token, branch = 'main', commitMessage, data } = req.body;
       if (!owner || !repo || !token) {
         return res.status(400).json({ error: 'GitHub owner, repo, and Personal Access Token (PAT) are required to commit.' });

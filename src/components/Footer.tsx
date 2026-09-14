@@ -78,6 +78,11 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                   Curriculum Vitae
                 </button>
               </li>
+              <li>
+                <button onClick={() => onNavigate('/admin')} className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors text-slate-500">
+                  Admin CMS (Demo)
+                </button>
+              </li>
             </ul>
           </div>
 

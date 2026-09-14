@@ -89,7 +89,7 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           ))}
 
-          {/* Admin Action Button */}
+          {/* Admin Action Buttons */}
           {isAdminLoggedIn ? (
             <button
               onClick={onGoToAdmin}
@@ -100,14 +100,23 @@ export const Header: React.FC<HeaderProps> = ({
               <span>Admin Panel</span>
             </button>
           ) : (
-            <button
-              onClick={onOpenAdminLogin}
-              className="ml-3 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-sky-300 hover:text-white border border-slate-700 transition-all inline-flex items-center gap-1.5 shadow-sm"
-              title="Login to Portfolio Admin"
-            >
-              <Lock className="w-3.5 h-3.5 text-sky-400" />
-              <span>Admin Login</span>
-            </button>
+            <div className="ml-2 flex items-center gap-1.5">
+              <button
+                onClick={onGoToAdmin}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-sky-300 hover:text-white border border-slate-700 transition-all inline-flex items-center gap-1.5 shadow-sm"
+                title="Explore Admin Dashboard in Demo Sandbox Mode"
+              >
+                <Shield className="w-3.5 h-3.5 text-sky-400" />
+                <span>Admin CMS (Demo)</span>
+              </button>
+              <button
+                onClick={onOpenAdminLogin}
+                className="p-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 transition-all inline-flex items-center"
+                title="Log In as Admin (2FA)"
+              >
+                <Lock className="w-3.5 h-3.5 text-amber-400" />
+              </button>
+            </div>
           )}
 
           {/* Theme Switcher */}
@@ -176,7 +185,7 @@ export const Header: React.FC<HeaderProps> = ({
               {item.label}
             </button>
           ))}
-          <div className="pt-2 border-t border-slate-800">
+          <div className="pt-2 border-t border-slate-800 space-y-2">
             {isAdminLoggedIn ? (
               <button
                 onClick={() => { setMobileOpen(false); onGoToAdmin(); }}
@@ -186,13 +195,22 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>Go to Admin Dashboard</span>
               </button>
             ) : (
-              <button
-                onClick={() => { setMobileOpen(false); onOpenAdminLogin(); }}
-                className="w-full py-2.5 rounded-lg text-center font-semibold bg-slate-800 hover:bg-slate-700 text-sky-400 text-sm flex items-center justify-center gap-2 border border-slate-700"
-              >
-                <Lock className="w-4 h-4" />
-                <span>Admin Login</span>
-              </button>
+              <>
+                <button
+                  onClick={() => { setMobileOpen(false); onGoToAdmin(); }}
+                  className="w-full py-2.5 rounded-lg text-center font-semibold bg-slate-800 hover:bg-slate-700 text-sky-400 text-sm flex items-center justify-center gap-2 border border-slate-700"
+                >
+                  <Shield className="w-4 h-4" />
+                  <span>Admin CMS (Demo Mode)</span>
+                </button>
+                <button
+                  onClick={() => { setMobileOpen(false); onOpenAdminLogin(); }}
+                  className="w-full py-2 rounded-lg text-center font-semibold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 text-xs flex items-center justify-center gap-2 border border-sky-500/30"
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                  <span>Log In as Admin (2FA)</span>
+                </button>
+              </>
             )}
           </div>
         </div>

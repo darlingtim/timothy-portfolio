@@ -37,6 +37,27 @@ export const initialSiteSettings: SiteSettings = (data.settings || data.siteSett
 // Storage helper functions for live Admin CRUD persistence
 const STORAGE_PREFIX = "timothy_portfolio_";
 const VERSION_KEY = "timothy_portfolio_json_stamp";
+export const ADMIN_TOKEN_KEY = "timothy_admin_token";
+export const ADMIN_USER_KEY = "timothy_admin_user";
+
+export function getAdminToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(ADMIN_TOKEN_KEY);
+}
+
+export function setAdminSession(token: string, user?: any): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(ADMIN_TOKEN_KEY, token);
+  if (user) {
+    localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(user));
+  }
+}
+
+export function clearAdminSession(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(ADMIN_TOKEN_KEY);
+  localStorage.removeItem(ADMIN_USER_KEY);
+}
 
 // If portfolio_data.json changed on disk or has a new update stamp, clear stale localStorage caches so disk edits reflect immediately
 if (typeof window !== "undefined") {
@@ -78,12 +99,14 @@ export const SYSTEM_METRICS = {
   activeServices: 8
 };
 
-export function saveStored<T>(key: string, dataValue: T): void {
+export function saveStored<T>(key: string, dataValue: T, shouldSync: boolean = true): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(dataValue));
-    // Automatically push update to server JSON database so it persists across all devices
-    syncServerData({ [key]: dataValue });
+    // Automatically push update to server JSON database if sync enabled and admin authenticated
+    if (shouldSync) {
+      syncServerData({ [key]: dataValue });
+    }
   } catch (e) {
     console.error(`Error saving ${key} to storage:`, e);
   }
@@ -146,28 +169,34 @@ export function getEventContributions(): EventContribution[] {
 }
 
 // Global server-sync functions to ensure changes reflect across all devices permanently
-export async function fetchServerData(): Promise<any> {
+export async function fetchServerData(customToken?: string | null): Promise<any> {
   try {
-    const res = await fetch('/api/data');
+    const token = customToken || getAdminToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const res = await fetch('/api/data', { headers });
     if (!res.ok) return null;
     const json = await res.json();
     if (json && json.success && json.data) {
       // Hydrate local cache with authoritative server data
       const d = json.data;
-      if (d.profile) saveStored("profile", d.profile);
-      if (d.projects) saveStored("projects", d.projects);
-      if (d.experiences) saveStored("experiences", d.experiences);
-      if (d.gallery || d.galleryItems) saveStored("gallery", d.gallery || d.galleryItems);
-      if (d.achievements) saveStored("achievements", d.achievements);
-      if (d.skills) saveStored("skills", d.skills);
-      if (d.certifications) saveStored("certifications", d.certifications);
-      if (d.education) saveStored("education", d.education);
-      if (d.community) saveStored("community", d.community);
-      if (d.mentoring) saveStored("mentoring", d.mentoring);
-      if (d.messages) saveStored("messages", d.messages);
-      if (d.settings || d.siteSettings) saveStored("settings", d.settings || d.siteSettings);
-      if (d.carouselConfig) saveStored("carouselConfig", d.carouselConfig);
-      if (d.eventContributions || d.events) saveStored("eventContributions", d.eventContributions || d.events);
+      if (d.profile) saveStored("profile", d.profile, false);
+      if (d.projects) saveStored("projects", d.projects, false);
+      if (d.experiences) saveStored("experiences", d.experiences, false);
+      if (d.gallery || d.galleryItems) saveStored("gallery", d.gallery || d.galleryItems, false);
+      if (d.achievements) saveStored("achievements", d.achievements, false);
+      if (d.skills) saveStored("skills", d.skills, false);
+      if (d.certifications) saveStored("certifications", d.certifications, false);
+      if (d.education) saveStored("education", d.education, false);
+      if (d.community) saveStored("community", d.community, false);
+      if (d.mentoring) saveStored("mentoring", d.mentoring, false);
+      if (d.messages) saveStored("messages", d.messages, false);
+      if (d.settings || d.siteSettings) saveStored("settings", d.settings || d.siteSettings, false);
+      if (d.carouselConfig) saveStored("carouselConfig", d.carouselConfig, false);
+      if (d.eventContributions || d.events) saveStored("eventContributions", d.eventContributions || d.events, false);
       return d;
     }
   } catch (err) {
@@ -176,11 +205,22 @@ export async function fetchServerData(): Promise<any> {
   return null;
 }
 
-export async function syncServerData(payload: Record<string, any>): Promise<boolean> {
+export async function syncServerData(payload: Record<string, any>, customToken?: string | null): Promise<boolean> {
   try {
+    const token = customToken || getAdminToken();
+    if (!token) {
+      // Visitor / Demo mode: skip server mutation silently so live production database is intact
+      return false;
+    }
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+
     const res = await fetch('/api/data', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(payload)
     });
     return res.ok;
