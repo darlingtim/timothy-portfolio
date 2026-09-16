@@ -112,7 +112,7 @@ func Load() *Config {
 		SMTPPort:          smtpPort,
 		SMTPUser:          smtpUser,
 		SMTPPass:          smtpPass,
-		ResendAPIKey:      os.Getenv("RESEND_API_KEY"),
+		ResendAPIKey:      strings.Trim(strings.TrimSpace(os.Getenv("RESEND_API_KEY")), "\"'`"),
 		TermiiAPIKey:      os.Getenv("TERMII_API_KEY"),
 		TwilioAccountSID:  os.Getenv("TWILIO_ACCOUNT_SID"),
 		TwilioAuthToken:   os.Getenv("TWILIO_AUTH_TOKEN"),

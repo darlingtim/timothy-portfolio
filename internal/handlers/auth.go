@@ -7,7 +7,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"math/big"
+	"net"
 	"net/http"
 	"net/smtp"
 	"net/url"
@@ -578,9 +580,50 @@ func (h *Handler) SendEmailNotification(to, subject, text, html, replyTo, fromNa
 		fromName = "Timothy Ododo Portfolio"
 	}
 
-	// 1. SMTP dispatch
+	// 1. Resend API (HTTPS Port 443 - Recommended for cloud providers like Render where SMTP ports are blocked)
+	if h.cfg.ResendAPIKey != "" {
+		resendFrom := strings.Trim(strings.TrimSpace(os.Getenv("RESEND_FROM")), "\"'`")
+		if resendFrom == "" {
+			resendFrom = fmt.Sprintf("%s <onboarding@resend.dev>", fromName)
+		}
+
+		bodyMap := map[string]any{
+			"from":    resendFrom,
+			"to":      []string{to},
+			"subject": subject,
+		}
+		if html != "" {
+			bodyMap["html"] = html
+		} else {
+			bodyMap["text"] = text
+		}
+		if replyTo != "" {
+			bodyMap["reply_to"] = replyTo
+		}
+
+		payload, _ := json.Marshal(bodyMap)
+		req, err := http.NewRequest(http.MethodPost, "https://api.resend.com/emails", bytes.NewReader(payload))
+		if err == nil {
+			req.Header.Set("Authorization", "Bearer "+h.cfg.ResendAPIKey)
+			req.Header.Set("Content-Type", "application/json")
+			client := &http.Client{Timeout: 10 * time.Second}
+			resp, err := client.Do(req)
+			if err == nil {
+				respBytes, _ := io.ReadAll(resp.Body)
+				_ = resp.Body.Close()
+				if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+					h.logger.Info("email delivered via Resend HTTPS API", "to", maskEmail(to), "status", resp.StatusCode)
+					return true
+				}
+				h.logger.Warn("Resend API rejected dispatch", "status", resp.StatusCode, "body", string(respBytes))
+			} else {
+				h.logger.Warn("Resend API request failed", "err", err)
+			}
+		}
+	}
+
+	// 2. SMTP dispatch with strict 5-second timeout (prevents hanging when ISP/Render blocks SMTP ports)
 	if smtpPass != "" {
-		auth := smtp.PlainAuth("", smtpUser, smtpPass, smtpHost)
 		fromHeader := fmt.Sprintf("%s <%s>", fromName, smtpUser)
 		var msg bytes.Buffer
 		msg.WriteString(fmt.Sprintf("From: %s\r\n", fromHeader))
@@ -599,68 +642,93 @@ func (h *Handler) SendEmailNotification(to, subject, text, html, replyTo, fromNa
 		}
 
 		addr := fmt.Sprintf("%s:%s", smtpHost, smtpPort)
-		// TLS support if port 465
+
+		// Direct SSL (Port 465)
 		if smtpPort == "465" {
-			tlsConfig := &tls.Config{ServerName: smtpHost}
-			conn, err := tls.Dial("tcp", addr, tlsConfig)
+			tlsDialer := &tls.Dialer{
+				NetDialer: &net.Dialer{Timeout: 5 * time.Second},
+				Config:    &tls.Config{ServerName: smtpHost},
+			}
+			conn, err := tlsDialer.Dial("tcp", addr)
+			if err != nil {
+				h.logger.Warn("SMTP port 465 connection failed", "err", err, "addr", addr)
+				return false
+			}
+			client, err := smtp.NewClient(conn, smtpHost)
 			if err == nil {
-				client, err := smtp.NewClient(conn, smtpHost)
-				if err == nil {
-					if err = client.Auth(auth); err == nil {
-						if err = client.Mail(smtpUser); err == nil {
-							if err = client.Rcpt(to); err == nil {
-								w, err := client.Data()
-								if err == nil {
-									_, _ = w.Write(msg.Bytes())
-									_ = w.Close()
-									_ = client.Quit()
-									h.logger.Info("email delivered via SMTP TLS", "to", maskEmail(to))
-									return true
-								}
+				defer client.Close()
+				auth := smtp.PlainAuth("", smtpUser, smtpPass, smtpHost)
+				if err = client.Auth(auth); err == nil {
+					if err = client.Mail(smtpUser); err == nil {
+						if err = client.Rcpt(to); err == nil {
+							w, err := client.Data()
+							if err == nil {
+								_, _ = w.Write(msg.Bytes())
+								_ = w.Close()
+								_ = client.Quit()
+								h.logger.Info("email delivered via SMTP SSL (465)", "to", maskEmail(to))
+								return true
 							}
 						}
 					}
 				}
+				h.logger.Warn("SMTP port 465 auth/send error", "err", err)
+			}
+			return false
+		}
+
+		// Standard STARTTLS (Port 587 or 25) with 5-second dial timeout
+		conn, err := net.DialTimeout("tcp", addr, 5*time.Second)
+		if err != nil {
+			h.logger.Warn("SMTP connection timed out after 5s (outbound SMTP port is blocked by your hosting provider)", "err", err, "addr", addr)
+			return false
+		}
+
+		client, err := smtp.NewClient(conn, smtpHost)
+		if err != nil {
+			_ = conn.Close()
+			h.logger.Warn("SMTP client initialization failed", "err", err)
+			return false
+		}
+		defer client.Close()
+
+		if ok, _ := client.Extension("STARTTLS"); ok {
+			tlsConfig := &tls.Config{ServerName: smtpHost}
+			if err = client.StartTLS(tlsConfig); err != nil {
+				h.logger.Warn("SMTP StartTLS failed", "err", err)
+				return false
 			}
 		}
 
-		err := smtp.SendMail(addr, auth, smtpUser, []string{to}, msg.Bytes())
-		if err == nil {
-			h.logger.Info("email delivered via SMTP", "to", maskEmail(to))
-			return true
+		auth := smtp.PlainAuth("", smtpUser, smtpPass, smtpHost)
+		if err = client.Auth(auth); err != nil {
+			h.logger.Warn("SMTP authentication failed", "err", err, "user", maskEmail(smtpUser))
+			return false
 		}
-		h.logger.Warn("SMTP dispatch failed", "err", err, "to", maskEmail(to), "host", smtpHost, "port", smtpPort, "user", maskEmail(smtpUser))
+		if err = client.Mail(smtpUser); err != nil {
+			h.logger.Warn("SMTP Mail command failed", "err", err)
+			return false
+		}
+		if err = client.Rcpt(to); err != nil {
+			h.logger.Warn("SMTP Rcpt command failed", "err", err, "to", maskEmail(to))
+			return false
+		}
+		w, err := client.Data()
+		if err != nil {
+			h.logger.Warn("SMTP Data command failed", "err", err)
+			return false
+		}
+		if _, err = w.Write(msg.Bytes()); err != nil {
+			_ = w.Close()
+			h.logger.Warn("SMTP write failed", "err", err)
+			return false
+		}
+		_ = w.Close()
+		_ = client.Quit()
+		h.logger.Info("email delivered via SMTP", "to", maskEmail(to))
+		return true
 	} else {
 		h.logger.Warn("SMTP dispatch skipped: no SMTP_PASS or GMAIL_APP_PASSWORD configured", "user", maskEmail(smtpUser))
-	}
-
-	// 2. Resend API
-	if h.cfg.ResendAPIKey != "" {
-		bodyMap := map[string]any{
-			"from":    fmt.Sprintf("%s <onboarding@resend.dev>", fromName),
-			"to":      []string{to},
-			"subject": subject,
-		}
-		if html != "" {
-			bodyMap["html"] = html
-		} else {
-			bodyMap["text"] = text
-		}
-		if replyTo != "" {
-			bodyMap["reply_to"] = replyTo
-		}
-
-		payload, _ := json.Marshal(bodyMap)
-		req, err := http.NewRequest(http.MethodPost, "https://api.resend.com/emails", bytes.NewReader(payload))
-		if err == nil {
-			req.Header.Set("Authorization", "Bearer "+h.cfg.ResendAPIKey)
-			req.Header.Set("Content-Type", "application/json")
-			resp, err := http.DefaultClient.Do(req)
-			if err == nil && resp.StatusCode >= 200 && resp.StatusCode < 300 {
-				h.logger.Info("email delivered via Resend", "to", maskEmail(to))
-				return true
-			}
-		}
 	}
 
 	return false

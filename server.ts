@@ -273,13 +273,48 @@ async function startServer() {
     const fromName = options.fromName || 'Timothy Ododo Portfolio';
     const fromHeader = `"${fromName}" <${smtpUser}>`;
 
-    // 1. Gmail SMTP or Custom SMTP via Nodemailer
+    // 1. Resend API (HTTPS Port 443 - Recommended for cloud providers where SMTP ports are blocked)
+    if (process.env.RESEND_API_KEY) {
+      try {
+        const resendFrom = process.env.RESEND_FROM?.trim() || `${fromName} <onboarding@resend.dev>`;
+        const res = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            from: resendFrom,
+            to: [options.to],
+            reply_to: options.replyTo,
+            subject: options.subject,
+            text: options.text,
+            html: options.html
+          })
+        });
+
+        if (res.ok) {
+          console.log(`[EMAIL DISPATCH SUCCESS via Resend] Delivered to ${maskEmail(options.to)}`);
+          return { delivered: true, method: 'resend' };
+        } else {
+          const errData = await res.text();
+          console.error(`[EMAIL DISPATCH ERROR via Resend]:`, errData);
+        }
+      } catch (resendErr: any) {
+        console.error(`[EMAIL DISPATCH ERROR via Resend]:`, resendErr.message || resendErr);
+      }
+    }
+
+    // 2. Gmail SMTP or Custom SMTP via Nodemailer (with 5s connection timeout)
     if (smtpPass) {
       try {
         const isGmail = (!smtpHost || smtpHost.toLowerCase().includes('gmail')) && smtpUser.includes('@gmail.com');
         const transporter = isGmail
           ? nodemailer.createTransport({
               service: 'gmail',
+              connectionTimeout: 5000,
+              greetingTimeout: 5000,
+              socketTimeout: 10000,
               auth: {
                 user: smtpUser,
                 pass: smtpPass
@@ -289,6 +324,9 @@ async function startServer() {
               host: smtpHost || 'smtp.gmail.com',
               port: Number(process.env.SMTP_PORT) || 587,
               secure: process.env.SMTP_PORT === '465',
+              connectionTimeout: 5000,
+              greetingTimeout: 5000,
+              socketTimeout: 10000,
               auth: {
                 user: smtpUser,
                 pass: smtpPass
@@ -309,39 +347,6 @@ async function startServer() {
       } catch (smtpErr: any) {
         console.error(`[EMAIL DISPATCH ERROR via SMTP] Could not deliver to ${maskEmail(options.to)}:`, smtpErr.message || smtpErr);
         return { delivered: false, method: 'smtp', error: smtpErr.message || String(smtpErr) };
-      }
-    }
-
-    // 2. Resend API (if configured)
-    if (process.env.RESEND_API_KEY) {
-      try {
-        const res = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            from: `${fromName} <onboarding@resend.dev>`,
-            to: [options.to],
-            reply_to: options.replyTo,
-            subject: options.subject,
-            text: options.text,
-            html: options.html
-          })
-        });
-
-        if (res.ok) {
-          console.log(`[EMAIL DISPATCH SUCCESS via Resend] Delivered to ${maskEmail(options.to)}`);
-          return { delivered: true, method: 'resend' };
-        } else {
-          const errData = await res.text();
-          console.error(`[EMAIL DISPATCH ERROR via Resend]:`, errData);
-          return { delivered: false, method: 'resend', error: errData };
-        }
-      } catch (resendErr: any) {
-        console.error(`[EMAIL DISPATCH ERROR via Resend]:`, resendErr.message || resendErr);
-        return { delivered: false, method: 'resend', error: resendErr.message || String(resendErr) };
       }
     }
 
