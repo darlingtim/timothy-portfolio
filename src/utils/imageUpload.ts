@@ -54,8 +54,10 @@ export function getAuthHeaders(): Record<string, string> {
  * Safely parses response as JSON, with descriptive errors if the server returned HTML or error status
  */
 async function parseResponseSafely<T>(res: Response, fallbackAction: string): Promise<T> {
-  const contentType = res.headers.get('content-type') || '';
-  if (!contentType.includes('application/json')) {
+  const contentType = (res.headers && typeof res.headers.get === 'function')
+    ? (res.headers.get('content-type') || '')
+    : ((res.headers && (res.headers as any)['content-type']) || 'application/json');
+  if (contentType && !contentType.includes('application/json')) {
     const text = await res.text();
     if (res.status === 404) {
       throw new Error(`Media endpoint not found (HTTP 404). Please ensure latest backend routes are active.`);

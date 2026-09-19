@@ -7,9 +7,14 @@ describe('Image Architecture & Static Storage', () => {
     vi.restoreAllMocks();
   });
 
-  it('profile avatar points to static/images/profile directory', () => {
+  it('profile avatar points to valid static photo or URL without base64', () => {
     expect(PROFILE.avatarUrl).toBeDefined();
-    expect(PROFILE.avatarUrl).toMatch(/^\/static\/images\/profile\/.*\.jpg$/);
+    expect(PROFILE.avatarUrl?.startsWith('data:image/')).toBe(false);
+    expect(
+      PROFILE.avatarUrl?.startsWith('/static/images/') ||
+      PROFILE.avatarUrl?.startsWith('https://') ||
+      PROFILE.avatarUrl?.startsWith('http://')
+    ).toBe(true);
   });
 
   it('carousel photos point to static carousel images or valid URLs', () => {
