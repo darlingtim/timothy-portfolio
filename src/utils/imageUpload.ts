@@ -34,11 +34,53 @@ export interface MediaImageItem {
 }
 
 /**
+ * Helper to build auth headers with current admin session token
+ */
+export function getAuthHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('timothy_admin_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+      headers['x-admin-token'] = token;
+    }
+  }
+  return headers;
+}
+
+/**
+ * Safely parses response as JSON, with descriptive errors if the server returned HTML or error status
+ */
+async function parseResponseSafely<T>(res: Response, fallbackAction: string): Promise<T> {
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    const text = await res.text();
+    if (res.status === 404) {
+      throw new Error(`Media endpoint not found (HTTP 404). Please ensure latest backend routes are active.`);
+    }
+    if (res.status === 403) {
+      throw new Error('Access denied: Administrator authentication required.');
+    }
+    const cleanSnippet = text.replace(/<[^>]*>?/gm, '').trim().slice(0, 120);
+    throw new Error(cleanSnippet ? `Server error (${res.status}): ${cleanSnippet}` : `Failed to ${fallbackAction} (HTTP ${res.status})`);
+  }
+  const data = await res.json();
+  if (!res.ok && !data.error) {
+    data.error = `Server returned status ${res.status}`;
+  }
+  return data;
+}
+
+/**
  * Fetches all available photos across all categories from the server API.
  */
 export async function fetchMediaImages(): Promise<MediaImageItem[]> {
   try {
-    const res = await fetch('/api/images');
+    const res = await fetch('/api/images', {
+      headers: getAuthHeaders(),
+    });
     if (res.ok) {
       const data = await res.json();
       if (data.success && Array.isArray(data.images)) {
@@ -87,7 +129,7 @@ export async function uploadImageFile(
       try {
         const response = await fetch('/api/upload-photo', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders(),
           body: JSON.stringify({
             imageData: dataUrl,
             filename: file.name,
@@ -99,7 +141,7 @@ export async function uploadImageFile(
         });
 
         if (response.ok) {
-          const resData = await response.json();
+          const resData = await parseResponseSafely<any>(response, 'upload image');
           if (resData.success && resData.url) {
             resolve({
               url: resData.url,
@@ -141,13 +183,13 @@ export async function moveMediaImages(
   try {
     const res = await fetch('/api/images/move', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ urls, targetCategory }),
     });
-    return await res.json();
+    return await parseResponseSafely<{ success: boolean; movedCount: number; referencesUpdated: number; moved: any[]; error?: string }>(res, 'move media images');
   } catch (err: any) {
     console.error('Failed to move media images:', err);
-    return { success: false, movedCount: 0, referencesUpdated: 0, moved: [], error: err.message };
+    return { success: false, movedCount: 0, referencesUpdated: 0, moved: [], error: err.message || 'Failed to move images' };
   }
 }
 
@@ -160,13 +202,13 @@ export async function deleteMediaImages(
   try {
     const res = await fetch('/api/images/delete', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ urls }),
     });
-    return await res.json();
+    return await parseResponseSafely<{ success: boolean; deletedCount: number; deleted: string[]; error?: string }>(res, 'delete media images');
   } catch (err: any) {
     console.error('Failed to delete media images:', err);
-    return { success: false, deletedCount: 0, deleted: [], error: err.message };
+    return { success: false, deletedCount: 0, deleted: [], error: err.message || 'Failed to delete images' };
   }
 }
 
@@ -185,13 +227,13 @@ export async function deduplicateMediaImages(): Promise<{
   try {
     const res = await fetch('/api/images/deduplicate', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({}),
     });
-    return await res.json();
+    return await parseResponseSafely<any>(res, 'deduplicate media images');
   } catch (err: any) {
     console.error('Failed to deduplicate media images:', err);
-    return { success: false, removedCount: 0, savedBytes: 0, details: [], error: err.message };
+    return { success: false, removedCount: 0, savedBytes: 0, details: [], error: err.message || 'Failed to deduplicate images' };
   }
 }
 

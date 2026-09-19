@@ -215,7 +215,8 @@ export async function syncServerData(payload: Record<string, any>, customToken?:
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
+      'Authorization': `Bearer ${token}`,
+      'x-admin-token': token
     };
 
     const res = await fetch('/api/data', {

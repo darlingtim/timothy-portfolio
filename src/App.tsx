@@ -102,7 +102,7 @@ export default function App() {
       })
         .then(res => res.json())
         .then(data => {
-          if (data && data.valid) {
+          if (data && (data.valid || data.authenticated)) {
             setIsAdminLoggedIn(true);
             if (data.user) setAdminUser(data.user);
             // Fetch live unmasked data for authenticated admin

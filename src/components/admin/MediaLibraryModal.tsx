@@ -174,7 +174,10 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
     try {
       const res = await deleteMediaImages(urls);
       if (res.success) {
-        showNotification('success', `Permanently deleted ${res.deletedCount} photo(s).`);
+        const count = res.deletedCount > 0 ? res.deletedCount : urls.length;
+        showNotification('success', `Permanently deleted ${count} photo(s).`);
+        // Immediately remove deleted photos from UI state
+        setImages((prev) => prev.filter((img) => !urls.includes(img.url)));
         setCheckedUrls(new Set());
         setConfirmDeleteUrls(null);
         if (urls.includes(selectedUrl)) {
@@ -697,10 +700,16 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
                             e.stopPropagation();
                             const newCat = e.target.value;
                             if (newCat === img.category) return;
-                            const res = await moveMediaImages([img.url], newCat);
-                            if (res.success) {
-                              showNotification('success', `Moved to "${newCat}". References updated.`);
-                              await loadPhotos();
+                            try {
+                              const res = await moveMediaImages([img.url], newCat);
+                              if (res.success) {
+                                showNotification('success', `Moved to "${newCat}". References updated.`);
+                                await loadPhotos();
+                              } else {
+                                showNotification('error', res.error || `Failed to move image to "${newCat}".`);
+                              }
+                            } catch (err: any) {
+                              showNotification('error', err.message || `Failed to move image to "${newCat}".`);
                             }
                           }}
                           className="text-[10px] py-0.5 px-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-none focus:ring-1 focus:ring-sky-500"

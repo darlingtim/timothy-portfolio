@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, 
   User, 
@@ -167,6 +167,32 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     return mentoringPrograms || getMentoringPrograms();
   });
 
+  useEffect(() => {
+    if (mentoringPrograms) {
+      setLocalMentoring(mentoringPrograms);
+    }
+  }, [mentoringPrograms]);
+
+  // In-App Confirmation Modal state (Iframe-safe replacement for window.confirm)
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    title: string;
+    itemType: string;
+    itemName: string;
+    description?: string;
+    onConfirm: () => void;
+  } | null>(null);
+
+  // Keyboard accessibility for confirmation dialog
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && deleteConfirm) {
+        setDeleteConfirm(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [deleteConfirm]);
+
   // Search & filter states
   const [projectSearch, setProjectSearch] = useState('');
   const [messageFilter, setMessageFilter] = useState<'all' | 'unread' | 'replied'>('all');
@@ -263,21 +289,30 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleDeleteSkill = (skillName: string, categoryId: string) => {
-    if (!confirm(`Are you sure you want to remove the skill "${skillName}"?`)) return;
-    const currentCategories = skills?.categories || [];
-    const updatedCategories = currentCategories.map((cat) => {
-      if (cat.id === categoryId) {
-        return {
-          ...cat,
-          skills: (cat.skills || []).filter((s) => s.name !== skillName)
-        };
+    setDeleteConfirm({
+      title: 'Delete Skill',
+      itemType: 'Skill',
+      itemName: skillName,
+      description: `Are you sure you want to remove the skill "${skillName}"? This will delete it permanently from your portfolio skills list.`,
+      onConfirm: () => {
+        const currentCategories = skills?.categories || [];
+        const updatedCategories = currentCategories.map((cat) => {
+          if (cat.id === categoryId) {
+            return {
+              ...cat,
+              skills: (cat.skills || []).filter(
+                (s) => s.name.trim().toLowerCase() !== skillName.trim().toLowerCase()
+              )
+            };
+          }
+          return cat;
+        });
+        const updated: SkillsData = { categories: updatedCategories };
+        setSkills(updated);
+        saveStored('skills', updated);
+        showToast(`Skill "${skillName}" removed.`);
       }
-      return cat;
     });
-    const updated: SkillsData = { categories: updatedCategories };
-    setSkills(updated);
-    saveStored('skills', updated);
-    showToast(`Skill "${skillName}" removed.`);
   };
 
   const handleSaveCategory = (category: SkillCategory, originalCategoryId?: string) => {
@@ -302,23 +337,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     const targetCat = currentCategories.find((c) => c.id === categoryId);
     if (!targetCat) return;
 
-    if (targetCat.skills && targetCat.skills.length > 0) {
-      if (
-        !confirm(
-          `Category "${targetCat.name}" contains ${targetCat.skills.length} skills. Deleting it will remove the category and all its skills. Are you sure?`
-        )
-      ) {
-        return;
-      }
-    } else {
-      if (!confirm(`Delete category "${targetCat.name}"?`)) return;
-    }
+    const skillCount = targetCat.skills?.length || 0;
+    const desc = skillCount > 0
+      ? `Category "${targetCat.name}" contains ${skillCount} skill(s). Deleting it will permanently remove the category and all its skills.`
+      : `Are you sure you want to delete the category "${targetCat.name}"?`;
 
-    const updatedCategories = currentCategories.filter((c) => c.id !== categoryId);
-    const updated: SkillsData = { categories: updatedCategories };
-    setSkills(updated);
-    saveStored('skills', updated);
-    showToast(`Category "${targetCat.name}" removed.`);
+    setDeleteConfirm({
+      title: 'Delete Category',
+      itemType: 'Category',
+      itemName: targetCat.name,
+      description: desc,
+      onConfirm: () => {
+        const updatedCategories = currentCategories.filter((c) => c.id !== categoryId);
+        const updated: SkillsData = { categories: updatedCategories };
+        setSkills(updated);
+        saveStored('skills', updated);
+        showToast(`Category "${targetCat.name}" removed.`);
+      }
+    });
   };
 
   const getSkillBadgeClass = (level: string) => {
@@ -362,11 +398,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleDeleteEvent = (id: string) => {
-    if (!confirm('Are you sure you want to delete this event contribution?')) return;
-    const updated = events.filter((e) => e.id !== id);
-    setEvents(updated);
-    saveStored('eventContributions', updated);
-    showToast('Event contribution deleted.');
+    const target = events.find((e) => e.id === id);
+    const title = target?.title || 'this event contribution';
+
+    setDeleteConfirm({
+      title: 'Delete Event & Summit',
+      itemType: 'Event',
+      itemName: title,
+      description: `Are you sure you want to delete "${title}"? This will remove it from all summit, event, and speaking activity records.`,
+      onConfirm: () => {
+        const updated = events.filter((e) => e.id !== id);
+        setEvents(updated);
+        saveStored('eventContributions', updated);
+        saveStored('events', updated, false);
+        showToast('Event contribution deleted.');
+      }
+    });
   };
 
   // Profile Save
@@ -398,12 +445,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     saveStored('projects', updated);
   };
 
-  const handleDeleteProject = (slug: string) => {
-    if (!confirm('Are you sure you want to delete this project?')) return;
-    const updated = projects.filter((p) => p.slug !== slug);
-    setProjects(updated);
-    saveStored('projects', updated);
-    showToast('Project removed.');
+  const handleDeleteProject = (slugOrId: string) => {
+    const target = projects.find((p) => p.slug === slugOrId || (p as any).id === slugOrId);
+    const name = target?.name || slugOrId;
+
+    setDeleteConfirm({
+      title: 'Delete Project',
+      itemType: 'Project',
+      itemName: name,
+      description: `Are you sure you want to delete "${name}"? This project case study and its details will be removed from your portfolio.`,
+      onConfirm: () => {
+        const updated = projects.filter((p) => p.slug !== slugOrId && (p as any).id !== slugOrId);
+        setProjects(updated);
+        saveStored('projects', updated);
+        showToast(`Project "${name}" removed.`);
+      }
+    });
   };
 
   // Experiences CRUD
@@ -422,11 +479,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleDeleteExperience = (id: string) => {
-    if (!confirm('Are you sure you want to delete this experience record?')) return;
-    const updated = experiences.filter((e) => e.id !== id);
-    setExperiences(updated);
-    saveStored('experiences', updated);
-    showToast('Experience record deleted.');
+    const target = experiences.find((e) => e.id === id);
+    const label = target ? `${target.role} at ${target.organization}` : 'this experience record';
+
+    setDeleteConfirm({
+      title: 'Delete Experience',
+      itemType: 'Experience',
+      itemName: label,
+      description: `Are you sure you want to delete "${label}"? This career history item will be removed.`,
+      onConfirm: () => {
+        const updated = experiences.filter((e) => e.id !== id);
+        setExperiences(updated);
+        saveStored('experiences', updated);
+        showToast('Experience record deleted.');
+      }
+    });
   };
 
   // Gallery CRUD
@@ -445,11 +512,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleDeleteGallery = (id: string) => {
-    if (!confirm('Delete this gallery photo?')) return;
-    const updated = galleryItems.filter((g) => g.id !== id);
-    setGalleryItems(updated);
-    saveStored('gallery', updated);
-    showToast('Gallery photo deleted.');
+    const target = galleryItems.find((g) => g.id === id);
+    const title = target?.title || 'this gallery photo';
+
+    setDeleteConfirm({
+      title: 'Delete Gallery Photo',
+      itemType: 'Photo',
+      itemName: title,
+      description: `Are you sure you want to delete "${title}" from your gallery collection?`,
+      onConfirm: () => {
+        const updated = galleryItems.filter((g) => g.id !== id);
+        setGalleryItems(updated);
+        saveStored('gallery', updated);
+        saveStored('galleryItems', updated, false);
+        showToast('Gallery photo deleted.');
+      }
+    });
   };
 
   // Achievements CRUD
@@ -468,11 +546,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleDeleteAchievement = (id: string) => {
-    if (!confirm('Delete this achievement record?')) return;
-    const updated = achievements.filter((a) => a.id !== id);
-    setAchievements(updated);
-    saveStored('achievements', updated);
-    showToast('Achievement deleted.');
+    const target = achievements.find((a) => a.id === id);
+    const title = target?.title || 'this achievement';
+
+    setDeleteConfirm({
+      title: 'Delete Achievement',
+      itemType: 'Achievement',
+      itemName: title,
+      description: `Are you sure you want to delete achievement "${title}"? This accolade will be removed from your credentials.`,
+      onConfirm: () => {
+        const updated = achievements.filter((a) => a.id !== id);
+        setAchievements(updated);
+        saveStored('achievements', updated);
+        showToast('Achievement deleted.');
+      }
+    });
   };
 
   // Certifications CRUD
@@ -491,11 +579,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleDeleteCertification = (id: string) => {
-    if (!confirm('Delete this certification record?')) return;
-    const updated = certifications.filter((c) => c.id !== id);
-    setCertifications(updated);
-    saveStored('certifications', updated);
-    showToast('Certification deleted.');
+    const target = certifications.find((c) => c.id === id);
+    const name = target?.name || 'this certification';
+
+    setDeleteConfirm({
+      title: 'Delete Certification',
+      itemType: 'Certification',
+      itemName: name,
+      description: `Are you sure you want to delete certification "${name}"? This credential will be removed from your portfolio.`,
+      onConfirm: () => {
+        const updated = certifications.filter((c) => c.id !== id);
+        setCertifications(updated);
+        saveStored('certifications', updated);
+        showToast('Certification deleted.');
+      }
+    });
   };
 
   // Mentoring CRUD
@@ -515,12 +613,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleDeleteMentoringProgram = (id: string) => {
-    if (!confirm('Delete this mentoring program record?')) return;
-    const updated = localMentoring.filter((p) => p.id !== id);
-    if (setMentoringPrograms) setMentoringPrograms(updated);
-    setLocalMentoring(updated);
-    saveStored('mentoring', updated);
-    showToast('Mentoring program deleted.');
+    const target = localMentoring.find((p) => p.id === id);
+    const title = target?.title || 'this mentoring program';
+
+    setDeleteConfirm({
+      title: 'Delete Mentoring Program',
+      itemType: 'Mentoring Program',
+      itemName: title,
+      description: `Are you sure you want to delete "${title}"? This mentoring track and its impact metrics will be removed.`,
+      onConfirm: () => {
+        const updated = localMentoring.filter((p) => p.id !== id);
+        if (setMentoringPrograms) setMentoringPrograms(updated);
+        setLocalMentoring(updated);
+        saveStored('mentoring', updated);
+        showToast('Mentoring program deleted.');
+      }
+    });
   };
 
   // Education CRUD
@@ -542,11 +650,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleDeleteEducation = (idOrDegree: string) => {
-    if (!confirm('Are you sure you want to delete this education record?')) return;
-    const updated = education.filter((e) => (e.id ? e.id !== idOrDegree : e.degree !== idOrDegree));
-    setEducation(updated);
-    saveStored('education', updated);
-    showToast('Education record deleted.');
+    const target = education.find((e) => (e.id && e.id === idOrDegree) || e.degree === idOrDegree);
+    const label = target ? `${target.degree} (${target.institution})` : idOrDegree;
+
+    setDeleteConfirm({
+      title: 'Delete Education Record',
+      itemType: 'Education',
+      itemName: label,
+      description: `Are you sure you want to delete "${label}"? This academic credential will be removed.`,
+      onConfirm: () => {
+        const updated = education.filter((e) => {
+          if (e.id && e.id === idOrDegree) return false;
+          if (e.degree === idOrDegree) return false;
+          return true;
+        });
+        setEducation(updated);
+        saveStored('education', updated);
+        showToast('Education record deleted.');
+      }
+    });
   };
 
   // Messages Actions & Direct Reply
@@ -563,11 +685,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleDeleteMessage = (id: string) => {
-    if (!confirm('Delete this message?')) return;
-    const updated = messages.filter((m) => m.id !== id);
-    setMessages(updated);
-    saveStored('messages', updated);
-    showToast('Message deleted.');
+    const target = messages.find((m) => m.id === id);
+    const name = target ? `message from ${target.name}` : 'this message';
+
+    setDeleteConfirm({
+      title: 'Delete Contact Message',
+      itemType: 'Message',
+      itemName: name,
+      description: `Are you sure you want to permanently delete ${name}?`,
+      onConfirm: () => {
+        const updated = messages.filter((m) => m.id !== id);
+        setMessages(updated);
+        saveStored('messages', updated);
+        showToast('Message deleted.');
+      }
+    });
   };
 
   const handleSendReply = (originalMessageId: string, reply: MessageReply) => {
@@ -3164,6 +3296,62 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           showToast(`Selected photo: ${url.split('/').pop()}`);
         }}
       />
+
+      {/* Universal In-App Deletion Confirmation Modal (Iframe-safe, zero window.confirm dependency) */}
+      {deleteConfirm && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={() => setDeleteConfirm(null)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className="w-full max-w-md rounded-2xl bg-white dark:bg-[#0c142c] border border-slate-200 dark:border-slate-800 p-6 shadow-2xl space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3.5">
+              <div className="p-2.5 rounded-xl bg-rose-500/10 text-rose-500 shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div className="space-y-1.5 flex-1 min-w-0">
+                <h3 className="font-display font-bold text-base text-slate-900 dark:text-slate-100">
+                  {deleteConfirm.title}
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  {deleteConfirm.description || `Are you sure you want to delete ${deleteConfirm.itemName}? This action cannot be undone.`}
+                </p>
+                {deleteConfirm.itemName && (
+                  <div className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 text-xs font-mono text-slate-800 dark:text-slate-200 truncate">
+                    {deleteConfirm.itemName}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-slate-100 dark:border-slate-800/80">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirm(null)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const cb = deleteConfirm.onConfirm;
+                  setDeleteConfirm(null);
+                  cb();
+                }}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 shadow-sm transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete {deleteConfirm.itemType}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
