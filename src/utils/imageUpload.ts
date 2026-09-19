@@ -91,17 +91,13 @@ export async function fetchMediaImages(): Promise<MediaImageItem[]> {
     console.warn('Could not fetch media images from /api/images:', err);
   }
 
-  // Fallback preset / static defaults
+  // Fallback preset / static defaults (only authentic portfolio template assets)
   return [
-    { url: '/static/images/profile/timothy-ododo-avatar.jpg', filename: 'timothy-ododo-avatar.jpg', category: 'profile', source: 'uploaded' },
     { url: '/static/images/carousel/carousel-photo-1.jpg', filename: 'carousel-photo-1.jpg', category: 'carousel', source: 'uploaded' },
     { url: '/static/images/carousel/carousel-photo-2.jpg', filename: 'carousel-photo-2.jpg', category: 'carousel', source: 'uploaded' },
     { url: '/static/images/carousel/carousel-photo-3.jpg', filename: 'carousel-photo-3.jpg', category: 'carousel', source: 'uploaded' },
-    { url: '/static/images/carousel/buildathon-holiday-camp.jpg', filename: 'buildathon-holiday-camp.jpg', category: 'carousel', source: 'uploaded' },
-    { url: '/static/images/events/buildathon-holiday-camp.jpg', filename: 'buildathon-holiday-camp.jpg', category: 'events', source: 'uploaded' },
     { url: '/static/images/certifications/google-it-support-cert.svg', filename: 'google-it-support-cert.svg', category: 'certifications', source: 'uploaded' },
     { url: '/static/images/certifications/rpi-educator-cert.svg', filename: 'rpi-educator-cert.svg', category: 'certifications', source: 'uploaded' },
-    { url: '/static/images/mentoring/buildathon-holiday-camp.jpg', filename: 'buildathon-holiday-camp.jpg', category: 'mentoring', source: 'uploaded' },
   ];
 }
 
@@ -179,14 +175,14 @@ export async function uploadImageFile(
 export async function moveMediaImages(
   urls: string[],
   targetCategory: string
-): Promise<{ success: boolean; movedCount: number; referencesUpdated: number; moved: any[]; error?: string }> {
+): Promise<{ success: boolean; movedCount: number; referencesUpdated: number; moved: any[]; updatedData?: any; error?: string }> {
   try {
     const res = await fetch('/api/images/move', {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({ urls, targetCategory }),
     });
-    return await parseResponseSafely<{ success: boolean; movedCount: number; referencesUpdated: number; moved: any[]; error?: string }>(res, 'move media images');
+    return await parseResponseSafely<{ success: boolean; movedCount: number; referencesUpdated: number; moved: any[]; updatedData?: any; error?: string }>(res, 'move media images');
   } catch (err: any) {
     console.error('Failed to move media images:', err);
     return { success: false, movedCount: 0, referencesUpdated: 0, moved: [], error: err.message || 'Failed to move images' };

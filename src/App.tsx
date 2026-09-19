@@ -37,6 +37,18 @@ import {
   getAdminToken,
   clearAdminSession
 } from './data';
+import {
+  syncGalleryWithMoved,
+  syncCarouselWithMoved,
+  syncProjectsWithMoved,
+  syncExperiencesWithMoved,
+  syncEventsWithMoved,
+  syncMentoringWithMoved,
+  syncCertificationsWithMoved,
+  syncAchievementsWithMoved,
+  syncEducationWithMoved,
+  syncProfileWithMoved
+} from './utils/imageSync';
 import { 
   Profile, 
   Project, 
@@ -145,6 +157,29 @@ export default function App() {
     if (serverData.community) setCommunity(serverData.community);
     if (serverData.mentoring) setMentoringPrograms(serverData.mentoring);
   };
+
+  // Re-sync all client components when photos are moved or their category updated
+  useEffect(() => {
+    const handlePhotoMoved = (e: any) => {
+      const { updatedData, moved } = e.detail || {};
+      if (updatedData) {
+        hydrateState(updatedData);
+      } else if (Array.isArray(moved) && moved.length > 0) {
+        setGalleryItems((prev) => syncGalleryWithMoved(prev, moved));
+        setCarouselConfig((prev) => syncCarouselWithMoved(prev, moved));
+        setProjects((prev) => syncProjectsWithMoved(prev, moved));
+        setExperiences((prev) => syncExperiencesWithMoved(prev, moved));
+        setEvents((prev) => syncEventsWithMoved(prev, moved));
+        setMentoringPrograms((prev) => syncMentoringWithMoved(prev, moved));
+        setCertifications((prev) => syncCertificationsWithMoved(prev, moved));
+        setAchievements((prev) => syncAchievementsWithMoved(prev, moved));
+        setEducation((prev) => syncEducationWithMoved(prev, moved));
+        setProfile((prev) => syncProfileWithMoved(prev, moved));
+      }
+    };
+    window.addEventListener('portfolio_photo_moved', handlePhotoMoved);
+    return () => window.removeEventListener('portfolio_photo_moved', handlePhotoMoved);
+  }, []);
 
   // Apply dark mode class to html document
   useEffect(() => {

@@ -9,6 +9,7 @@ interface EventModalProps {
   eventToEdit: EventContribution | null;
   onClose: () => void;
   onSave: (event: EventContribution) => void;
+  onDelete?: (id: string) => void;
 }
 
 const CATEGORIES: EventContribution['category'][] = [
@@ -23,7 +24,8 @@ export const EventModal: React.FC<EventModalProps> = ({
   isOpen,
   eventToEdit,
   onClose,
-  onSave
+  onSave,
+  onDelete
 }) => {
   const [formData, setFormData] = useState<EventContribution>({
     id: '',
@@ -418,6 +420,16 @@ export const EventModal: React.FC<EventModalProps> = ({
 
           {/* Footer Submit */}
           <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-3">
+            {eventToEdit && onDelete && (
+              <button
+                type="button"
+                onClick={() => onDelete(eventToEdit.id)}
+                className="mr-auto px-4 py-2.5 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Delete Event</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={onClose}

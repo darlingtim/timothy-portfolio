@@ -27,13 +27,16 @@ import {
   MediaImageItem, 
   ImageCategory 
 } from '../../utils/imageUpload';
+import { applyImageMoveSync } from '../../utils/imageSync';
 
 interface MediaLibraryModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectPhoto: (url: string, item?: MediaImageItem) => void;
+  onSelectPhoto?: (url: string, item?: MediaImageItem) => void;
   targetCategoryLabel?: string;
   defaultCategoryFilter?: string;
+  onDataSync?: (updatedData?: any, moved?: any[]) => void;
+  mode?: 'picker' | 'manage';
 }
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string }> = {
@@ -70,9 +73,13 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
   onClose,
   onSelectPhoto,
   targetCategoryLabel = 'Item',
-  defaultCategoryFilter = 'all'
+  defaultCategoryFilter = 'all',
+  onDataSync,
+  mode
 }) => {
   if (!isOpen) return null;
+
+  const isManageMode = mode === 'manage' || !onSelectPhoto || targetCategoryLabel === 'Universal Media Library' || targetCategoryLabel === 'Portfolio Item';
 
   const [images, setImages] = useState<MediaImageItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,6 +90,7 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadCategory, setUploadCategory] = useState<ImageCategory>('general');
   const [showUploadDrawer, setShowUploadDrawer] = useState(false);
+  const [hasCopiedUrl, setHasCopiedUrl] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Multi-select for batch actions
@@ -91,9 +99,23 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
   const [isBatchOperating, setIsBatchOperating] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
   const [confirmDeleteUrls, setConfirmDeleteUrls] = useState<string[] | null>(null);
+  const [brokenUrls, setBrokenUrls] = useState<Set<string>>(new Set());
+
+  const handleCopyUrl = (url: string) => {
+    if (!url) return;
+    try {
+      navigator.clipboard.writeText(url);
+      setHasCopiedUrl(true);
+      showNotification('success', 'Image URL copied to clipboard!');
+      setTimeout(() => setHasCopiedUrl(false), 2500);
+    } catch {
+      showNotification('info', url);
+    }
+  };
 
   const loadPhotos = async () => {
     setLoading(true);
+    setBrokenUrls(new Set());
     try {
       const list = await fetchMediaImages();
       setImages(list);
@@ -122,7 +144,7 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
 
   const handleConfirm = () => {
     if (!selectedUrl) return;
-    onSelectPhoto(selectedUrl, selectedItem || undefined);
+    onSelectPhoto?.(selectedUrl, selectedItem || undefined);
     onClose();
   };
 
@@ -151,17 +173,51 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
     const urls: string[] = Array.from(checkedUrls);
     if (urls.length === 0) return;
     setIsBatchOperating(true);
+
+    // Optimistically update category tags in local state
+    setImages((prev) =>
+      prev.map((item) => {
+        if (checkedUrls.has(item.url)) {
+          return { ...item, category: batchTargetCategory };
+        }
+        return item;
+      })
+    );
+
     try {
       const res = await moveMediaImages(urls, batchTargetCategory);
       if (res.success) {
-        showNotification('success', `Moved ${res.movedCount} photo(s) to "${batchTargetCategory}". All references updated.`);
+        // Authoritative update with returned newUrls and categories
+        setImages((prev) =>
+          prev.map((item) => {
+            const movedItem = res.moved?.find((m) => m.oldUrl === item.url);
+            if (movedItem) {
+              return {
+                ...item,
+                url: movedItem.newUrl,
+                category: (movedItem.targetCategory || batchTargetCategory).toLowerCase(),
+                filename: movedItem.filename || item.filename
+              };
+            }
+            return item;
+          })
+        );
+        if (selectedUrl && res.moved) {
+          const movedSel = res.moved.find((m) => m.oldUrl === selectedUrl);
+          if (movedSel) setSelectedUrl(movedSel.newUrl);
+        }
+        applyImageMoveSync(res.moved, res.updatedData);
+        onDataSync?.(res.updatedData, res.moved);
+        showNotification('success', `Moved ${res.movedCount} photo(s) to "${batchTargetCategory}". Categories and references synced across app.`);
         setCheckedUrls(new Set());
         await loadPhotos();
       } else {
         showNotification('error', res.error || 'Failed to move photos');
+        await loadPhotos();
       }
     } catch (err: any) {
       showNotification('error', err.message || 'Error moving photos');
+      await loadPhotos();
     } finally {
       setIsBatchOperating(false);
     }
@@ -285,7 +341,10 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
                 </span>
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">
-                Organize, move, clean duplicate photos, or select an image for <span className="text-sky-500 font-medium">{targetCategoryLabel}</span>.
+                {isManageMode
+                  ? 'Browse, upload, organize by category, clean duplicates, or copy photo URLs.'
+                  : <>Select a photo for <span className="text-sky-500 font-medium">{targetCategoryLabel}</span> or upload a new one.</>
+                }
               </p>
             </div>
           </div>
@@ -616,16 +675,24 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
                   >
                     {/* Image Thumbnail */}
                     <div className="relative aspect-[4/3] bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                      <img
-                        src={img.url}
-                        alt={img.filename}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        loading="lazy"
-                        onError={(e) => {
-                          // Fallback placeholder on broken URL
-                          (e.target as HTMLElement).style.display = 'none';
-                        }}
-                      />
+                      {brokenUrls.has(img.url) ? (
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-400 p-2 text-center">
+                          <Folder className="w-6 h-6 mb-1 text-slate-400" />
+                          <span className="text-[9px] uppercase font-mono tracking-wider font-semibold text-slate-500">
+                            {img.category}
+                          </span>
+                        </div>
+                      ) : (
+                        <img
+                          src={img.url}
+                          alt={img.filename}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          loading="lazy"
+                          onError={() => {
+                            setBrokenUrls((prev) => new Set(prev).add(img.url));
+                          }}
+                        />
+                      )}
 
                       {/* Multi-Select Checkbox in top-left */}
                       <button
@@ -694,22 +761,52 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
                       {/* Quick Move / Delete Actions */}
                       <div className="pt-1 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500">
                         <select
-                          value={img.category}
+                          value={img.category.toLowerCase()}
                           onClick={(e) => e.stopPropagation()}
                           onChange={async (e) => {
                             e.stopPropagation();
-                            const newCat = e.target.value;
-                            if (newCat === img.category) return;
+                            const newCat = e.target.value.toLowerCase() as ImageCategory;
+                            if (newCat === img.category.toLowerCase()) return;
+
+                            // 1. Optimistic update
+                            setImages((prev) =>
+                              prev.map((item) =>
+                                item.url === img.url ? { ...item, category: newCat } : item
+                              )
+                            );
+
                             try {
                               const res = await moveMediaImages([img.url], newCat);
                               if (res.success) {
-                                showNotification('success', `Moved to "${newCat}". References updated.`);
+                                // 2. Authoritative update
+                                setImages((prev) =>
+                                  prev.map((item) => {
+                                    const movedItem = res.moved?.find((m) => m.oldUrl === item.url);
+                                    if (movedItem) {
+                                      return {
+                                        ...item,
+                                        url: movedItem.newUrl,
+                                        category: (movedItem.targetCategory || newCat).toLowerCase(),
+                                        filename: movedItem.filename || item.filename
+                                      };
+                                    }
+                                    return item;
+                                  })
+                                );
+                                if (selectedUrl === img.url && res.moved?.[0]) {
+                                  setSelectedUrl(res.moved[0].newUrl);
+                                }
+                                applyImageMoveSync(res.moved, res.updatedData);
+                                onDataSync?.(res.updatedData, res.moved);
+                                showNotification('success', `Moved to "${newCat}". Category and references synced across app.`);
                                 await loadPhotos();
                               } else {
                                 showNotification('error', res.error || `Failed to move image to "${newCat}".`);
+                                await loadPhotos();
                               }
                             } catch (err: any) {
                               showNotification('error', err.message || `Failed to move image to "${newCat}".`);
+                              await loadPhotos();
                             }
                           }}
                           className="text-[10px] py-0.5 px-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-none focus:ring-1 focus:ring-sky-500"
@@ -748,14 +845,21 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
             {selectedUrl ? (
               <>
                 <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 overflow-hidden shrink-0">
-                  <img src={selectedUrl} alt="Selected" className="w-full h-full object-cover" />
+                  <img
+                    src={selectedUrl}
+                    alt="Selected"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.opacity = '0.5';
+                    }}
+                  />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold text-slate-900 dark:text-white">Selected Photo:</span>
                     {selectedItem?.category && (
-                      <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-sky-500/10 text-sky-400">
-                        Category: {selectedItem.category}
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-sky-500/10 text-sky-400 border border-sky-500/20 capitalize">
+                        {selectedItem.category}
                       </span>
                     )}
                   </div>
@@ -764,29 +868,83 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
               </>
             ) : (
               <div className="flex items-center gap-2 text-xs text-slate-400">
-                <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
-                <span>Click on any photo to choose it for <span className="font-semibold text-slate-600 dark:text-slate-300">{targetCategoryLabel}</span>, or select checkboxes to batch move/delete.</span>
+                {isManageMode ? (
+                  <>
+                    <Folder className="w-4 h-4 text-sky-500 shrink-0" />
+                    <span>Click on any photo to inspect, copy its URL, or change category. Check multiple photos to batch move or delete.</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+                    <span>Click on any photo to choose it for <span className="font-semibold text-slate-600 dark:text-slate-300">{targetCategoryLabel}</span>.</span>
+                  </>
+                )}
               </div>
             )}
           </div>
 
           <div className="flex items-center gap-2 justify-end">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs sm:text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            >
-              Close
-            </button>
-            <button
-              type="button"
-              onClick={handleConfirm}
-              disabled={!selectedUrl}
-              className="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs sm:text-sm font-semibold shadow-sm flex items-center gap-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <Check className="w-4 h-4" />
-              <span>Select as {targetCategoryLabel} Photo</span>
-            </button>
+            {isManageMode ? (
+              <>
+                {selectedUrl && (
+                  <>
+                    <a
+                      href={selectedUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-1.5"
+                      title="Open full-size image in new tab"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Open</span>
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyUrl(selectedUrl)}
+                      className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-semibold transition-colors flex items-center gap-1.5"
+                    >
+                      {hasCopiedUrl ? (
+                        <>
+                          <Check className="w-4 h-4 text-emerald-500" />
+                          <span className="text-emerald-500">Copied URL!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-4 h-4" />
+                          <span>Copy Image URL</span>
+                        </>
+                      )}
+                    </button>
+                  </>
+                )}
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs sm:text-sm font-semibold shadow-sm transition-all"
+                >
+                  Close
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs sm:text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirm}
+                  disabled={!selectedUrl}
+                  className="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs sm:text-sm font-semibold shadow-sm flex items-center gap-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Use as {targetCategoryLabel} Image</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
 

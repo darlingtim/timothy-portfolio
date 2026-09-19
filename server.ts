@@ -257,6 +257,192 @@ function removeUrlFromPortfolioData(currentData: any, targetUrl: string): number
   return count;
 }
 
+function normalizeCategoryTag(cat?: string): string {
+  if (!cat) return 'general';
+  const lower = cat.toLowerCase().trim();
+  if (lower === 'projects' || lower === 'project') return 'projects';
+  if (lower === 'experience' || lower === 'experiences') return 'experience';
+  if (lower === 'events' || lower === 'event') return 'events';
+  if (lower === 'mentoring' || lower === 'mentor') return 'mentoring';
+  if (lower === 'certifications' || lower === 'certification' || lower === 'certificate' || lower === 'certificates') return 'certifications';
+  if (lower === 'achievements' || lower === 'achievement') return 'achievements';
+  if (lower === 'carousel' || lower === 'portfolio') return 'carousel';
+  if (lower === 'education' || lower === 'training') return 'education';
+  if (lower === 'profile' || lower === 'avatar') return 'profile';
+  if (lower === 'gallery') return 'gallery';
+  if (lower === 'community' || lower === 'general') return 'general';
+  return lower;
+}
+
+function mapToGalleryCategory(cat: string): string {
+  const lower = (cat || '').toLowerCase().trim();
+  if (lower === 'projects' || lower === 'project') return 'Projects';
+  if (lower === 'experience' || lower === 'experiences') return 'Experience';
+  if (lower === 'events' || lower === 'event') return 'Events';
+  if (lower === 'mentoring' || lower === 'mentor') return 'Mentoring';
+  if (lower === 'certifications' || lower === 'certification' || lower === 'certificate') return 'Certificate';
+  if (lower === 'achievements' || lower === 'achievement') return 'Achievements';
+  if (lower === 'carousel') return 'Carousel';
+  if (lower === 'education' || lower === 'training') return 'Training';
+  if (lower === 'profile' || lower === 'avatar') return 'Profile';
+  if (lower === 'community') return 'Community';
+  if (lower === 'workshop') return 'Workshop';
+  if (lower === 'general') return 'Community';
+  return cat ? cat.charAt(0).toUpperCase() + cat.slice(1) : 'General';
+}
+
+function syncPhotoCategoryInPortfolioData(
+  currentData: any,
+  oldUrl: string,
+  newUrl: string,
+  targetCategory: string,
+  filename?: string
+): number {
+  if (!currentData || !targetCategory) return 0;
+  let updates = 0;
+  const mappedCat = mapToGalleryCategory(targetCategory);
+  const normalizedCat = normalizeCategoryTag(targetCategory);
+
+  // 1. First, replace all exact string URL occurrences throughout the entire JSON data
+  if (oldUrl !== newUrl) {
+    updates += replaceUrlInObject(currentData, oldUrl, newUrl);
+  }
+
+  const normalizeUrlStr = (u?: string) => (u || '').trim().replace(/^\/+/, '/');
+  const nOld = normalizeUrlStr(oldUrl);
+  const nNew = normalizeUrlStr(newUrl);
+
+  const matchesUrl = (url?: string) => {
+    if (!url) return false;
+    const n = normalizeUrlStr(url);
+    if (n === nOld || n === nNew || url === oldUrl || url === newUrl) return true;
+    if (filename && n.endsWith(`/${filename}`)) return true;
+    return false;
+  };
+
+  // 2. Gallery items (both galleryItems and gallery arrays)
+  const galleryLists = [currentData.galleryItems, currentData.gallery].filter(Array.isArray);
+
+  for (const list of galleryLists) {
+    for (const item of list) {
+      if (item && matchesUrl(item.imageUrl)) {
+        item.imageUrl = newUrl;
+        item.category = mappedCat;
+        item.sourceCategory = normalizedCat;
+        if (Array.isArray(item.tags) && !item.tags.includes(mappedCat)) {
+          item.tags.push(mappedCat);
+        }
+        updates++;
+      }
+    }
+  }
+
+  // 3. Carousel Config photos
+  if (currentData.carouselConfig?.photos && Array.isArray(currentData.carouselConfig.photos)) {
+    for (const p of currentData.carouselConfig.photos) {
+      if (p && matchesUrl(p.url)) {
+        p.url = newUrl;
+        p.tag = normalizedCat;
+        updates++;
+      }
+    }
+  }
+
+  // 4. Profile
+  if (currentData.profile) {
+    if (matchesUrl(currentData.profile.avatarUrl)) {
+      currentData.profile.avatarUrl = newUrl;
+      updates++;
+    }
+    if (targetCategory.toLowerCase() === 'profile') {
+      currentData.profile.avatarUrl = newUrl;
+      updates++;
+    }
+  }
+
+  // 5. Projects
+  if (Array.isArray(currentData.projects)) {
+    for (const proj of currentData.projects) {
+      if (proj && matchesUrl(proj.imageUrl)) {
+        proj.imageUrl = newUrl;
+        updates++;
+      }
+      if (Array.isArray(proj.photos)) {
+        proj.photos = proj.photos.map((u: string) => matchesUrl(u) ? newUrl : u);
+      }
+      if (Array.isArray(proj.images)) {
+        proj.images = proj.images.map((u: string) => matchesUrl(u) ? newUrl : u);
+      }
+    }
+  }
+
+  // 6. Experiences
+  if (Array.isArray(currentData.experiences)) {
+    for (const exp of currentData.experiences) {
+      if (exp && matchesUrl(exp.imageUrl)) {
+        exp.imageUrl = newUrl;
+        updates++;
+      }
+    }
+  }
+
+  // 7. Events / EventContributions
+  const eventLists = [currentData.events, currentData.eventContributions].filter(Array.isArray);
+  for (const list of eventLists) {
+    for (const ev of list) {
+      if (ev && matchesUrl(ev.imageUrl)) {
+        ev.imageUrl = newUrl;
+        updates++;
+      }
+    }
+  }
+
+  // 8. Certifications
+  if (Array.isArray(currentData.certifications)) {
+    for (const cert of currentData.certifications) {
+      if (cert && matchesUrl(cert.imageUrl)) {
+        cert.imageUrl = newUrl;
+        updates++;
+      }
+    }
+  }
+
+  // 9. Achievements
+  if (Array.isArray(currentData.achievements)) {
+    for (const ach of currentData.achievements) {
+      if (ach && matchesUrl(ach.imageUrl)) {
+        ach.imageUrl = newUrl;
+        updates++;
+      }
+    }
+  }
+
+  // 10. Mentoring
+  if (Array.isArray(currentData.mentoring)) {
+    for (const m of currentData.mentoring) {
+      if (m && matchesUrl(m.imageUrl)) {
+        m.imageUrl = newUrl;
+        updates++;
+      }
+      if (Array.isArray(m.photos)) {
+        m.photos = m.photos.map((u: string) => matchesUrl(u) ? newUrl : u);
+      }
+    }
+  }
+
+  // 11. Education
+  if (Array.isArray(currentData.education)) {
+    for (const edu of currentData.education) {
+      if (edu && matchesUrl(edu.imageUrl)) {
+        edu.imageUrl = newUrl;
+        updates++;
+      }
+    }
+  }
+
+  return updates;
+}
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -349,6 +535,31 @@ async function startServer() {
   // Serve static files from static/ and static/images/
   app.use('/static', express.static(STATIC_DIR, { maxAge: '1d' }));
   app.use('/images', express.static(STATIC_IMAGES_DIR, { maxAge: '1d' }));
+
+  // Resilient static image resolver: if an image was moved or requested across folders,
+  // locate and serve it from any category folder so it NEVER 404s!
+  app.get(['/static/images/:category/:filename', '/images/:category/:filename', '/static/images/:filename', '/images/:filename'], (req, res, next) => {
+    const filename = req.params.filename || req.params.category;
+    if (!filename) return next();
+
+    // 1. Check in requested category folder
+    if (req.params.category && req.params.filename) {
+      const direct = path.join(STATIC_IMAGES_DIR, req.params.category, req.params.filename);
+      if (fs.existsSync(direct)) return res.sendFile(direct);
+    }
+
+    // 2. Check directly in images root
+    const inRoot = path.join(STATIC_IMAGES_DIR, filename);
+    if (fs.existsSync(inRoot)) return res.sendFile(inRoot);
+
+    // 3. Search across all known category folders
+    for (const cat of IMAGE_CATEGORIES) {
+      const candidate = path.join(STATIC_IMAGES_DIR, cat, filename);
+      if (fs.existsSync(candidate)) return res.sendFile(candidate);
+    }
+
+    next();
+  });
 
   // Generic email notification service supporting Gmail SMTP, custom SMTP, and Resend
   interface SendEmailOptions {
@@ -789,12 +1000,29 @@ async function startServer() {
       };
 
       // Keep alias keys synchronized in JSON
-      if (merged.gallery) merged.galleryItems = merged.gallery;
-      if (merged.galleryItems) merged.gallery = merged.galleryItems;
-      if (merged.settings) merged.siteSettings = merged.settings;
-      if (merged.siteSettings) merged.settings = merged.siteSettings;
-      if (merged.eventContributions) merged.events = merged.eventContributions;
-      if (merged.events) merged.eventContributions = merged.events;
+      if ('eventContributions' in incomingData) {
+        merged.events = incomingData.eventContributions;
+        merged.eventContributions = incomingData.eventContributions;
+      } else if ('events' in incomingData) {
+        merged.eventContributions = incomingData.events;
+        merged.events = incomingData.events;
+      }
+
+      if ('gallery' in incomingData) {
+        merged.galleryItems = incomingData.gallery;
+        merged.gallery = incomingData.gallery;
+      } else if ('galleryItems' in incomingData) {
+        merged.gallery = incomingData.galleryItems;
+        merged.galleryItems = incomingData.galleryItems;
+      }
+
+      if ('settings' in incomingData) {
+        merged.siteSettings = incomingData.settings;
+        merged.settings = incomingData.settings;
+      } else if ('siteSettings' in incomingData) {
+        merged.settings = incomingData.siteSettings;
+        merged.siteSettings = incomingData.siteSettings;
+      }
 
       saveServerData(merged);
       serverData = merged;
@@ -1069,8 +1297,7 @@ async function startServer() {
         size?: number;
       }
 
-      const images: ImageInfo[] = [];
-      const seenUrls = new Set<string>();
+      const urlMap = new Map<string, ImageInfo>();
 
       // 1. Scan filesystem static/images/<category>/* and static/images/*
       if (fs.existsSync(STATIC_IMAGES_DIR)) {
@@ -1081,17 +1308,14 @@ async function startServer() {
             const fullPath = path.join(STATIC_IMAGES_DIR, rf.name);
             const stat = fs.statSync(fullPath);
             const url = `/static/images/${rf.name}`;
-            if (!seenUrls.has(url)) {
-              seenUrls.add(url);
-              images.push({
-                url,
-                filename: rf.name,
-                category: 'general',
-                source: 'uploaded',
-                modified: stat.mtime.toISOString(),
-                size: stat.size
-              });
-            }
+            urlMap.set(url, {
+              url,
+              filename: rf.name,
+              category: 'general',
+              source: 'uploaded',
+              modified: stat.mtime.toISOString(),
+              size: stat.size
+            });
           }
         }
 
@@ -1105,17 +1329,14 @@ async function startServer() {
               try {
                 const stat = fs.statSync(fullPath);
                 const url = `/static/images/${cat}/${f}`;
-                if (!seenUrls.has(url)) {
-                  seenUrls.add(url);
-                  images.push({
-                    url,
-                    filename: f,
-                    category: cat,
-                    source: 'uploaded',
-                    modified: stat.mtime.toISOString(),
-                    size: stat.size
-                  });
-                }
+                urlMap.set(url, {
+                  url,
+                  filename: f,
+                  category: normalizeCategoryTag(cat),
+                  source: 'uploaded',
+                  modified: stat.mtime.toISOString(),
+                  size: stat.size
+                });
               } catch {
                 // Skip if error
               }
@@ -1124,21 +1345,32 @@ async function startServer() {
         }
       }
 
-      // 2. Also harvest any photos defined in current portfolio data so user can re-use existing photos
+      // 2. Also harvest any photos defined in current portfolio data, prioritizing explicit user tags
       const data = loadServerData() || {};
-      const checkAndAdd = (url: string | undefined, category: string, label?: string) => {
+      const checkAndAdd = (url: string | undefined, defaultCategory: string, label?: string, explicitTag?: string) => {
         if (!url || typeof url !== 'string' || url.trim() === '') return;
         const cleanUrl = url.trim();
-        if (seenUrls.has(cleanUrl)) return;
-        seenUrls.add(cleanUrl);
+        const effectiveCategory = normalizeCategoryTag(explicitTag || defaultCategory);
         
         let filename = label || cleanUrl.split('/').pop()?.split('?')[0] || 'photo';
         if (filename.length > 30) filename = filename.slice(0, 30) + '...';
 
-        images.push({
+        const existing = urlMap.get(cleanUrl);
+        if (existing) {
+          // If the portfolio data has an explicit user tag or category, update the existing record
+          if (explicitTag) {
+            existing.category = effectiveCategory;
+          }
+          if (label && (!existing.filename || existing.filename.length < 5)) {
+            existing.filename = filename;
+          }
+          return;
+        }
+
+        urlMap.set(cleanUrl, {
           url: cleanUrl,
           filename,
-          category,
+          category: effectiveCategory,
           source: cleanUrl.startsWith('/static/') ? 'uploaded' : 'portfolio'
         });
       };
@@ -1146,10 +1378,10 @@ async function startServer() {
       // Profile avatar
       if (data.profile?.avatarUrl) checkAndAdd(data.profile.avatarUrl, 'profile', 'Profile Avatar');
 
-      // Carousel photos
+      // Carousel photos (authoritative user tags from p.tag)
       if (data.carouselConfig?.photos && Array.isArray(data.carouselConfig.photos)) {
         data.carouselConfig.photos.forEach((p: any) => {
-          checkAndAdd(p.url, 'carousel', p.caption || 'Carousel Slide');
+          checkAndAdd(p.url, 'carousel', p.caption || 'Carousel Slide', p.tag);
         });
       }
 
@@ -1157,6 +1389,9 @@ async function startServer() {
       if (data.projects && Array.isArray(data.projects)) {
         data.projects.forEach((proj: any) => {
           checkAndAdd(proj.imageUrl, 'projects', proj.name || 'Project Cover');
+          if (Array.isArray(proj.photos)) {
+            proj.photos.forEach((u: string) => checkAndAdd(u, 'projects', proj.name));
+          }
         });
       }
 
@@ -1188,19 +1423,25 @@ async function startServer() {
         });
       }
 
-      // Events
-      if (data.events && Array.isArray(data.events)) {
-        data.events.forEach((e: any) => {
+      // Events & Event Contributions
+      const allEvents = [...(Array.isArray(data.events) ? data.events : []), ...(Array.isArray(data.eventContributions) ? data.eventContributions : [])];
+      allEvents.forEach((e: any) => {
+        if (e && e.imageUrl) {
           checkAndAdd(e.imageUrl, 'events', e.title || 'Event Contribution');
-        });
+        }
+      });
+
+      // Gallery items (check g.sourceCategory and g.category)
+      const galleryLists = [data.galleryItems, data.gallery].filter(Array.isArray);
+      for (const list of galleryLists) {
+        for (const g of list) {
+          if (g && g.imageUrl) {
+            checkAndAdd(g.imageUrl, 'gallery', g.title || 'Gallery Photo', g.sourceCategory || g.category);
+          }
+        }
       }
 
-      // Gallery
-      if (data.galleryItems && Array.isArray(data.galleryItems)) {
-        data.galleryItems.forEach((g: any) => {
-          checkAndAdd(g.imageUrl, 'gallery', g.title || 'Gallery Photo');
-        });
-      }
+      const images = Array.from(urlMap.values());
 
       // Sort newest uploaded first
       images.sort((a, b) => {
@@ -1236,11 +1477,12 @@ async function startServer() {
         return res.status(400).json({ error: 'urls (string array) and targetCategory are required.' });
       }
 
-      if (!IMAGE_CATEGORIES.includes(targetCategory)) {
+      const normTargetCategory = normalizeCategoryTag(targetCategory);
+      if (!IMAGE_CATEGORIES.includes(normTargetCategory)) {
         return res.status(400).json({ error: `Invalid targetCategory. Allowed: ${IMAGE_CATEGORIES.join(', ')}` });
       }
 
-      const destCategoryDir = path.join(STATIC_IMAGES_DIR, targetCategory);
+      const destCategoryDir = path.join(STATIC_IMAGES_DIR, normTargetCategory);
       if (!fs.existsSync(destCategoryDir)) {
         fs.mkdirSync(destCategoryDir, { recursive: true });
       }
@@ -1253,86 +1495,120 @@ async function startServer() {
         if (!rawUrl || typeof rawUrl !== 'string') continue;
         const cleanUrl = rawUrl.trim();
 
-        // Extract relative image path from URL
-        let relativeImagePath = '';
-        if (cleanUrl.startsWith('/static/images/')) {
-          relativeImagePath = cleanUrl.replace(/^\/static\/images\//, '');
-        } else if (cleanUrl.startsWith('/images/')) {
-          relativeImagePath = cleanUrl.replace(/^\/images\//, '');
-        } else {
-          continue; // External URLs cannot be moved on local filesystem
-        }
+        const isExternal = !cleanUrl.startsWith('/static/images/') && 
+                           !cleanUrl.startsWith('/images/') && 
+                           !cleanUrl.startsWith('static/images/') &&
+                           !cleanUrl.startsWith('images/');
 
-        const sourcePath = path.join(STATIC_IMAGES_DIR, relativeImagePath);
-        if (!fs.existsSync(sourcePath)) {
-          console.warn(`[MOVE] File not found on disk: ${sourcePath}`);
+        if (isExternal) {
+          // External URL: file cannot be physically renamed on disk, but its category
+          // and references throughout the app are fully synchronized!
+          const targetFilename = path.basename(cleanUrl.split('?')[0]) || 'photo';
+          const updatedCount = syncPhotoCategoryInPortfolioData(
+            currentData,
+            cleanUrl,
+            cleanUrl,
+            normTargetCategory,
+            targetFilename
+          );
+          totalRefUpdates += updatedCount;
+          moved.push({
+            oldUrl: cleanUrl,
+            newUrl: cleanUrl,
+            filename: targetFilename,
+            targetCategory: normTargetCategory
+          });
           continue;
         }
 
-        const filename = path.basename(sourcePath);
+        // Extract relative image path from URL
+        let relativeImagePath = cleanUrl
+          .replace(/^\/?static\/images\//, '')
+          .replace(/^\/?images\//, '');
+
+        let sourcePath = path.join(STATIC_IMAGES_DIR, relativeImagePath);
+        if (!fs.existsSync(sourcePath)) {
+          // Fallback check in root or category folders
+          const baseName = path.basename(relativeImagePath);
+          const rootCand = path.join(STATIC_IMAGES_DIR, baseName);
+          if (fs.existsSync(rootCand)) {
+            sourcePath = rootCand;
+          } else {
+            for (const cat of IMAGE_CATEGORIES) {
+              const catCand = path.join(STATIC_IMAGES_DIR, cat, baseName);
+              if (fs.existsSync(catCand)) {
+                sourcePath = catCand;
+                break;
+              }
+            }
+          }
+        }
+
+        const filename = fs.existsSync(sourcePath) ? path.basename(sourcePath) : path.basename(relativeImagePath);
         let targetFilename = filename;
         let destPath = path.join(destCategoryDir, targetFilename);
 
-        // If source and destination are the exact same path, skip
-        if (path.resolve(sourcePath) === path.resolve(destPath)) {
-          continue;
-        }
+        if (fs.existsSync(sourcePath)) {
+          // If source and destination are different paths
+          if (path.resolve(sourcePath) !== path.resolve(destPath)) {
+            // Copy file to destination so destination exists immediately and reliably
+            fs.copyFileSync(sourcePath, destPath);
 
-        // Handle naming collisions if destination file exists and is a different file
-        if (fs.existsSync(destPath)) {
-          const srcStat = fs.statSync(sourcePath);
-          const dstStat = fs.statSync(destPath);
-          if (srcStat.size !== dstStat.size) {
-            const ext = path.extname(filename);
-            const base = path.basename(filename, ext);
-            targetFilename = `${base}-${Date.now()}${ext}`;
-            destPath = path.join(destCategoryDir, targetFilename);
-          } else {
-            // Same size, unlink source to avoid duplication
+            // Clean up original source file so it doesn't leave phantom duplicates on disk
             try {
               fs.unlinkSync(sourcePath);
-            } catch {}
-          }
-        }
-
-        // Move file
-        if (fs.existsSync(sourcePath) && !fs.existsSync(destPath)) {
-          fs.renameSync(sourcePath, destPath);
-        }
-
-        // Also sync move to dist if dist exists
-        try {
-          const distStaticDir = path.join(process.cwd(), 'dist', 'static', 'images');
-          if (fs.existsSync(distStaticDir)) {
-            const distDestDir = path.join(distStaticDir, targetCategory);
-            fs.mkdirSync(distDestDir, { recursive: true });
-            const distDestPath = path.join(distDestDir, targetFilename);
-            if (fs.existsSync(destPath)) {
-              fs.copyFileSync(destPath, distDestPath);
+            } catch (unlinkErr) {
+              console.warn('[MOVE] Could not unlink source file:', sourcePath, unlinkErr);
             }
-            const distSourcePath = path.join(distStaticDir, relativeImagePath);
-            if (fs.existsSync(distSourcePath) && distSourcePath !== distDestPath) {
-              fs.unlinkSync(distSourcePath);
+
+            // Also sync copy to dist if dist exists and clean up old dist file
+            try {
+              const distStaticDir = path.join(process.cwd(), 'dist', 'static', 'images');
+              if (fs.existsSync(distStaticDir)) {
+                const distDestDir = path.join(distStaticDir, normTargetCategory);
+                fs.mkdirSync(distDestDir, { recursive: true });
+                const distDestPath = path.join(distDestDir, targetFilename);
+                fs.copyFileSync(destPath, distDestPath);
+
+                const distOldSourcePath = path.join(distStaticDir, relativeImagePath);
+                if (fs.existsSync(distOldSourcePath) && path.resolve(distOldSourcePath) !== path.resolve(distDestPath)) {
+                  try { fs.unlinkSync(distOldSourcePath); } catch {}
+                }
+              }
+            } catch (syncErr) {
+              console.warn('[MOVE] Could not sync move to dist:', syncErr);
             }
           }
-        } catch (syncErr) {
-          console.warn('[MOVE] Could not sync move to dist:', syncErr);
         }
 
-        const newUrl = `/static/images/${targetCategory}/${targetFilename}`;
+        // Safe URL resolution: If destPath exists on disk, use new path; if neither exists, keep cleanUrl so we don't break display!
+        let newUrl = cleanUrl;
+        if (fs.existsSync(destPath)) {
+          newUrl = `/static/images/${normTargetCategory}/${targetFilename}`;
+        } else if (fs.existsSync(sourcePath)) {
+          newUrl = `/static/images/${normTargetCategory}/${targetFilename}`;
+        }
+
         moved.push({
           oldUrl: cleanUrl,
           newUrl,
           filename: targetFilename,
-          targetCategory
+          targetCategory: normTargetCategory
         });
 
-        // Update references across portfolio_data.json
-        const updatedCount = replaceUrlInObject(currentData, cleanUrl, newUrl);
+        // Update URLs and categories across portfolio_data.json
+        const updatedCount = syncPhotoCategoryInPortfolioData(
+          currentData,
+          cleanUrl,
+          newUrl,
+          normTargetCategory,
+          targetFilename
+        );
         totalRefUpdates += updatedCount;
       }
 
       if (totalRefUpdates > 0 || moved.length > 0) {
+        currentData.lastUpdated = new Date().toISOString();
         saveServerData(currentData);
         serverData = currentData;
       }
@@ -1341,7 +1617,8 @@ async function startServer() {
         success: true,
         movedCount: moved.length,
         referencesUpdated: totalRefUpdates,
-        moved
+        moved,
+        updatedData: currentData
       });
     } catch (err: any) {
       return res.status(500).json({ error: err.message || 'Failed to move images' });

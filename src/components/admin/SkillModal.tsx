@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Code, Check, Tag, Award, Sparkles, BarChart2 } from 'lucide-react';
+import { X, Code, Check, Tag, Award, Sparkles, BarChart2, Trash2 } from 'lucide-react';
 import { Skill, SkillCategory, CustomField } from '../../types';
 import { CustomFieldEditor } from './CustomFieldEditor';
 
@@ -10,6 +10,7 @@ interface SkillModalProps {
   defaultCategoryId?: string;
   onClose: () => void;
   onSave: (skill: Skill, targetCategoryId: string, originalSkillName?: string) => void;
+  onDelete?: (skillName: string, categoryId: string) => void;
 }
 
 export const SkillModal: React.FC<SkillModalProps> = ({
@@ -18,7 +19,8 @@ export const SkillModal: React.FC<SkillModalProps> = ({
   categories,
   defaultCategoryId,
   onClose,
-  onSave
+  onSave,
+  onDelete
 }) => {
   if (!isOpen) return null;
 
@@ -227,6 +229,18 @@ export const SkillModal: React.FC<SkillModalProps> = ({
 
           {/* Footer Actions */}
           <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-3">
+            {skillToEdit && onDelete && (
+              <button
+                type="button"
+                onClick={() => {
+                  onDelete(skillToEdit.skill.name, skillToEdit.categoryId);
+                }}
+                className="mr-auto px-4 py-2.5 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Delete Skill</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={onClose}

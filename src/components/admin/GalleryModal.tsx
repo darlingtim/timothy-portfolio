@@ -10,13 +10,15 @@ interface GalleryModalProps {
   itemToEdit: GalleryItem | null;
   onClose: () => void;
   onSave: (item: GalleryItem) => void;
+  onDelete?: (id: string) => void;
 }
 
 export const GalleryModal: React.FC<GalleryModalProps> = ({
   isOpen,
   itemToEdit,
   onClose,
-  onSave
+  onSave,
+  onDelete
 }) => {
   if (!isOpen) return null;
 
@@ -325,13 +327,25 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
 
         {/* Footer */}
         <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900/80">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          >
-            Cancel
-          </button>
+          <div className="flex items-center gap-2">
+            {itemToEdit && onDelete && (
+              <button
+                type="button"
+                onClick={() => onDelete(itemToEdit.id)}
+                className="px-4 py-2 text-xs font-semibold rounded-lg border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete Photo</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
           <button
             type="submit"
             form="gallery-form"

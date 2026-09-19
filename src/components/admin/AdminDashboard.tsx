@@ -86,6 +86,18 @@ import { SkillCategoryModal } from './SkillCategoryModal';
 import { CarouselSettingsManager } from './CarouselSettingsManager';
 import { GitDeployManager } from './GitDeployManager';
 import { MediaLibraryModal } from './MediaLibraryModal';
+import {
+  syncGalleryWithMoved,
+  syncCarouselWithMoved,
+  syncProjectsWithMoved,
+  syncExperiencesWithMoved,
+  syncEventsWithMoved,
+  syncMentoringWithMoved,
+  syncCertificationsWithMoved,
+  syncAchievementsWithMoved,
+  syncEducationWithMoved,
+  syncProfileWithMoved
+} from '../../utils/imageSync';
 
 interface AdminDashboardProps {
   profile: Profile;
@@ -238,6 +250,38 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [messageToReply, setMessageToReply] = useState<ContactMessage | null>(null);
   const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
 
+  // Synchronize state everywhere when photos are moved or categories are changed
+  useEffect(() => {
+    const handlePhotoMoved = (e: any) => {
+      const { updatedData, moved } = e.detail || {};
+      if (updatedData) {
+        if (updatedData.profile) setProfile(updatedData.profile);
+        if (updatedData.projects) setProjects(updatedData.projects);
+        if (updatedData.experiences) setExperiences(updatedData.experiences);
+        if (updatedData.gallery || updatedData.galleryItems) setGalleryItems(updatedData.gallery || updatedData.galleryItems);
+        if (updatedData.events || updatedData.eventContributions) setEvents(updatedData.events || updatedData.eventContributions);
+        if (updatedData.mentoring) setLocalMentoring(updatedData.mentoring);
+        if (updatedData.certifications) setCertifications(updatedData.certifications);
+        if (updatedData.achievements) setAchievements(updatedData.achievements);
+        if (updatedData.education) setEducation(updatedData.education);
+        if (updatedData.carouselConfig) setCarouselConfig(updatedData.carouselConfig);
+      } else if (Array.isArray(moved) && moved.length > 0) {
+        setGalleryItems((prev) => syncGalleryWithMoved(prev, moved));
+        setCarouselConfig((prev) => syncCarouselWithMoved(prev, moved));
+        setProjects((prev) => syncProjectsWithMoved(prev, moved));
+        setExperiences((prev) => syncExperiencesWithMoved(prev, moved));
+        setEvents((prev) => syncEventsWithMoved(prev, moved));
+        setLocalMentoring((prev) => syncMentoringWithMoved(prev, moved));
+        setCertifications((prev) => syncCertificationsWithMoved(prev, moved));
+        setAchievements((prev) => syncAchievementsWithMoved(prev, moved));
+        setEducation((prev) => syncEducationWithMoved(prev, moved));
+        setProfile((prev) => syncProfileWithMoved(prev, moved));
+      }
+    };
+    window.addEventListener('portfolio_photo_moved', handlePhotoMoved);
+    return () => window.removeEventListener('portfolio_photo_moved', handlePhotoMoved);
+  }, [setProfile, setProjects, setExperiences, setGalleryItems, setEvents, setCertifications, setAchievements, setEducation, setCarouselConfig]);
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
@@ -288,7 +332,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     showToast(`Skill "${skill.name}" saved successfully!`);
   };
 
-  const handleDeleteSkill = (skillName: string, categoryId: string) => {
+  const handleDeleteSkill = (skillName: string, categoryId?: string) => {
     setDeleteConfirm({
       title: 'Delete Skill',
       itemType: 'Skill',
@@ -297,7 +341,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       onConfirm: () => {
         const currentCategories = skills?.categories || [];
         const updatedCategories = currentCategories.map((cat) => {
-          if (cat.id === categoryId) {
+          if (!categoryId || cat.id === categoryId) {
             return {
               ...cat,
               skills: (cat.skills || []).filter(
@@ -398,7 +442,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleDeleteEvent = (id: string) => {
-    const target = events.find((e) => e.id === id);
+    const cleanId = id.trim().toLowerCase();
+    const target = events.find(
+      (e) => (e.id && e.id.trim().toLowerCase() === cleanId) || (e.title && e.title.trim().toLowerCase() === cleanId)
+    );
     const title = target?.title || 'this event contribution';
 
     setDeleteConfirm({
@@ -407,7 +454,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       itemName: title,
       description: `Are you sure you want to delete "${title}"? This will remove it from all summit, event, and speaking activity records.`,
       onConfirm: () => {
-        const updated = events.filter((e) => e.id !== id);
+        const updated = events.filter(
+          (e) => e.id.trim().toLowerCase() !== cleanId && e.title.trim().toLowerCase() !== cleanId
+        );
         setEvents(updated);
         saveStored('eventContributions', updated);
         saveStored('events', updated, false);
@@ -446,7 +495,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleDeleteProject = (slugOrId: string) => {
-    const target = projects.find((p) => p.slug === slugOrId || (p as any).id === slugOrId);
+    const cleanKey = slugOrId.trim().toLowerCase();
+    const target = projects.find(
+      (p) =>
+        (p.slug && p.slug.trim().toLowerCase() === cleanKey) ||
+        ((p as any).id && String((p as any).id).trim().toLowerCase() === cleanKey) ||
+        (p.name && p.name.trim().toLowerCase() === cleanKey)
+    );
     const name = target?.name || slugOrId;
 
     setDeleteConfirm({
@@ -455,7 +510,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       itemName: name,
       description: `Are you sure you want to delete "${name}"? This project case study and its details will be removed from your portfolio.`,
       onConfirm: () => {
-        const updated = projects.filter((p) => p.slug !== slugOrId && (p as any).id !== slugOrId);
+        const updated = projects.filter(
+          (p) =>
+            p.slug.trim().toLowerCase() !== cleanKey &&
+            (!('id' in p) || String((p as any).id).trim().toLowerCase() !== cleanKey) &&
+            p.name.trim().toLowerCase() !== cleanKey
+        );
         setProjects(updated);
         saveStored('projects', updated);
         showToast(`Project "${name}" removed.`);
@@ -479,7 +539,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleDeleteExperience = (id: string) => {
-    const target = experiences.find((e) => e.id === id);
+    const cleanId = id.trim().toLowerCase();
+    const target = experiences.find(
+      (e) =>
+        (e.id && e.id.trim().toLowerCase() === cleanId) ||
+        `${e.role}-${e.organization}`.trim().toLowerCase() === cleanId
+    );
     const label = target ? `${target.role} at ${target.organization}` : 'this experience record';
 
     setDeleteConfirm({
@@ -488,7 +553,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       itemName: label,
       description: `Are you sure you want to delete "${label}"? This career history item will be removed.`,
       onConfirm: () => {
-        const updated = experiences.filter((e) => e.id !== id);
+        const updated = experiences.filter(
+          (e) =>
+            e.id.trim().toLowerCase() !== cleanId &&
+            `${e.role}-${e.organization}`.trim().toLowerCase() !== cleanId
+        );
         setExperiences(updated);
         saveStored('experiences', updated);
         showToast('Experience record deleted.');
@@ -512,7 +581,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleDeleteGallery = (id: string) => {
-    const target = galleryItems.find((g) => g.id === id);
+    const cleanId = id.trim().toLowerCase();
+    const target = galleryItems.find(
+      (g) => (g.id && g.id.trim().toLowerCase() === cleanId) || (g.imageUrl && g.imageUrl.trim().toLowerCase() === cleanId)
+    );
     const title = target?.title || 'this gallery photo';
 
     setDeleteConfirm({
@@ -521,7 +593,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       itemName: title,
       description: `Are you sure you want to delete "${title}" from your gallery collection?`,
       onConfirm: () => {
-        const updated = galleryItems.filter((g) => g.id !== id);
+        const updated = galleryItems.filter(
+          (g) => g.id.trim().toLowerCase() !== cleanId && g.imageUrl.trim().toLowerCase() !== cleanId
+        );
         setGalleryItems(updated);
         saveStored('gallery', updated);
         saveStored('galleryItems', updated, false);
@@ -546,7 +620,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleDeleteAchievement = (id: string) => {
-    const target = achievements.find((a) => a.id === id);
+    const cleanId = id.trim().toLowerCase();
+    const target = achievements.find(
+      (a) => (a.id && a.id.trim().toLowerCase() === cleanId) || (a.title && a.title.trim().toLowerCase() === cleanId)
+    );
     const title = target?.title || 'this achievement';
 
     setDeleteConfirm({
@@ -555,7 +632,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       itemName: title,
       description: `Are you sure you want to delete achievement "${title}"? This accolade will be removed from your credentials.`,
       onConfirm: () => {
-        const updated = achievements.filter((a) => a.id !== id);
+        const updated = achievements.filter(
+          (a) => a.id.trim().toLowerCase() !== cleanId && a.title.trim().toLowerCase() !== cleanId
+        );
         setAchievements(updated);
         saveStored('achievements', updated);
         showToast('Achievement deleted.');
@@ -579,7 +658,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleDeleteCertification = (id: string) => {
-    const target = certifications.find((c) => c.id === id);
+    const cleanId = id.trim().toLowerCase();
+    const target = certifications.find(
+      (c) => (c.id && c.id.trim().toLowerCase() === cleanId) || (c.name && c.name.trim().toLowerCase() === cleanId)
+    );
     const name = target?.name || 'this certification';
 
     setDeleteConfirm({
@@ -588,7 +670,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       itemName: name,
       description: `Are you sure you want to delete certification "${name}"? This credential will be removed from your portfolio.`,
       onConfirm: () => {
-        const updated = certifications.filter((c) => c.id !== id);
+        const updated = certifications.filter(
+          (c) => c.id.trim().toLowerCase() !== cleanId && c.name.trim().toLowerCase() !== cleanId
+        );
         setCertifications(updated);
         saveStored('certifications', updated);
         showToast('Certification deleted.');
@@ -613,7 +697,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleDeleteMentoringProgram = (id: string) => {
-    const target = localMentoring.find((p) => p.id === id);
+    const cleanId = id.trim().toLowerCase();
+    const target = localMentoring.find(
+      (p) => (p.id && p.id.trim().toLowerCase() === cleanId) || (p.title && p.title.trim().toLowerCase() === cleanId)
+    );
     const title = target?.title || 'this mentoring program';
 
     setDeleteConfirm({
@@ -622,7 +709,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       itemName: title,
       description: `Are you sure you want to delete "${title}"? This mentoring track and its impact metrics will be removed.`,
       onConfirm: () => {
-        const updated = localMentoring.filter((p) => p.id !== id);
+        const updated = localMentoring.filter(
+          (p) => p.id.trim().toLowerCase() !== cleanId && p.title.trim().toLowerCase() !== cleanId
+        );
         if (setMentoringPrograms) setMentoringPrograms(updated);
         setLocalMentoring(updated);
         saveStored('mentoring', updated);
@@ -650,7 +739,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleDeleteEducation = (idOrDegree: string) => {
-    const target = education.find((e) => (e.id && e.id === idOrDegree) || e.degree === idOrDegree);
+    const cleanKey = idOrDegree.trim().toLowerCase();
+    const target = education.find(
+      (e) =>
+        (e.id && e.id.trim().toLowerCase() === cleanKey) ||
+        (e.degree && e.degree.trim().toLowerCase() === cleanKey)
+    );
     const label = target ? `${target.degree} (${target.institution})` : idOrDegree;
 
     setDeleteConfirm({
@@ -660,8 +754,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       description: `Are you sure you want to delete "${label}"? This academic credential will be removed.`,
       onConfirm: () => {
         const updated = education.filter((e) => {
-          if (e.id && e.id === idOrDegree) return false;
-          if (e.degree === idOrDegree) return false;
+          if (e.id && e.id.trim().toLowerCase() === cleanKey) return false;
+          if (e.degree && e.degree.trim().toLowerCase() === cleanKey) return false;
           return true;
         });
         setEducation(updated);
@@ -3183,6 +3277,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           setProjectToEdit(null);
         }}
         onSave={handleSaveProject}
+        onDelete={(slug) => {
+          setIsProjectModalOpen(false);
+          setProjectToEdit(null);
+          handleDeleteProject(slug);
+        }}
       />
 
       <ExperienceModal
@@ -3193,6 +3292,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           setExperienceToEdit(null);
         }}
         onSave={handleSaveExperience}
+        onDelete={(id) => {
+          setIsExperienceModalOpen(false);
+          setExperienceToEdit(null);
+          handleDeleteExperience(id);
+        }}
       />
 
       <GalleryModal
@@ -3203,6 +3307,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           setGalleryToEdit(null);
         }}
         onSave={handleSaveGallery}
+        onDelete={(id) => {
+          setIsGalleryModalOpen(false);
+          setGalleryToEdit(null);
+          handleDeleteGallery(id);
+        }}
       />
 
       <CertificationModal
@@ -3213,6 +3322,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           setCertificationToEdit(null);
         }}
         onSave={handleSaveCertification}
+        onDelete={(id) => {
+          setIsCertificationModalOpen(false);
+          setCertificationToEdit(null);
+          handleDeleteCertification(id);
+        }}
       />
 
       <AchievementModal
@@ -3223,6 +3337,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           setAchievementToEdit(null);
         }}
         onSave={handleSaveAchievement}
+        onDelete={(id) => {
+          setIsAchievementModalOpen(false);
+          setAchievementToEdit(null);
+          handleDeleteAchievement(id);
+        }}
       />
 
       <MentoringModal
@@ -3233,6 +3352,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           setProgramToEdit(null);
         }}
         onSave={handleSaveMentoringProgram}
+        onDelete={(id) => {
+          setIsMentoringModalOpen(false);
+          setProgramToEdit(null);
+          handleDeleteMentoringProgram(id);
+        }}
       />
 
       <EventModal
@@ -3243,6 +3367,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           setEventToEdit(null);
         }}
         onSave={handleSaveEvent}
+        onDelete={(id) => {
+          setIsEventModalOpen(false);
+          setEventToEdit(null);
+          handleDeleteEvent(id);
+        }}
       />
 
       <EducationModal
@@ -3253,6 +3382,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           setEducationToEdit(null);
         }}
         onSave={handleSaveEducation}
+        onDelete={(idOrDegree) => {
+          setIsEducationModalOpen(false);
+          setEducationToEdit(null);
+          handleDeleteEducation(idOrDegree);
+        }}
       />
 
       <SkillModal
@@ -3265,6 +3399,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           setSkillToEdit(null);
         }}
         onSave={handleSaveSkill}
+        onDelete={(name, catId) => {
+          setIsSkillModalOpen(false);
+          setSkillToEdit(null);
+          handleDeleteSkill(name, catId);
+        }}
       />
 
       <SkillCategoryModal
@@ -3290,10 +3429,33 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       <MediaLibraryModal
         isOpen={isMediaLibraryOpen}
         onClose={() => setIsMediaLibraryOpen(false)}
-        targetCategoryLabel="Portfolio Item"
+        mode="manage"
+        targetCategoryLabel="Universal Media Library"
         defaultCategoryFilter="all"
-        onSelectPhoto={(url) => {
-          showToast(`Selected photo: ${url.split('/').pop()}`);
+        onDataSync={(updatedData, moved) => {
+          if (updatedData) {
+            if (updatedData.profile) setProfile(updatedData.profile);
+            if (updatedData.projects) setProjects(updatedData.projects);
+            if (updatedData.experiences) setExperiences(updatedData.experiences);
+            if (updatedData.gallery || updatedData.galleryItems) setGalleryItems(updatedData.gallery || updatedData.galleryItems);
+            if (updatedData.events || updatedData.eventContributions) setEvents(updatedData.events || updatedData.eventContributions);
+            if (updatedData.mentoring) setLocalMentoring(updatedData.mentoring);
+            if (updatedData.certifications) setCertifications(updatedData.certifications);
+            if (updatedData.achievements) setAchievements(updatedData.achievements);
+            if (updatedData.education) setEducation(updatedData.education);
+            if (updatedData.carouselConfig) setCarouselConfig(updatedData.carouselConfig);
+          } else if (Array.isArray(moved) && moved.length > 0) {
+            setGalleryItems((prev) => syncGalleryWithMoved(prev, moved));
+            setCarouselConfig((prev) => syncCarouselWithMoved(prev, moved));
+            setProjects((prev) => syncProjectsWithMoved(prev, moved));
+            setExperiences((prev) => syncExperiencesWithMoved(prev, moved));
+            setEvents((prev) => syncEventsWithMoved(prev, moved));
+            setLocalMentoring((prev) => syncMentoringWithMoved(prev, moved));
+            setCertifications((prev) => syncCertificationsWithMoved(prev, moved));
+            setAchievements((prev) => syncAchievementsWithMoved(prev, moved));
+            setEducation((prev) => syncEducationWithMoved(prev, moved));
+            setProfile((prev) => syncProfileWithMoved(prev, moved));
+          }
         }}
       />
 

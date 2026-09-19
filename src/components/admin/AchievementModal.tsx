@@ -10,13 +10,15 @@ interface AchievementModalProps {
   achievementToEdit: Achievement | null;
   onClose: () => void;
   onSave: (item: Achievement) => void;
+  onDelete?: (id: string) => void;
 }
 
 export const AchievementModal: React.FC<AchievementModalProps> = ({
   isOpen,
   achievementToEdit,
   onClose,
-  onSave
+  onSave,
+  onDelete
 }) => {
   if (!isOpen) return null;
 
@@ -323,13 +325,25 @@ export const AchievementModal: React.FC<AchievementModalProps> = ({
 
         {/* Footer */}
         <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900/80">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          >
-            Cancel
-          </button>
+          <div className="flex items-center gap-2">
+            {achievementToEdit && onDelete && (
+              <button
+                type="button"
+                onClick={() => onDelete(achievementToEdit.id)}
+                className="px-4 py-2 text-xs font-semibold rounded-lg border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete Distinction</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
           <button
             type="submit"
             form="achievement-form"

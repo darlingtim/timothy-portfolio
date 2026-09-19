@@ -82,10 +82,11 @@ export const CarouselSettingsManager: React.FC<CarouselSettingsManagerProps> = (
     const file = e.target.files?.[0];
     if (!file) return;
     setIsUploading(true);
+    const tagToUse = newPhotoTag.trim() || 'Carousel';
     uploadImageFile(file, {
       category: 'carousel',
       caption: newPhotoCaption.trim() || 'Timothy Ododo Portfolio Photo',
-      tag: newPhotoTag.trim() || 'Portfolio',
+      tag: tagToUse,
     })
       .then((result) => {
         if (result.url) {
@@ -93,7 +94,7 @@ export const CarouselSettingsManager: React.FC<CarouselSettingsManagerProps> = (
             id: `photo-${Date.now()}`,
             url: result.url,
             caption: newPhotoCaption.trim() || 'Timothy Ododo Portfolio Photo',
-            tag: newPhotoTag.trim() || 'Portfolio',
+            tag: tagToUse,
             isIncludedInCarousel: true,
             order: formData.photos.length + 1,
             dateAdded: new Date().toISOString()
@@ -118,11 +119,18 @@ export const CarouselSettingsManager: React.FC<CarouselSettingsManagerProps> = (
   const handleAddUrlPhoto = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPhotoUrl.trim()) return;
+    const fallbackTag = newPhotoTag.trim() || (
+      newPhotoUrl.includes('/events/') ? 'Events' :
+      newPhotoUrl.includes('/projects/') ? 'Projects' :
+      newPhotoUrl.includes('/mentoring/') ? 'Mentoring' :
+      newPhotoUrl.includes('/gallery/') ? 'Gallery' :
+      'Carousel'
+    );
     const newPhoto: CarouselPhoto = {
       id: `photo-${Date.now()}`,
       url: newPhotoUrl.trim(),
       caption: newPhotoCaption.trim() || 'Timothy Ododo Portfolio Photo',
-      tag: newPhotoTag.trim() || 'Portfolio',
+      tag: fallbackTag,
       isIncludedInCarousel: true,
       order: formData.photos.length + 1,
       dateAdded: new Date().toISOString()
@@ -425,14 +433,33 @@ export const CarouselSettingsManager: React.FC<CarouselSettingsManagerProps> = (
             </div>
 
             <div>
-              <label className="text-[11px] font-mono font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                Category Tag
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[11px] font-mono font-semibold text-slate-700 dark:text-slate-300">
+                  Category Tag
+                </label>
+                <span className="text-[10px] text-slate-400">Quick presets:</span>
+              </div>
+              <div className="flex flex-wrap gap-1 mb-1.5">
+                {['Carousel', 'Events', 'Projects', 'Mentoring', 'Workshops', 'Gallery'].map((tagPreset) => (
+                  <button
+                    key={tagPreset}
+                    type="button"
+                    onClick={() => setNewPhotoTag(tagPreset)}
+                    className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-colors ${
+                      newPhotoTag === tagPreset
+                        ? 'bg-sky-500/20 border-sky-500 text-sky-500 dark:text-sky-300 font-bold'
+                        : 'bg-slate-100 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                    }`}
+                  >
+                    {tagPreset}
+                  </button>
+                ))}
+              </div>
               <input
                 type="text"
                 value={newPhotoTag}
                 onChange={(e) => setNewPhotoTag(e.target.value)}
-                placeholder="e.g. Innovation Tech Lead"
+                placeholder="e.g. Carousel, Events, STEM Trainer"
                 className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
               />
             </div>
@@ -497,13 +524,31 @@ export const CarouselSettingsManager: React.FC<CarouselSettingsManagerProps> = (
       <MediaLibraryModal
         isOpen={isMediaLibraryOpen}
         onClose={() => setIsMediaLibraryOpen(false)}
+        mode="picker"
         targetCategoryLabel="Hero Carousel"
         defaultCategoryFilter="carousel"
-        onSelectPhoto={(url) => {
+        onSelectPhoto={(url, item) => {
           setNewPhotoUrl(url);
+          const rawCat = item?.category?.toLowerCase() || '';
+          let detectedTag = 'Carousel';
+          if (rawCat === 'events') detectedTag = 'Events';
+          else if (rawCat === 'projects') detectedTag = 'Projects';
+          else if (rawCat === 'mentoring') detectedTag = 'Mentoring';
+          else if (rawCat === 'workshops' || rawCat === 'workshop') detectedTag = 'Workshops';
+          else if (rawCat === 'gallery') detectedTag = 'Gallery';
+          else if (rawCat === 'education') detectedTag = 'Education';
+          else if (rawCat === 'certifications') detectedTag = 'Certifications';
+          else if (rawCat === 'achievements') detectedTag = 'Achievements';
+          else if (rawCat === 'carousel') detectedTag = 'Carousel';
+          else if (rawCat) detectedTag = rawCat.charAt(0).toUpperCase() + rawCat.slice(1);
+          else if (url.includes('/events/')) detectedTag = 'Events';
+          else if (url.includes('/projects/')) detectedTag = 'Projects';
+          else if (url.includes('/mentoring/')) detectedTag = 'Mentoring';
+
+          setNewPhotoTag(detectedTag);
           // auto-fill caption if empty
           if (!newPhotoCaption) {
-            const name = url.split('/').pop()?.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+            const name = item?.filename || url.split('/').pop()?.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
             if (name) setNewPhotoCaption(name.charAt(0).toUpperCase() + name.slice(1));
           }
         }}
