@@ -65,6 +65,59 @@ export interface Capability {
   ctaLink?: string;
 }
 
+export interface HomeCtaSection {
+  badge: string;
+  title: string;
+  description: string;
+  primaryButtonText: string;
+  primaryButtonLink: string;
+  secondaryButtonText: string;
+  secondaryButtonLink: string;
+}
+
+export interface HomePageContent {
+  heroGreeting?: string;
+  heroCta1Text?: string;
+  heroCta1Link?: string;
+  heroCta2Text?: string;
+  heroCta2Link?: string;
+  heroCta3Text?: string;
+  heroCta3Link?: string;
+  connectHeading?: string;
+  whatIDoTitle?: string;
+  whatIDoSubtitle?: string;
+  ctaSection?: HomeCtaSection;
+}
+
+export interface ProgressionStep {
+  title: string;
+  desc: string;
+}
+
+export interface QuickFact {
+  label: string;
+  value: string;
+}
+
+export interface AboutPageContent {
+  eyebrow?: string;
+  heading?: string;
+  subheading?: string;
+  storyParagraph1?: string;
+  storyParagraph2?: string;
+  storyParagraph3?: string;
+  calloutTitle?: string;
+  calloutText?: string;
+  quickFactsTitle?: string;
+  quickFacts?: QuickFact[];
+  connectCardTitle?: string;
+  connectCardText?: string;
+  connectCardButtonText?: string;
+  progressionEyebrow?: string;
+  progressionTitle?: string;
+  progressionSteps?: ProgressionStep[];
+}
+
 export interface Profile {
   name: string;
   title: string;
@@ -83,6 +136,8 @@ export interface Profile {
   impactMetrics: ImpactMetric[];
   capabilities: Capability[];
   customFields?: CustomField[];
+  homeContent?: HomePageContent;
+  aboutContent?: AboutPageContent;
 }
 
 export interface Experience {

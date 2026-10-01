@@ -5,9 +5,16 @@ import { Capability } from '../types';
 interface WhatIDoProps {
   capabilities: Capability[];
   onNavigate: (path: string) => void;
+  title?: string;
+  subtitle?: string;
 }
 
-export const WhatIDo: React.FC<WhatIDoProps> = ({ capabilities, onNavigate }) => {
+export const WhatIDo: React.FC<WhatIDoProps> = ({ 
+  capabilities, 
+  onNavigate,
+  title = "What I Do",
+  subtitle = "I work at the intersection of technology, education, and impact."
+}) => {
   const getCardStyle = (index: number) => {
     switch (index % 4) {
       case 0:
@@ -49,10 +56,10 @@ export const WhatIDo: React.FC<WhatIDoProps> = ({ capabilities, onNavigate }) =>
         {/* Section Title & Subtitle */}
         <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16 space-y-3">
           <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            What I Do
+            {title}
           </h2>
           <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300">
-            I work at the intersection of technology, education, and impact.
+            {subtitle}
           </p>
         </div>
 

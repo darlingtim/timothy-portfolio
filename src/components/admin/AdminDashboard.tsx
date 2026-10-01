@@ -48,7 +48,9 @@ import {
   FolderOpen,
   Lock,
   Shield,
-  Info
+  Info,
+  Compass,
+  BookOpen
 } from 'lucide-react';
 import { 
   Profile, 
@@ -67,9 +69,11 @@ import {
   EventContribution,
   Skill,
   SkillCategory,
-  MentoringProgram
+  MentoringProgram,
+  HomePageContent,
+  AboutPageContent
 } from '../../types';
-import { saveStored, getMentoringPrograms } from '../../data';
+import { saveStored, getMentoringPrograms, getHomePageContent, getAboutPageContent } from '../../data';
 import { CustomFieldEditor } from './CustomFieldEditor';
 import { ProfilePhotoUploader } from './ProfilePhotoUploader';
 import { EmailReplyModal } from './EmailReplyModal';
@@ -86,6 +90,8 @@ import { SkillCategoryModal } from './SkillCategoryModal';
 import { CarouselSettingsManager } from './CarouselSettingsManager';
 import { GitDeployManager } from './GitDeployManager';
 import { MediaLibraryModal } from './MediaLibraryModal';
+import { HomePageEditor } from './HomePageEditor';
+import { AboutPageEditor } from './AboutPageEditor';
 import {
   syncGalleryWithMoved,
   syncCarouselWithMoved,
@@ -126,6 +132,10 @@ interface AdminDashboardProps {
   setCarouselConfig: React.Dispatch<React.SetStateAction<CarouselConfig>>;
   events: EventContribution[];
   setEvents: React.Dispatch<React.SetStateAction<EventContribution[]>>;
+  homeContent?: HomePageContent;
+  setHomeContent?: React.Dispatch<React.SetStateAction<HomePageContent>>;
+  aboutContent?: AboutPageContent;
+  setAboutContent?: React.Dispatch<React.SetStateAction<AboutPageContent>>;
   isDark: boolean;
   onToggleTheme: () => void;
   onVisitPortfolio: () => void;
@@ -162,6 +172,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   setCarouselConfig,
   events,
   setEvents,
+  homeContent,
+  setHomeContent,
+  aboutContent,
+  setAboutContent,
   isDark,
   onToggleTheme,
   onVisitPortfolio,
@@ -173,6 +187,42 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Local Home & About content states
+  const [localHomeContent, setLocalHomeContent] = useState<HomePageContent>(() => {
+    return homeContent || profile.homeContent || getHomePageContent();
+  });
+
+  const [localAboutContent, setLocalAboutContent] = useState<AboutPageContent>(() => {
+    return aboutContent || profile.aboutContent || getAboutPageContent();
+  });
+
+  useEffect(() => {
+    if (homeContent) setLocalHomeContent(homeContent);
+  }, [homeContent]);
+
+  useEffect(() => {
+    if (aboutContent) setLocalAboutContent(aboutContent);
+  }, [aboutContent]);
+
+  const handleSaveHomeContent = (updatedHomeContent: HomePageContent, updatedProfile: Profile) => {
+    setLocalHomeContent(updatedHomeContent);
+    if (setHomeContent) setHomeContent(updatedHomeContent);
+    setProfile(updatedProfile);
+    saveStored('homeContent', updatedHomeContent);
+    saveStored('profile', updatedProfile);
+    showToast('Home page text content saved permanently.');
+  };
+
+  const handleSaveAboutContent = (updatedAboutContent: AboutPageContent) => {
+    setLocalAboutContent(updatedAboutContent);
+    if (setAboutContent) setAboutContent(updatedAboutContent);
+    const updatedProfile = { ...profile, aboutContent: updatedAboutContent };
+    setProfile(updatedProfile);
+    saveStored('aboutContent', updatedAboutContent);
+    saveStored('profile', updatedProfile);
+    showToast('About page text content saved permanently.');
+  };
 
   // Local mentoring programs state with fallback
   const [localMentoring, setLocalMentoring] = useState<MentoringProgram[]>(() => {
@@ -947,6 +997,36 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
             <button
               onClick={() => {
+                setActiveTab('home');
+                setSidebarOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                activeTab === 'home'
+                  ? 'bg-slate-800 text-sky-400 font-semibold'
+                  : 'text-slate-300 hover:bg-slate-800/50'
+              }`}
+            >
+              <Compass className="w-4 h-4 text-sky-400" />
+              <span>Home Page Content</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('about');
+                setSidebarOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                activeTab === 'about'
+                  ? 'bg-slate-800 text-sky-400 font-semibold'
+                  : 'text-slate-300 hover:bg-slate-800/50'
+              }`}
+            >
+              <BookOpen className="w-4 h-4 text-indigo-400" />
+              <span>About Page Content</span>
+            </button>
+
+            <button
+              onClick={() => {
                 setActiveTab('profile');
                 setSidebarOpen(false);
               }}
@@ -957,7 +1037,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               }`}
             >
               <User className="w-4 h-4 text-slate-400" />
-              <span>Profile &amp; About</span>
+              <span>Personal Profile &amp; Bio</span>
             </button>
 
             <button
@@ -1624,6 +1704,29 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 onSaveConfig={handleSaveCarouselConfig}
               />
             </div>
+          )}
+
+          {/* TAB 2.6: HOME PAGE TEXT & SECTIONS CMS */}
+          {activeTab === 'home' && (
+            <HomePageEditor
+              profile={profile}
+              setProfile={setProfile}
+              homeContent={localHomeContent}
+              onSave={handleSaveHomeContent}
+              onPreviewHome={onVisitPortfolio}
+            />
+          )}
+
+          {/* TAB 2.7: ABOUT PAGE TEXT & MATRIX CMS */}
+          {activeTab === 'about' && (
+            <AboutPageEditor
+              profile={profile}
+              aboutContent={localAboutContent}
+              onSave={handleSaveAboutContent}
+              onPreviewAbout={() => {
+                onVisitPortfolio();
+              }}
+            />
           )}
 
           {/* TAB 3: PROFILE & ABOUT CMS */}

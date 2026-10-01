@@ -32,6 +32,8 @@ import {
   getSiteSettings,
   getCarouselConfig,
   getEventContributions,
+  getHomePageContent,
+  getAboutPageContent,
   fetchServerData,
   saveStored,
   getAdminToken,
@@ -63,7 +65,9 @@ import {
   ContactMessage, 
   SiteSettings,
   CarouselConfig,
-  EventContribution
+  EventContribution,
+  HomePageContent,
+  AboutPageContent
 } from './types';
 
 export default function App() {
@@ -104,6 +108,8 @@ export default function App() {
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(getSiteSettings);
   const [carouselConfig, setCarouselConfig] = useState<CarouselConfig>(getCarouselConfig);
   const [events, setEvents] = useState<EventContribution[]>(getEventContributions);
+  const [homeContent, setHomeContent] = useState<HomePageContent>(getHomePageContent);
+  const [aboutContent, setAboutContent] = useState<AboutPageContent>(getAboutPageContent);
 
   // Check admin session on mount & fetch server data
   useEffect(() => {
@@ -156,6 +162,8 @@ export default function App() {
     if (serverData.eventContributions || serverData.events) setEvents(serverData.eventContributions || serverData.events);
     if (serverData.community) setCommunity(serverData.community);
     if (serverData.mentoring) setMentoringPrograms(serverData.mentoring);
+    if (serverData.homeContent) setHomeContent(serverData.homeContent);
+    if (serverData.aboutContent) setAboutContent(serverData.aboutContent);
   };
 
   // Re-sync all client components when photos are moved or their category updated
@@ -281,6 +289,10 @@ export default function App() {
           setEvents={setEvents}
           mentoringPrograms={mentoringPrograms}
           setMentoringPrograms={setMentoringPrograms}
+          homeContent={homeContent}
+          setHomeContent={setHomeContent}
+          aboutContent={aboutContent}
+          setAboutContent={setAboutContent}
           isDark={isDark}
           onToggleTheme={handleToggleTheme}
           onVisitPortfolio={() => { setInAdminDashboard(false); handleNavigate('/'); }}
@@ -335,60 +347,44 @@ export default function App() {
                     saveStored('carouselConfig', updated);
                   }}
                   onNavigate={handleNavigate} 
+                  homeContent={homeContent}
                 />
                 
                 {/* 2. Stats Bar */}
                 <ImpactMetrics metrics={profile.impactMetrics} />
                 
                 {/* 3. What I Do 4-Card Section */}
-                <WhatIDo capabilities={profile.capabilities} onNavigate={handleNavigate} />
-                
-                {/* 4. Featured Projects Section */}
-                <ProjectsView 
-                  projects={projects} 
-                  onSelectProject={handleSelectProject}
-                  onNavigate={handleNavigate}
-                />
-
-                {/* 5. Experience Timeline Preview */}
-                <ExperienceView 
-                  experiences={experiences.filter(e => e.isFeatured)} 
+                <WhatIDo 
+                  capabilities={profile.capabilities} 
                   onNavigate={handleNavigate} 
+                  title={homeContent?.whatIDoTitle}
+                  subtitle={homeContent?.whatIDoSubtitle}
                 />
 
-                {/* 6. Skills & Certifications Preview */}
-                <SkillsView 
-                  skills={skills}
-                  certifications={certifications}
-                  education={education}
-                  community={community}
-                  onNavigate={handleNavigate}
-                />
-
-                {/* 7. Bottom Call to Action Section */}
+                {/* 4. Bottom Call to Action Section */}
                 <section className="py-16 bg-[#0a1128] text-white border-t border-slate-800">
                   <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
                     <span className="text-xs font-mono uppercase tracking-widest text-sky-400 font-semibold">
-                      Collaboration &amp; Mentorship
+                      {homeContent?.ctaSection?.badge || "Collaboration & Mentorship"}
                     </span>
                     <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight">
-                      Let's Build, Solve and Learn Together
+                      {homeContent?.ctaSection?.title || "Let's Build, Solve and Learn Together"}
                     </h2>
                     <p className="text-slate-300 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
-                      Whether you're looking for a technology mentor, technical support professional, backend software developer or someone to lead youth digital initiatives, I'd be glad to connect.
+                      {homeContent?.ctaSection?.description || "Whether you're looking for a technology mentor, technical support professional, backend software developer or someone to lead youth digital initiatives, I'd be glad to connect."}
                     </p>
                     <div className="pt-2 flex flex-wrap justify-center gap-4">
                       <button
-                        onClick={() => handleNavigate('/projects')}
+                        onClick={() => handleNavigate(homeContent?.ctaSection?.primaryButtonLink || '/projects')}
                         className="px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-md transition-all"
                       >
-                        View My Work
+                        {homeContent?.ctaSection?.primaryButtonText || "View My Work"}
                       </button>
                       <button
-                        onClick={() => handleNavigate('/contact')}
+                        onClick={() => handleNavigate(homeContent?.ctaSection?.secondaryButtonLink || '/contact')}
                         className="px-6 py-3 rounded-lg border border-slate-700 hover:border-slate-600 bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm transition-all"
                       >
-                        Contact Me
+                        {homeContent?.ctaSection?.secondaryButtonText || "Contact Me"}
                       </button>
                     </div>
                   </div>
@@ -397,7 +393,7 @@ export default function App() {
             )}
 
             {currentPath === '/about' && (
-              <AboutView profile={profile} onNavigate={handleNavigate} />
+              <AboutView profile={profile} onNavigate={handleNavigate} aboutContent={aboutContent} />
             )}
 
             {currentPath === '/experience' && (

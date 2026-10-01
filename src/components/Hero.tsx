@@ -1,6 +1,6 @@
 import React from 'react';
 import { ArrowRight, Download, Github, Linkedin, Twitter, Mail, Sparkles } from 'lucide-react';
-import { Profile, CarouselConfig } from '../types';
+import { Profile, CarouselConfig, HomePageContent } from '../types';
 import { HeroPhotoCarousel } from './HeroPhotoCarousel';
 
 interface HeroProps {
@@ -8,14 +8,26 @@ interface HeroProps {
   carouselConfig?: CarouselConfig;
   onUpdateCarouselConfig?: (config: CarouselConfig) => void;
   onNavigate: (path: string) => void;
+  homeContent?: HomePageContent;
 }
 
 export const Hero: React.FC<HeroProps> = ({ 
   profile, 
   carouselConfig,
   onUpdateCarouselConfig,
-  onNavigate 
+  onNavigate,
+  homeContent
 }) => {
+  const content = homeContent || profile.homeContent || {};
+  const greeting = content.heroGreeting || "Hello, I'm";
+  const cta1Text = content.heroCta1Text || "View My Work";
+  const cta1Link = content.heroCta1Link || "/projects";
+  const cta2Text = content.heroCta2Text || "Download CV";
+  const cta2Link = content.heroCta2Link || "/resume";
+  const cta3Text = content.heroCta3Text || "Certifications & Events";
+  const cta3Link = content.heroCta3Link || "/events";
+  const connectHeading = content.connectHeading || "Connect with me";
+
   // Fallback default carousel config if not provided
   const config: CarouselConfig = carouselConfig || {
     mode: 'carousel',
@@ -67,7 +79,7 @@ export const Hero: React.FC<HeroProps> = ({
             <div className="space-y-1">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-400/20 text-sky-400 text-xs sm:text-sm font-mono font-semibold">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Hello, I'm</span>
+                <span>{greeting}</span>
               </div>
               <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight">
                 {profile.name}
@@ -89,34 +101,34 @@ export const Hero: React.FC<HeroProps> = ({
             {/* CTAs matching screenshot */}
             <div className="pt-2 flex flex-wrap items-center gap-4">
               <button
-                onClick={() => onNavigate('/projects')}
+                onClick={() => onNavigate(cta1Link)}
                 className="px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm sm:text-base shadow-lg shadow-blue-900/40 transition-all hover:-translate-y-0.5 inline-flex items-center gap-2"
               >
-                <span>View My Work</span>
+                <span>{cta1Text}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 
               <button
-                onClick={() => onNavigate('/resume')}
+                onClick={() => onNavigate(cta2Link)}
                 className="px-5 py-3.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 hover:text-white border border-slate-700 font-semibold text-sm sm:text-base transition-all hover:-translate-y-0.5 inline-flex items-center gap-2 shadow-sm"
               >
                 <Download className="w-4 h-4 text-sky-400" />
-                <span>Download CV</span>
+                <span>{cta2Text}</span>
               </button>
 
               <button
-                onClick={() => onNavigate('/events')}
+                onClick={() => onNavigate(cta3Link)}
                 className="px-5 py-3.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 hover:text-white border border-slate-700 font-semibold text-sm sm:text-base transition-all hover:-translate-y-0.5 inline-flex items-center gap-2 shadow-sm"
               >
                 <Sparkles className="w-4 h-4 text-amber-400" />
-                <span>Certifications &amp; Events</span>
+                <span>{cta3Text}</span>
               </button>
             </div>
 
             {/* Connect With Me Social Links */}
             <div className="pt-6 border-t border-slate-800/80 space-y-3">
               <span className="text-xs font-mono uppercase tracking-wider text-slate-400 block font-medium">
-                Connect with me
+                {connectHeading}
               </span>
               <div className="flex items-center gap-3">
                 {profile.github && (

@@ -13,13 +13,82 @@ import {
   ContactMessage, 
   SiteSettings, 
   CarouselConfig, 
-  EventContribution 
+  EventContribution,
+  HomePageContent,
+  AboutPageContent
 } from './types';
 
 // Authoritative data directly sourced from content/portfolio_data.json
 const data = rawPortfolioData as any;
 
-export const initialProfile: Profile = data.profile;
+export const defaultHomePageContent: HomePageContent = {
+  heroGreeting: "Hello, I'm",
+  heroCta1Text: "View My Work",
+  heroCta1Link: "/projects",
+  heroCta2Text: "Download CV",
+  heroCta2Link: "/resume",
+  heroCta3Text: "Certifications & Events",
+  heroCta3Link: "/events",
+  connectHeading: "Connect with me",
+  whatIDoTitle: "What I Do",
+  whatIDoSubtitle: "I work at the intersection of technology, education, and impact.",
+  ctaSection: {
+    badge: "Collaboration & Mentorship",
+    title: "Let's Build, Solve and Learn Together",
+    description: "Whether you're looking for a technology mentor, technical support professional, backend software developer or someone to lead youth digital initiatives, I'd be glad to connect.",
+    primaryButtonText: "View My Work",
+    primaryButtonLink: "/projects",
+    secondaryButtonText: "Contact Me",
+    secondaryButtonLink: "/contact"
+  }
+};
+
+export const defaultAboutPageContent: AboutPageContent = {
+  eyebrow: "Biography & Philosophy",
+  heading: "About Timothy Ododo",
+  subheading: "Technology Mentor & Advocate • Software Engineering Practitioner",
+  storyParagraph1: "I am a multidisciplinary technology professional with a passion for operating at the intersection of technical systems and human potential. My work spans backend engineering in Go and Python, enterprise IT support, cloud and DevOps operations, physical computing, and large-scale technical training.",
+  storyParagraph2: "What sets my approach apart is the ability to learn technology rapidly, solve difficult diagnostic problems, build reliable software, and effectively teach those concepts to others. Whether developing robust APIs or mentoring secondary school students through their first hardware programming challenges, I focus on practical solutions with measurable impact.",
+  calloutTitle: "The Rapid Learning Differentiator",
+  calloutText: "Prior to being deployed as lead hardware instructor at the Buildathon Holiday Camp, I mastered Raspberry Pi Pico and MicroPython physical computing within just three days. This agility enables me to adapt seamlessly to unfamiliar tech stacks, legacy codebases, and emerging engineering tools.",
+  storyParagraph3: "Currently, as a Learn2Earn NG Fellow & Ambassador and a full-scholarship B.Sc. Computer Science student at IU International University of Applied Sciences (Germany), I focus on high-performance backend systems in Go, structured logging, containerization, and ethical AI-assisted workflows.",
+  quickFactsTitle: "Quick Facts",
+  quickFacts: [
+    { label: "Role", value: "Technology Mentor & Advocate" },
+    { label: "Education", value: "B.Sc. Computer Science, IU Germany (Full Scholarship)" },
+    { label: "Core Stack", value: "Go (Golang), Python, Linux, Docker, REST APIs" },
+    { label: "Certifications", value: "Google IT Support Professional" }
+  ],
+  connectCardTitle: "Let's Connect",
+  connectCardText: "Interested in collaborating, hiring for an internship or engineering role, or scheduling a technical talk?",
+  connectCardButtonText: "Get in Touch",
+  progressionEyebrow: "Career Evolution",
+  progressionTitle: "Multidisciplinary Growth Matrix",
+  progressionSteps: [
+    { title: "Technology Learner", desc: "Rapidly assimilating new architectures, hardware interfaces, and backend paradigms." },
+    { title: "Technology Educator", desc: "Demystifying complex logic for 200+ students across hardware and software computing." },
+    { title: "Technology Advocate", desc: "Mobilising grass-roots digital adoption with SID (Anambra State Govt ICT arm)." },
+    { title: "Community Leader", desc: "Coordinating 3MTT Cohort 2 and fostering cross-peer accountability." },
+    { title: "IT Support Specialist", desc: "Google-certified hardware, networking, and systems administration troubleshooter." },
+    { title: "Software Engineer & DevOps", desc: "Engineering resilient Go backends, distributed systems, and automated CI/CD pipelines." }
+  ]
+};
+
+export const initialHomePageContent: HomePageContent = {
+  ...defaultHomePageContent,
+  ...(data.homeContent || data.profile?.homeContent || {})
+};
+
+export const initialAboutPageContent: AboutPageContent = {
+  ...defaultAboutPageContent,
+  ...(data.aboutContent || data.profile?.aboutContent || {})
+};
+
+export const initialProfile: Profile = {
+  ...data.profile,
+  homeContent: initialHomePageContent,
+  aboutContent: initialAboutPageContent
+};
 export const initialProjects: Project[] = (data.projects || []) as Project[];
 export const initialExperiences: Experience[] = (data.experiences || []) as Experience[];
 export const initialSkills: SkillsData = data.skills as SkillsData;
@@ -67,7 +136,7 @@ if (typeof window !== "undefined") {
     [
       "profile", "projects", "experiences", "gallery", "achievements",
       "skills", "certifications", "education", "community", "mentoring",
-      "settings", "carouselConfig", "eventContributions"
+      "settings", "carouselConfig", "eventContributions", "homeContent", "aboutContent"
     ].forEach(k => {
       localStorage.removeItem(STORAGE_PREFIX + k);
     });
@@ -176,6 +245,14 @@ export function getEventContributions(): EventContribution[] {
   return getStored("eventContributions", initialEventContributions);
 }
 
+export function getHomePageContent(): HomePageContent {
+  return getStored("homeContent", initialHomePageContent);
+}
+
+export function getAboutPageContent(): AboutPageContent {
+  return getStored("aboutContent", initialAboutPageContent);
+}
+
 // Global server-sync functions to ensure changes reflect across all devices permanently
 export async function fetchServerData(customToken?: string | null): Promise<any> {
   try {
@@ -205,6 +282,8 @@ export async function fetchServerData(customToken?: string | null): Promise<any>
       if (d.settings || d.siteSettings) saveStored("settings", d.settings || d.siteSettings, false);
       if (d.carouselConfig) saveStored("carouselConfig", d.carouselConfig, false);
       if (d.eventContributions || d.events) saveStored("eventContributions", d.eventContributions || d.events, false);
+      if (d.homeContent) saveStored("homeContent", d.homeContent, false);
+      if (d.aboutContent) saveStored("aboutContent", d.aboutContent, false);
       return d;
     }
   } catch (err) {
