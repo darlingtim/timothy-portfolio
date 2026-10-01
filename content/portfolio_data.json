@@ -7,7 +7,7 @@
         "color": "blue",
         "ctaLink": "/projects",
         "ctaText": "View Projects",
-        "description": "Building web and mobile applications using modern technologies.",
+        "description": "Building web, mobile and  IOT applications using modern programming languages and technologies.",
         "icon": "code",
         "id": "software-dev",
         "title": "Software Development"
@@ -16,10 +16,10 @@
         "color": "green",
         "ctaLink": "/experience",
         "ctaText": "Learn More",
-        "description": "Providing technical support, troubleshooting and managing IT systems.",
+        "description": "Troubleshooting, managing IT systems and Providing technical support to customers, staffs and organisations.",
         "icon": "shield",
         "id": "it-support",
-        "title": "IT Support & Infrastructure"
+        "title": "IT & Customer Support "
       },
       {
         "color": "purple",
@@ -34,7 +34,7 @@
         "color": "amber",
         "ctaLink": "/about",
         "ctaText": "Explore Initiatives",
-        "description": "Leading initiatives that drive innovation and create positive change.",
+        "description": "Leading initiatives that drives innovation and positive Impact in local communities within Nigeria and globally .",
         "icon": "sparkles",
         "id": "innovation",
         "title": "Innovation & Impact"
@@ -46,21 +46,21 @@
     "impactMetrics": [
       {
         "color": "blue",
-        "detail": "Young students and aspiring engineers mentored in software development, computational thinking, and hardware",
+        "detail": "Young students and aspiring engineers mentored in software development, computational thinking, and hardware programming.",
         "icon": "users",
         "label": "Learners Mentored",
         "value": "4000+"
       },
       {
         "color": "green",
-        "detail": "Backend services, and web applications",
+        "detail": "web applications",
         "icon": "code",
         "label": "Projects Completed",
-        "value": "10+"
+        "value": "5+"
       },
       {
         "color": "purple",
-        "detail": "Demonstrated track record in IT infrastructure, programming, tech education, and community advocacy",
+        "detail": "Demonstrated track record in IT infrastructure, programming, tech education, and community / SDGs advocacy",
         "icon": "calendar",
         "label": "Years of Experience",
         "value": "7+"
@@ -70,7 +70,7 @@
         "detail": "High-impact bootcamps, Tech workshops, innovation events, and tech webinars",
         "icon": "trophy",
         "label": "Programs & Workshops",
-        "value": "15+"
+        "value": "10+"
       }
     ],
     "linkedin": "https://linkedin.com/in/timothyododo",
@@ -79,9 +79,90 @@
     "phone": "+2348130480002",
     "status": "Available for Software Engineering, Developers Mentorship, I.T Support, Ambassadorial, Leadership & Digital transformation roles",
     "subtitle": "I work at the intersection of technology, education, and impact.",
-    "tagline": "I build SDGs focused Digital solutions, support people in using technology effectively, and mentor young people to develop the skills they need to thrive in  a digital economy.",
+    "tagline": "I build SDGs focused Digital solutions, support people in using technology effectively, and mentor young people to develop the skills they need to thrive in  our ever changing and vast digital world.",
     "title": "IT Support Professional • Software Developer • Tech Mentor • Innovator • AI Native Engineer • Ambassador",
-    "twitter": "https://x.com/timothyododo"
+    "twitter": "https://x.com/timothyododo",
+    "homeContent": {
+      "heroGreeting": "HELLO!!... I'm",
+      "heroCta1Text": "View My Work",
+      "heroCta1Link": "/projects",
+      "heroCta2Text": "Download CV",
+      "heroCta2Link": "/resume",
+      "heroCta3Text": "Certifications & Events",
+      "heroCta3Link": "/events",
+      "connectHeading": "Connect with me",
+      "whatIDoTitle": "What I Do",
+      "whatIDoSubtitle": "I work at the intersection of technology, education, and impact.",
+      "ctaSection": {
+        "badge": "Collaboration & Career Interest.",
+        "description": "Whether you're looking for a digital technology mentor / ambassador, technical support professional, backend software developer or a result-oriented leader, I'd be glad to connect.",
+        "primaryButtonLink": "/projects",
+        "primaryButtonText": "View My Work",
+        "secondaryButtonLink": "/contact",
+        "secondaryButtonText": "Contact Me",
+        "title": "Let's Solve Problems, Build Solutions and Develop Our World Together."
+      }
+    },
+    "aboutContent": {
+      "eyebrow": "Biography & Philosophy",
+      "heading": "About Timothy Ododo",
+      "subheading": "IT Support Professional • Software Developer • Tech Mentor • Innovator • AI Native Engineer • Ambassador",
+      "storyParagraph1": "I am a multidisciplinary technology professional with a passion for operating at the intersection of technical systems and human potential. My work spans backend engineering in Go and Python, enterprise IT support, cloud and DevOps operations, physical computing, and large-scale technical training.",
+      "storyParagraph2": "What sets my approach apart is the ability to learn technology rapidly, solve difficult diagnostic problems, build reliable software, and effectively teach those concepts to others. Whether developing robust software applications or mentoring aspiring technologists / developers, I focus on practical solutions with measurable impact.",
+      "calloutTitle": "The Rapid Learning Differentiator",
+      "calloutText": "Prior to my being deployed as a lead hardware programming instructor at the Buildathon Holiday Camp in Anambra state, Nigeria  by the Federal Ministry Of Youth and Sports Development, I mastered Raspberry Pi Pico and MicroPython physical computing within just three days. This portrays my agility and ability to seamlessly adapt to unfamiliar tech stacks, legacy codebases, and emerging engineering tools.",
+      "storyParagraph3": "Currently, as a Learn2Earn NG Fellow & Ambassador, and a full-scholarship B.Sc. Computer Science student at IU International University of Applied Sciences (Germany), I focus on high-performance backend systems, ethical AI-assisted workflows and AI native engineering.",
+      "quickFactsTitle": "Quick Facts",
+      "quickFacts": [
+        {
+          "label": "Role",
+          "value": "Technology Mentor & Advocate"
+        },
+        {
+          "label": "Education",
+          "value": "B.Sc. Computer Science, IU Germany (Full Scholarship)"
+        },
+        {
+          "label": "Core Stack",
+          "value": "Go (Golang), Python,  PHP(Laravel),  JavaScript(NodeJs), Linux, AI"
+        },
+        {
+          "label": "Certifications",
+          "value": "Google IT Support Professional"
+        }
+      ],
+      "connectCardTitle": "Let's Connect",
+      "connectCardText": "Interested in collaborating, hiring for an internship or engineering role, or scheduling a technical talk?",
+      "connectCardButtonText": "Get in Touch",
+      "progressionEyebrow": "Career Evolution",
+      "progressionTitle": "Multidisciplinary Growth Matrix",
+      "progressionSteps": [
+        {
+          "desc": "Rapidly assimilating new architectures, hardware interfaces, and backend paradigms.",
+          "title": "Technology Learner"
+        },
+        {
+          "desc": "Demystifying complex logic for 200+ students across hardware and software computing.",
+          "title": "Technology Educator"
+        },
+        {
+          "desc": "Mobilising grass-roots digital adoption with SID (Anambra State Govt ICT arm).",
+          "title": "Technology Advocate"
+        },
+        {
+          "desc": "Coordinating 3MTT Cohort 2 and fostering cross-peer accountability.",
+          "title": "Community Leader"
+        },
+        {
+          "desc": "Google-certified hardware, networking, and systems administration troubleshooter.",
+          "title": "IT Support Specialist"
+        },
+        {
+          "desc": "Engineering resilient Go backends, distributed systems, and automated CI/CD pipelines.",
+          "title": "Software Engineer & DevOps"
+        }
+      ]
+    }
   },
   "projects": [
     {
@@ -1129,86 +1210,5 @@
       ],
       "title": "Grassroots Digital Literacy & Python Seminars"
     }
-  ],
-  "homeContent": {
-    "heroGreeting": "Hello, I'm",
-    "heroCta1Text": "View My Work",
-    "heroCta1Link": "/projects",
-    "heroCta2Text": "Download CV",
-    "heroCta2Link": "/resume",
-    "heroCta3Text": "Certifications & Events",
-    "heroCta3Link": "/events",
-    "connectHeading": "Connect with me",
-    "whatIDoTitle": "What I Do",
-    "whatIDoSubtitle": "I work at the intersection of technology, education, and impact.",
-    "ctaSection": {
-      "badge": "Collaboration & Mentorship",
-      "title": "Let's Build, Solve and Learn Together",
-      "description": "Whether you're looking for a technology mentor, technical support professional, backend software developer or someone to lead youth digital initiatives, I'd be glad to connect.",
-      "primaryButtonText": "View My Work",
-      "primaryButtonLink": "/projects",
-      "secondaryButtonText": "Contact Me",
-      "secondaryButtonLink": "/contact"
-    }
-  },
-  "aboutContent": {
-    "eyebrow": "Biography & Philosophy",
-    "heading": "About Timothy Ododo",
-    "subheading": "Technology Mentor & Advocate • Software Engineering Practitioner",
-    "storyParagraph1": "I am a multidisciplinary technology professional with a passion for operating at the intersection of technical systems and human potential. My work spans backend engineering in Go and Python, enterprise IT support, cloud and DevOps operations, physical computing, and large-scale technical training.",
-    "storyParagraph2": "What sets my approach apart is the ability to learn technology rapidly, solve difficult diagnostic problems, build reliable software, and effectively teach those concepts to others. Whether developing robust APIs or mentoring secondary school students through their first hardware programming challenges, I focus on practical solutions with measurable impact.",
-    "calloutTitle": "The Rapid Learning Differentiator",
-    "calloutText": "Prior to being deployed as lead hardware instructor at the Buildathon Holiday Camp, I mastered Raspberry Pi Pico and MicroPython physical computing within just three days. This agility enables me to adapt seamlessly to unfamiliar tech stacks, legacy codebases, and emerging engineering tools.",
-    "storyParagraph3": "Currently, as a Learn2Earn NG Fellow & Ambassador and a full-scholarship B.Sc. Computer Science student at IU International University of Applied Sciences (Germany), I focus on high-performance backend systems in Go, structured logging, containerization, and ethical AI-assisted workflows.",
-    "quickFactsTitle": "Quick Facts",
-    "quickFacts": [
-      {
-        "label": "Role",
-        "value": "Technology Mentor & Advocate"
-      },
-      {
-        "label": "Education",
-        "value": "B.Sc. Computer Science, IU Germany (Full Scholarship)"
-      },
-      {
-        "label": "Core Stack",
-        "value": "Go (Golang), Python, Linux, Docker, REST APIs"
-      },
-      {
-        "label": "Certifications",
-        "value": "Google IT Support Professional"
-      }
-    ],
-    "connectCardTitle": "Let's Connect",
-    "connectCardText": "Interested in collaborating, hiring for an internship or engineering role, or scheduling a technical talk?",
-    "connectCardButtonText": "Get in Touch",
-    "progressionEyebrow": "Career Evolution",
-    "progressionTitle": "Multidisciplinary Growth Matrix",
-    "progressionSteps": [
-      {
-        "title": "Technology Learner",
-        "desc": "Rapidly assimilating new architectures, hardware interfaces, and backend paradigms."
-      },
-      {
-        "title": "Technology Educator",
-        "desc": "Demystifying complex logic for 200+ students across hardware and software computing."
-      },
-      {
-        "title": "Technology Advocate",
-        "desc": "Mobilising grass-roots digital adoption with SID (Anambra State Govt ICT arm)."
-      },
-      {
-        "title": "Community Leader",
-        "desc": "Coordinating 3MTT Cohort 2 and fostering cross-peer accountability."
-      },
-      {
-        "title": "IT Support Specialist",
-        "desc": "Google-certified hardware, networking, and systems administration troubleshooter."
-      },
-      {
-        "title": "Software Engineer & DevOps",
-        "desc": "Engineering resilient Go backends, distributed systems, and automated CI/CD pipelines."
-      }
-    ]
-  }
+  ]
 }
