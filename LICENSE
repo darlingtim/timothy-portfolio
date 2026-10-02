@@ -1,21 +1,21 @@
-MIT License
+Proprietary Software License Agreement
 
-Copyright (c) 2026 Timothy Ododo
+Copyright (c) 2026 Timothy Ododo. All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+1. LIMITED PUBLIC VIEWING PERMISSION ONLY
+By hosting this software in a public repository on GitHub, the copyright holder grants users the limited right to view the source code strictly within the GitHub user interface, as mandated by the GitHub Terms of Service. This visibility does not grant any right to fork, clone, copy, download, use, or distribute the software.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+2. STRICT PROHIBITION OF FORKING & CLONING
+Forking this repository, cloning it locally, downloading it as a ZIP archive, or copying the repository files by any mechanical, electronic, or digital means is strictly prohibited. Any unauthorized copy or fork of this repository constitutes an immediate violation of copyright law.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+3. STRICT PROHIBITION OF USE
+Any use, execution, running, deployment, or execution of this software or its source code for any personal, commercial, or educational purpose is strictly prohibited.
+
+4. NO CONTRIBUTIONS ACCEPTED
+The copyright holder does not accept any external contributions, patches, bug fixes, features, or pull requests for this software. Any unauthorized pull requests or code submissions will be closed and rejected.
+
+5. RESTRICTIONS ON MODIFICATION & DISTRIBUTION
+You may not modify, alter, adapt, translate, decompile, reverse-engineer, or attempt to derive the source code from this software. Distribution, redistribution, sharing, publishing, leasing, renting, selling, or sublicensing of this software, its source code, or any portion thereof via any medium—including hosting on other platforms—is strictly prohibited.
+
+6. NO WARRANTY
+THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
