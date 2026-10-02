@@ -1108,31 +1108,22 @@
     "mode": "carousel",
     "photos": [
       {
-        "caption": "Timothy Ododo Portfolio Photo",
-        "dateAdded": "2026-09-01T21:58:17.275Z",
-        "id": "photo-1788299897275",
-        "isIncludedInCarousel": true,
-        "order": 1,
+        "id": "photo-1790967190290",
+        "url": "/static/images/carousel/timothyododoPassport-1790967190081659821.jpg",
+        "caption": "Timothy Ododo",
         "tag": "Carousel",
-        "url": "/static/images/carousel/carousel-photo-1.jpg"
+        "isIncludedInCarousel": true,
+        "order": 5,
+        "dateAdded": "2026-10-02T18:53:10.290Z"
       },
       {
-        "caption": "Timothy Ododo Portfolio Photo",
-        "dateAdded": "2026-09-01T21:58:43.314Z",
-        "id": "photo-1788299923314",
-        "isIncludedInCarousel": true,
-        "order": 2,
+        "id": "photo-1790967048061",
+        "url": "/static/images/carousel/hardware_programming_trainer-1790967047910834223.jpg",
+        "caption": "FMYSD Hardware Programming Trainer  at Buildathon Holiday Camp.",
         "tag": "Carousel",
-        "url": "/static/images/carousel/carousel-photo-2.jpg"
-      },
-      {
-        "caption": "Timothy Ododo Portfolio Photo",
-        "dateAdded": "2026-09-02T00:09:13.913Z",
-        "id": "photo-1788307753913",
         "isIncludedInCarousel": true,
-        "order": 3,
-        "tag": "Carousel",
-        "url": "/static/images/carousel/carousel-photo-3.jpg"
+        "order": 4,
+        "dateAdded": "2026-10-02T18:50:48.061Z"
       }
     ],
     "showArrows": true,
