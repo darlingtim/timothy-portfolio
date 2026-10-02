@@ -1124,6 +1124,15 @@
         "isIncludedInCarousel": true,
         "order": 4,
         "dateAdded": "2026-10-02T18:50:48.061Z"
+      },
+      {
+        "id": "photo-1790968174568",
+        "url": "/static/images/carousel/EduTech_Soulution_Pitch-1790968174319447851.jpg",
+        "caption": "EduTech Solution Pitch with Benue state Government and JICA",
+        "tag": "Carousel",
+        "isIncludedInCarousel": true,
+        "order": 3,
+        "dateAdded": "2026-10-02T19:09:34.568Z"
       }
     ],
     "showArrows": true,
