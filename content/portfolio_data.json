@@ -166,136 +166,19 @@
   },
   "projects": [
     {
-      "architecture": "Decoupled Next.js client with Python FastAPI backend worker managing asynchronous document embeddings and LLM prompts.",
-      "categories": [
-        "AI",
-        "Full Stack",
-        "TypeScript",
-        "Python"
-      ],
-      "category": "AI & Web",
-      "challenges": "Minimizing latency on mobile networks and maintaining high factual accuracy across STEM subjects.",
-      "dateAdded": "2026-02-15",
-      "futureImprovements": "Add offline voice synthesis for auditory learners.",
-      "github": "https://github.com/timothyododo/a1pal-ai",
-      "imageUrl": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80",
-      "isFeatured": true,
-      "keyFeatures": [
-        "Upload PDF/Word syllabus documents to instantly generate structured quizzes",
-        "Adaptive difficulty calibration that focuses on learner weak spots",
-        "Step-by-step Socratic hints instead of giving direct answers away",
-        "Offline-friendly mobile responsiveness for low-bandwidth environments"
-      ],
-      "learnings": "Deepened expertise in prompt engineering, vector retrieval, and user-centric educational UX.",
-      "liveUrl": "https://a1pal.example.com",
-      "name": "A1Pal - AI Study Companion",
-      "overview": "A1Pal was built to empower students facing resource shortages with an always-available, conversational study tutor that generates practice questions based on their exact syllabus.",
-      "problem": "Students frequently struggle to synthesize vast curricula and lack immediate feedback when practicing past exam questions independently.",
-      "shortDescription": "An AI-powered web platform that converts curriculum notes and textbooks into interactive quizzes, flashcards, and personalized study schedules.",
-      "slug": "a1pal-ai-study-companion",
-      "solution": "Engineered an intelligent study engine with document parsing, spaced repetition flashcard generation, and step-by-step Socratic explanations.",
-      "solutionApproach": "Implemented prompt grounding with local retrieval and cached common curriculum embeddings in Redis.",
-      "stack": {
-        "Backend": "FastAPI, Python 3.11, LangChain",
-        "Database": "PostgreSQL, pgvector",
-        "Deployment": "Docker, Cloud Run",
-        "Frontend": "React 19, TailwindCSS, TypeScript"
-      },
-      "status": "Published",
-      "tagline": "Intelligent adaptive learning & exam preparation assistant for students",
-      "technologies": [
-        "React",
-        "TypeScript",
-        "Python",
-        "Gemini API",
-        "TailwindCSS",
-        "PostgreSQL"
-      ],
-      "year": "2026"
-    },
-    {
-      "architecture": "Modular Cobra CLI structure with independent probe collectors reporting through an output formatter interface.",
-      "categories": [
-        "Go",
-        "DevOps",
-        "IT Support",
-        "Tools"
-      ],
-      "category": "CLI / DevOps",
-      "challenges": "Abstracting low-level OS API differences between Linux procfs and Windows WMI.",
-      "dateAdded": "2025-08-12",
-      "futureImprovements": "Integrate automatic Slack and Jira webhook reporting.",
-      "github": "https://github.com/timothyododo/sentinel-cli",
-      "imageUrl": "https://images.unsplash.com/photo-1629654297299-c8506221ca97?auto=format&fit=crop&w=800&q=80",
-      "isFeatured": true,
-      "keyFeatures": [
-        "Single static binary with zero runtime dependencies across Linux, macOS, and Windows",
-        "Network routing and DNS resolution performance benchmark with visual traceroute",
-        "Automated zombie process detector and disk space exhaustion warnings",
-        "Exportable markdown and HTML triage reports for ticketing systems"
-      ],
-      "learnings": "Enhanced understanding of OS internals, memory layout, and systems diagnostics.",
-      "liveUrl": "",
-      "name": "Sentinel CLI Tool",
-      "overview": "Sentinel is a zero-dependency CLI written in Go that runs deep diagnostics on Linux and Windows machines, generating actionable remediation reports in seconds.",
-      "problem": "IT support teams waste valuable minutes running repetitive manual terminal checks during outages and workstation maintenance.",
-      "shortDescription": "Cross-platform terminal utility for IT support engineers to instantly audit OS health, open ports, memory leaks, and network connectivity.",
-      "slug": "sentinel-cli-tool",
-      "solution": "Consolidated disk, RAM, DNS, latency, firewall, and service checks into a single binary with rich colorized terminal outputs and JSON exports.",
-      "solutionApproach": "Wrote platform-specific Go build tags (`// +build linux`, `// +build windows`) to cleanly isolate system calls.",
-      "stack": {
-        "Language": "Go 1.22",
-        "Libraries": "spf13/cobra, fatih/color, gopsutil",
-        "Target": "Cross-compiled AMD64 & ARM64 binaries"
-      },
-      "status": "Published",
-      "tagline": "Automated IT systems health, network triage, and diagnostic utility",
-      "technologies": [
-        "Go",
-        "Cobra CLI",
-        "Linux",
-        "Networking",
-        "Bash"
-      ],
-      "year": "2025"
-    },
-    {
-      "architecture": "Event-driven MicroPython loops with non-blocking timer interrupts.",
+      "slug": "pico-creative-lab",
+      "name": "Hardware Programming with Python",
+      "tagline": "Introducing and Training 200+ students in rural areas on python and hardware Programming",
+      "shortDescription": "A Federal Ministry of Youth and Sports Development project in partnership with Raspberry Pi and MTN to train students in rural areas on hardware programming.",
+      "category": "Hardware Programming",
       "categories": [
         "Education",
         "Python",
         "Hardware",
         "MicroPython"
       ],
-      "category": "Education",
-      "challenges": "Mastering the Pico microcontroller ecosystem in 72 hours prior to leading the camp.",
-      "dateAdded": "2024-09-05",
-      "futureImprovements": "Publish open-source Web-based breadboard simulator.",
-      "github": "https://github.com/timothyododo/pico-creative-lab",
-      "imageUrl": "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80",
       "isFeatured": true,
-      "keyFeatures": [
-        "Plug-and-play MicroPython modules with clear step-by-step breadboard diagrams",
-        "Defensive coding practices to avoid short circuits and classroom hardware lockouts",
-        "Graduated difficulty from simple LED blinks to multi-sensor automation",
-        "Taught to 200+ students with 100% project completion rate"
-      ],
-      "learnings": "Proved that rapid self-directed learning and strong communication create massive impact in youth education.",
-      "liveUrl": "",
-      "name": "Raspberry Pi Pico Physical Computing Lab",
-      "overview": "Curriculum codebases, hardware schematics, and interactive MicroPython modules developed to introduce secondary school students to physical computing.",
-      "problem": "Hardware programming can intimidate youth learners due to complex syntax, fragile wiring, and abstract theory.",
-      "shortDescription": "Interactive physical computing and embedded systems laboratory curriculum created and taught during Buildathon Holiday Camp.",
-      "slug": "pico-creative-lab",
-      "solution": "Created hands-on laboratory exercises with instant visual feedback—such as traffic light simulations, burglar alarms with ultrasonic sensors, and musical buzzers.",
-      "solutionApproach": "Built 12 working circuits in 3 days, document all common failure patterns, and created child-friendly debugging guides.",
-      "stack": {
-        "Hardware": "Raspberry Pi Pico / Pico H (RP2040)",
-        "Language": "MicroPython, Python 3",
-        "Software": "Thonny IDE"
-      },
-      "status": "Published",
-      "tagline": "MicroPython hardware lab & sensor integration curriculum for 200+ students",
+      "year": "2024",
       "technologies": [
         "Python",
         "MicroPython",
@@ -304,100 +187,75 @@
         "GPIO",
         "Sensors"
       ],
-      "year": "2024"
+      "github": "",
+      "liveUrl": "",
+      "imageUrl": "/static/images/experience/Buildathon_trainees-1790980491091684136.jpg",
+      "overview": "Curriculum codebases, hardware schematics, and interactive MicroPython modules developed to introduce secondary school students to physical computing.",
+      "problem": "Young people in rural areas have little or no computer programming knowledge and they lack access to necessary learning resources which includes but is not limited to smart devices, advanced trainers and the fund to access qualitative Tech education hence their inability to measure up with their counterparts in urban areas when it comes to technology .",
+      "solution": "Timothy Ododo was selected as a trainer in Anambra state, Nigeria to introduce and train young people on hardware programming using Pico-H micro device and Python programming language.\nRaspberry Pi foundation and MTN Nigeria donated the Pico-H device that each student.",
+      "keyFeatures": [
+        "Taught to 200+ students with 100% project completion rate"
+      ],
+      "architecture": "Event-driven MicroPython loops with non-blocking timer interrupts.",
+      "stack": {
+        "Hardware": "Raspberry Pi Pico / Pico H (RP2040)",
+        "Language": "MicroPython, Python 3",
+        "Software": "Thonny IDE"
+      },
+      "challenges": "Mastering the Pico microcontroller ecosystem in 72 hours prior to leading the camp.",
+      "solutionApproach": "Built 12 working circuits in 3 days, document all common failure patterns, and created child-friendly debugging guides.",
+      "learnings": "Proved that rapid self-directed learning and strong communication create massive impact in youth education.",
+      "futureImprovements": "Publish open-source Web-based breadboard simulator.",
+      "status": "Published",
+      "dateAdded": "2024-09-05",
+      "customFields": []
     },
     {
-      "architecture": "Clean layered design with separated handlers, domain models, and service interfaces.",
+      "slug": "go-portfolio-service",
+      "name": "Timothy Ododo Professional Portfolio Web App",
+      "tagline": "High-performance Go web service and portfolio with zero-dependency architecture",
+      "shortDescription": "Engineered a production-ready Go Lang and React web application which showcases Timothy Ododo's Tech and Non-tech expertise, exploits and impacts made.",
+      "category": "Web Development",
       "categories": [
         "Go",
         "Backend",
         "Web",
         "DevOps"
       ],
-      "category": "Go",
-      "challenges": "Implementing dynamic RESTful routes with strict path validation in Go stdlib.",
-      "dateAdded": "2026-01-10",
-      "futureImprovements": "Add OpenTelemetry tracing integration.",
-      "github": "https://github.com/timothyododo/portfolio-service",
-      "imageUrl": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80",
       "isFeatured": true,
-      "keyFeatures": [
-        "Zero external runtime dependencies — pure Go Standard Library",
-        "Embedded file systems and dynamic template caching",
-        "Sanitized contact validation endpoint and health check probe",
-        "Sub-20MB production Docker image"
-      ],
-      "learnings": "Reinforced mastery of Go standard library idioms and lightweight container deployments.",
-      "liveUrl": "https://timothyododo.onrender.com",
-      "name": "Timothy Ododo Professional Portfolio & API Service",
-      "overview": "A lightweight, robust web service and API showcasing idiomatic Go architecture, structured logging with log/slog, and secure HTTP middleware.",
-      "problem": "Modern portfolios often suffer from bloated client bundles and fragile multi-layer stacks when a clean compiled binary offers unmatched reliability and speed.",
-      "shortDescription": "Engineered a production-ready Go web application and REST API adhering to idiomatic standards, sub-millisecond response times, and Docker containerization.",
-      "slug": "go-portfolio-service",
-      "solution": "Constructed using only the Go Standard Library with embedded assets, security headers, rate limiting, and sub-5ms response latency.",
-      "solutionApproach": "Utilized Go 1.22 enhanced route pattern matching with type-safe parameter extractors.",
-      "stack": {
-        "Backend": "Go 1.22+, net/http, log/slog",
-        "Container": "Docker Alpine multi-stage build",
-        "Hosting": "Render Cloud"
-      },
-      "status": "Published",
-      "tagline": "High-performance Go web service and portfolio with zero-dependency architecture",
+      "year": "2026",
       "technologies": [
         "Go",
         "net/http",
         "html/template",
         "Docker",
         "Render",
-        "Vanilla JS"
+        "Vanilla JS",
+        "React",
+        "CI/CD"
       ],
-      "year": "2026"
-    },
-    {
-      "architecture": "Responsive web client with cloud-hosted API backends and real-time helpdesk integration.",
-      "categories": [
-        "Web",
-        "IT Support",
-        "Public Sector",
-        "Community"
-      ],
-      "category": "Web & Systems",
-      "challenges": "Managing sudden traffic spikes on registration opening day while maintaining rapid support response times.",
-      "dateAdded": "2024-11-28",
-      "futureImprovements": "Incorporate automated AI chatbot for instant attendee answers.",
-      "github": "https://github.com/timothyododo/innovation-week-portal",
-      "imageUrl": "",
-      "isFeatured": true,
+      "github": "https://github.com/darlingtim/timothy-portfolio",
+      "liveUrl": "https://timothyododo.onrender.com",
+      "imageUrl": "/static/images/projects/timothy_Ododo_Portfolio_WebApp-1790983379541487765.png",
+      "overview": "A lightweight, robust web service and API showcasing idiomatic Go architecture, structured logging with log/slog, and secure HTTP middleware.",
+      "problem": "The works, expertise and impacts made by Timothy ododo are scattered all over various platforms and storages, in bits and pieces: There is no singular platform to refer prospective collaborators, employers, admirers or followers  despite his high result-oriented works which tends to grow at a very high geometric scale.",
+      "solution": "A web app was proposed to house and showcase Timothy Ododo's past, present and future work.  ",
       "keyFeatures": [
-        "Supported 1,000+ attendees with online registration and badge validation",
-        "Live support ticketing system for resolving attendee technical questions",
-        "Facilitated state-wide ICT quizzes and youth digital empowerment tracks",
-        "Coordinated with Solution Innovation District (SID) leadership for seamless execution"
+        "Zero external runtime dependencies — pure Go Standard Library"
       ],
-      "learnings": "Developed deep appreciation for large-scale public sector tech operations and high-stakes event coordination.",
-      "liveUrl": "https://innovation.anambrastate.gov.ng",
-      "name": "Anambra Innovation Week Participant Portal",
-      "overview": "Provided frontline technical support, system troubleshooting, and participant onboarding for one of southeastern Nigeria's largest tech innovation gatherings.",
-      "problem": "Coordinating 1,000+ innovators, startups, judges, and government dignitaries required reliable, rapid technical support and participant tracking.",
-      "shortDescription": "Web portal facilitating participant registration, technical enquiries, and schedule coordination for 1,000+ attendees at Anambra Innovation Week.",
-      "slug": "anambra-innovation-portal",
-      "solution": "Built support workflows, diagnostic dashboards, and coordinated real-time troubleshooting teams to ensure zero downtime throughout the event.",
-      "solutionApproach": "Optimized static asset delivery via CDN and prepared structured FAQ macros for instant attendee guidance.",
+      "architecture": "Clean layered design with separated handlers, domain models, and service interfaces.",
       "stack": {
-        "Frontend": "Responsive Web, JavaScript",
-        "Operations": "Cloud Helpdesk, Technical Triage",
-        "Partners": "Solution Innovation District (SID)"
+        "Backend": "Go 1.22+, net/http, log/slog",
+        "Container": "Docker Alpine multi-stage build",
+        "Hosting": "Render Cloud"
       },
+      "challenges": "Implementing dynamic RESTful routes with strict path validation in Go stdlib.",
+      "solutionApproach": "Utilized Go 1.22 enhanced route pattern matching with type-safe parameter extractors.",
+      "learnings": "Reinforced mastery of Go standard library idioms and lightweight container deployments.",
+      "futureImprovements": "Add OpenTelemetry tracing integration.",
       "status": "Published",
-      "tagline": "High-traffic registration and event coordination system for state innovation summit",
-      "technologies": [
-        "JavaScript",
-        "Node.js",
-        "REST APIs",
-        "Cloud Infrastructure",
-        "Technical Support"
-      ],
-      "year": "2024"
+      "dateAdded": "2026-01-10",
+      "customFields": []
     }
   ],
   "experiences": [
@@ -426,19 +284,20 @@
       "type": "Fellowship & Leadership"
     },
     {
+      "id": "sid-tech-advocate",
+      "role": "Technology Advocate / Techies4Solution Ambassador",
+      "organization": "Solution Innovation District (SID) — Anambra State Government",
+      "period": "2024 – Present",
+      "location": "Anambra State, Nigeria",
+      "type": "Public Sector Innovation & Community",
+      "isFeatured": true,
+      "summary": "Represented and supported the ICT and Innovation arm of the Anambra State Government of Nigeria, driving regional digital awareness and transformation especially among students and young people.",
       "highlights": [
         "Supported 1,000+ participants and contestants through online registration, technical enquiries, and event-day operational assistance for Anambra Innovation Week 2024.",
         "Facilitated ICT quiz competitions and digital empowerment sessions, stimulating technical interest across youth demographics.",
         "Conducted technical troubleshooting for participant onboarding platforms and communication channels.",
         "Engaged grassroots communities to promote government-backed digital skilling and innovation opportunities."
       ],
-      "id": "sid-tech-advocate",
-      "isFeatured": true,
-      "location": "Anambra State, Nigeria",
-      "organization": "Solution Innovation District (SID) — Anambra State Government",
-      "period": "2024 – Present",
-      "role": "Technology Advocate / Techies4Solution Ambassador",
-      "summary": "Represented and supported the ICT and Innovation arm of the Anambra State Government, driving regional digital transformation and providing technical event execution support.",
       "technologies": [
         "Technical Support",
         "Event Systems",
@@ -446,7 +305,9 @@
         "Digital Literacy",
         "Public Speaking"
       ],
-      "type": "Public Sector Innovation & Community"
+      "companyUrl": "",
+      "imageUrl": "/static/images/experience/tech_advocacy-1790987182823428411.jpg",
+      "customFields": []
     },
     {
       "highlights": [
@@ -553,6 +414,14 @@
             "name": "SQL & Relational DBs",
             "proficiency": 80,
             "tag": "Database"
+          },
+          {
+            "name": "PHP ( Laravel )",
+            "level": "Strong",
+            "highlight": "Rest APIs, Authentication, Authorization",
+            "tag": "Backend",
+            "proficiency": 85,
+            "customFields": []
           }
         ]
       },
@@ -561,13 +430,6 @@
         "id": "it-systems",
         "name": "IT Support & Systems Administration",
         "skills": [
-          {
-            "highlight": "Structured root-cause diagnosis, component replacement, triage",
-            "level": "Strong",
-            "name": "Hardware & Diagnostic Troubleshooting",
-            "proficiency": 95,
-            "tag": "Hardware"
-          },
           {
             "highlight": "Ubuntu, Debian, systemd, bash scripting, permissions, SSH",
             "level": "Strong",
@@ -581,13 +443,6 @@
             "name": "Windows Administration",
             "proficiency": 86,
             "tag": "OS"
-          },
-          {
-            "highlight": "TCP/IP, DNS, DHCP, subnetting, Wireshark, routing",
-            "level": "Practical Experience",
-            "name": "Computer Networking",
-            "proficiency": 84,
-            "tag": "Networking"
           }
         ]
       },
@@ -597,32 +452,11 @@
         "name": "Cloud, DevOps & Tools",
         "skills": [
           {
-            "highlight": "Multi-stage builds, Docker Compose, container lifecycle",
-            "level": "Practical Experience",
-            "name": "Docker & Containerization",
-            "proficiency": 84,
-            "tag": "DevOps"
-          },
-          {
             "highlight": "Branching strategies, pull requests, code reviews, GitHub Actions",
             "level": "Strong",
             "name": "Git & GitHub",
             "proficiency": 90,
             "tag": "Tooling"
-          },
-          {
-            "highlight": "Azure VMs, App Services, Blob Storage, Azure AD fundamentals",
-            "level": "Practical Experience",
-            "name": "Microsoft Azure",
-            "proficiency": 78,
-            "tag": "Cloud"
-          },
-          {
-            "highlight": "Serverless container deployments, Cloud Build, IAM",
-            "level": "Working Proficiency",
-            "name": "Google Cloud / Cloud Run",
-            "proficiency": 75,
-            "tag": "Cloud"
           }
         ]
       },
@@ -632,32 +466,11 @@
         "name": "Mentoring, Training & Leadership",
         "skills": [
           {
-            "highlight": "Designed curricula for 200+ students across hardware and software",
-            "level": "Strong",
-            "name": "Technical Training & Pedagogy",
-            "proficiency": 96,
-            "tag": "Mentorship"
-          },
-          {
             "highlight": "Conference presentations, panel discussions, grassroots engagement",
             "level": "Strong",
             "name": "Public Speaking & Advocacy",
             "proficiency": 92,
             "tag": "Communication"
-          },
-          {
-            "highlight": "Supported 1,000+ attendee summits, logistics, quiz competitions",
-            "level": "Strong",
-            "name": "Event & Hackathon Coordination",
-            "proficiency": 90,
-            "tag": "Leadership"
-          },
-          {
-            "highlight": "Prompt engineering, generative developer tools, modern productivity",
-            "level": "Strong",
-            "name": "AI-Assisted Workflows",
-            "proficiency": 92,
-            "tag": "AI"
           }
         ]
       }
@@ -743,7 +556,24 @@
       "year": "2024"
     }
   ],
-  "education": [],
+  "education": [
+    {
+      "id": "edu-1790985618995",
+      "degree": "B.Sc",
+      "institution": "IU International University of Applied Sciences",
+      "location": "Germany",
+      "period": "2025-Present",
+      "isScholarship": true,
+      "scholarshipDetail": "Full Tuition Scholarship",
+      "grade": "",
+      "fieldOfStudy": "Computer Science",
+      "credentialUrl": "",
+      "imageUrl": "",
+      "photos": [],
+      "highlights": [],
+      "customFields": []
+    }
+  ],
   "events": [
     {
       "badge": "Government Innovation Flagship",
