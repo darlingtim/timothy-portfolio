@@ -50,15 +50,43 @@ function saveImageToDisk(
   // Clean and sanitize category folder name
   let category = 'general';
   if (requestedCategory && typeof requestedCategory === 'string') {
-    const clean = requestedCategory.toLowerCase().trim().replace(/[^a-z0-9_-]/g, '');
+    const clean = normalizeCategoryTag(requestedCategory);
     if (clean) category = clean;
   }
 
-  // If already a remote web URL or static path, return as is
-  if (imageData.startsWith('http://') || imageData.startsWith('https://') || imageData.startsWith('/static/images/')) {
+  // If already a remote web URL or static path, return as is (copying to assigned folder if requested)
+  if (imageData.startsWith('http://') || imageData.startsWith('https://')) {
     return {
       url: imageData,
       filename: originalFilename || 'image',
+      category
+    };
+  }
+
+  if (imageData.startsWith('/static/images/')) {
+    const currentCat = imageData.split('/')[3] || 'general';
+    const fileName = path.basename(imageData);
+    if (category !== currentCat) {
+      const src = path.join(STATIC_IMAGES_DIR, currentCat, fileName);
+      const destDir = path.join(STATIC_IMAGES_DIR, category);
+      if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+      const dest = path.join(destDir, fileName);
+      if (fs.existsSync(src)) {
+        try {
+          fs.copyFileSync(src, dest);
+          return {
+            url: `/static/images/${category}/${fileName}`,
+            filename: fileName,
+            category
+          };
+        } catch {
+          // ignore
+        }
+      }
+    }
+    return {
+      url: imageData,
+      filename: originalFilename || fileName,
       category
     };
   }
@@ -556,6 +584,19 @@ async function startServer() {
     for (const cat of IMAGE_CATEGORIES) {
       const candidate = path.join(STATIC_IMAGES_DIR, cat, filename);
       if (fs.existsSync(candidate)) return res.sendFile(candidate);
+    }
+
+    // 4. If still not found, check if a profile avatar fallback is available for avatar/profile queries
+    const lowerName = filename.toLowerCase();
+    if (lowerName.includes('avatar') || lowerName.includes('passport') || lowerName.includes('profile')) {
+      const avatarFallback = path.join(STATIC_IMAGES_DIR, 'profile', 'profile-avatar.jpg');
+      if (fs.existsSync(avatarFallback)) return res.sendFile(avatarFallback);
+    }
+
+    // 5. If it's an image file request that was not found, return 404 text instead of falling through to Vite/SPA index.html
+    const ext = path.extname(filename).toLowerCase();
+    if (['.jpg', '.jpeg', '.png', '.webp', '.svg', '.gif', '.ico'].includes(ext)) {
+      return res.status(404).type('text/plain').send('Image not found');
     }
 
     next();

@@ -63,7 +63,7 @@ export const AchievementModal: React.FC<AchievementModalProps> = ({
     if (!file) return;
 
     setIsUploading(true);
-    uploadImageFile(file, { category: 'certifications' })
+    uploadImageFile(file, { category: 'achievements' })
       .then((result) => {
         if (result.url) {
           setFormData((prev) => ({ ...prev, imageUrl: result.url }));
@@ -360,7 +360,7 @@ export const AchievementModal: React.FC<AchievementModalProps> = ({
         isOpen={isMediaLibraryOpen}
         onClose={() => setIsMediaLibraryOpen(false)}
         targetCategoryLabel="Achievement / Certificate"
-        defaultCategoryFilter="certifications"
+        defaultCategoryFilter="achievements"
         onSelectPhoto={(url) => {
           setFormData((prev) => ({ ...prev, imageUrl: url }));
         }}

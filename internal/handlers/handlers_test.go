@@ -26,13 +26,26 @@ func setupTestHandler(t *testing.T) *Handler {
 		MaxBodyBytes: 64 * 1024,
 	}
 
-	contentDir := filepath.Join("..", "..", "content")
+	realContentDir := filepath.Join("..", "..", "content")
 	// If running from package directory or root directory
-	if _, err := os.Stat(contentDir); os.IsNotExist(err) {
-		contentDir = "content"
+	if _, err := os.Stat(realContentDir); os.IsNotExist(err) {
+		realContentDir = "content"
 	}
 
-	contentSvc, err := services.NewContentService(contentDir)
+	tempContent := t.TempDir()
+	if entries, err := os.ReadDir(realContentDir); err == nil {
+		for _, entry := range entries {
+			if !entry.IsDir() {
+				src := filepath.Join(realContentDir, entry.Name())
+				dst := filepath.Join(tempContent, entry.Name())
+				if data, err := os.ReadFile(src); err == nil {
+					_ = os.WriteFile(dst, data, 0o644)
+				}
+			}
+		}
+	}
+
+	contentSvc, err := services.NewContentService(tempContent)
 	if err != nil {
 		t.Fatalf("failed to create content service: %v", err)
 	}
@@ -355,6 +368,7 @@ func TestHandleReplyValidationFailure(t *testing.T) {
 
 func TestHandleUploadPhoto(t *testing.T) {
 	tempContent := t.TempDir()
+	t.Setenv("STATIC_DIR", t.TempDir())
 	cfg := &config.Config{Port: "8080", AppEnv: "test", ContactEmail: "test@example.com", MaxBodyBytes: 64 * 1024}
 	contentSvc, err := services.NewContentService(tempContent)
 	if err != nil {
@@ -397,6 +411,60 @@ func TestHandleUploadPhoto(t *testing.T) {
 	profile := stored["profile"].(map[string]any)
 	if !strings.HasPrefix(profile["avatarUrl"].(string), "/static/images/") {
 		t.Errorf("expected avatarUrl under /static/images/, got: %v", profile["avatarUrl"])
+	}
+}
+
+func TestHandleUploadPhotoWithCategory(t *testing.T) {
+	tempContent := t.TempDir()
+	staticDir := t.TempDir()
+	t.Setenv("STATIC_DIR", staticDir)
+	cfg := &config.Config{Port: "8080", AppEnv: "test", ContactEmail: "test@example.com", MaxBodyBytes: 64 * 1024}
+	contentSvc, err := services.NewContentService(tempContent)
+	if err != nil {
+		t.Fatalf("content service: %v", err)
+	}
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	h, err := New(cfg, contentSvc, "", logger)
+	if err != nil {
+		t.Fatalf("new handler: %v", err)
+	}
+
+	categories := []string{"projects", "experience", "achievements", "certifications", "profile"}
+	for _, cat := range categories {
+		uploadPayload := map[string]any{
+			"imageData": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+			"filename":  cat + "_sample.png",
+			"category":  cat,
+		}
+		data, _ := json.Marshal(uploadPayload)
+
+		req := httptest.NewRequest(http.MethodPost, "/api/upload-photo", bytes.NewBuffer(data))
+		req.Header.Set("Content-Type", "application/json")
+		rr := httptest.NewRecorder()
+
+		h.HandleUploadPhoto(rr, req)
+
+		if rr.Code != http.StatusOK {
+			t.Fatalf("category %s: expected 200, got %d: %s", cat, rr.Code, rr.Body.String())
+		}
+
+		var res map[string]any
+		json.NewDecoder(rr.Body).Decode(&res)
+		url, ok := res["url"].(string)
+		if !ok {
+			t.Fatalf("category %s: url not returned", cat)
+		}
+		expectedPrefix := "/static/images/" + cat + "/"
+		if !strings.HasPrefix(url, expectedPrefix) {
+			t.Errorf("category %s: expected url to start with %s, got %s", cat, expectedPrefix, url)
+		}
+
+		// Verify file exists on disk in target folder
+		relPath := strings.TrimPrefix(url, "/static/images/")
+		fullPath := filepath.Join(staticDir, "images", relPath)
+		if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+			t.Errorf("category %s: expected file to exist at %s, but not found", cat, fullPath)
+		}
 	}
 }
 

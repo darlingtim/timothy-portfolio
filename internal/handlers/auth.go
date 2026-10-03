@@ -60,6 +60,8 @@ var (
 	activeOTPs       = make(map[string]*PendingOTP)
 	activeSessionsMu sync.RWMutex
 	activeSessions   = make(map[string]*AdminSession)
+	revokedTokensMu  sync.RWMutex
+	revokedTokens    = make(map[string]bool)
 )
 
 func maskEmail(email string) string {
@@ -153,6 +155,13 @@ func (h *Handler) CheckAdminAuth(r *http.Request) bool {
 		if os.Getenv("APP_ENV") == "development" || os.Getenv("NODE_ENV") == "development" {
 			return true
 		}
+		return false
+	}
+
+	revokedTokensMu.RLock()
+	isRevoked := revokedTokens[token]
+	revokedTokensMu.RUnlock()
+	if isRevoked {
 		return false
 	}
 
@@ -467,6 +476,10 @@ func (h *Handler) HandleAuthLogout(w http.ResponseWriter, r *http.Request) {
 		activeSessionsMu.Lock()
 		delete(activeSessions, token)
 		activeSessionsMu.Unlock()
+
+		revokedTokensMu.Lock()
+		revokedTokens[token] = true
+		revokedTokensMu.Unlock()
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -749,7 +762,7 @@ func (h *Handler) HandleImagesList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	staticImagesDir := filepath.Join(".", "static", "images")
+	staticImagesDir := h.getStaticImagesDir()
 	seenURLs := map[string]bool{}
 	var result []map[string]any
 
@@ -818,6 +831,98 @@ func (h *Handler) HandleImagesList(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// 3. Harvest any images referenced in portfolio data
+	contentDir := h.getContentDir()
+	dataPath := filepath.Join(contentDir, "portfolio_data.json")
+	if dataBytes, err := os.ReadFile(dataPath); err == nil && len(dataBytes) > 0 {
+		var pData map[string]any
+		if err := json.Unmarshal(dataBytes, &pData); err == nil {
+			addImageRef := func(url string, defaultCat string, label string) {
+				cleanURL := strings.TrimSpace(url)
+				if cleanURL == "" || seenURLs[cleanURL] {
+					return
+				}
+				seenURLs[cleanURL] = true
+				source := "portfolio"
+				if strings.HasPrefix(cleanURL, "/static/") {
+					source = "uploaded"
+				}
+				filename := label
+				if filename == "" {
+					parts := strings.Split(cleanURL, "/")
+					filename = parts[len(parts)-1]
+				}
+				result = append(result, map[string]any{
+					"url":      cleanURL,
+					"filename": filename,
+					"category": defaultCat,
+					"source":   source,
+				})
+			}
+
+			// Profile
+			if prof, ok := pData["profile"].(map[string]any); ok {
+				if u, ok := prof["avatarUrl"].(string); ok {
+					addImageRef(u, "profile", "Profile Avatar")
+				}
+			}
+			// Carousel
+			if cc, ok := pData["carouselConfig"].(map[string]any); ok {
+				if photos, ok := cc["photos"].([]any); ok {
+					for _, p := range photos {
+						if pm, ok := p.(map[string]any); ok {
+							if u, ok := pm["url"].(string); ok {
+								cat := "carousel"
+								if tag, ok := pm["tag"].(string); ok && tag != "" {
+									cat = strings.ToLower(tag)
+								}
+								caption, _ := pm["caption"].(string)
+								addImageRef(u, cat, caption)
+							}
+						}
+					}
+				}
+			}
+			// Projects
+			if projs, ok := pData["projects"].([]any); ok {
+				for _, p := range projs {
+					if pm, ok := p.(map[string]any); ok {
+						name, _ := pm["name"].(string)
+						if u, ok := pm["imageUrl"].(string); ok {
+							addImageRef(u, "projects", name)
+						}
+					}
+				}
+			}
+			// Experiences
+			if exps, ok := pData["experiences"].([]any); ok {
+				for _, e := range exps {
+					if em, ok := e.(map[string]any); ok {
+						role, _ := em["role"].(string)
+						if u, ok := em["imageUrl"].(string); ok {
+							addImageRef(u, "experience", role)
+						}
+					}
+				}
+			}
+			// Gallery
+			if gal, ok := pData["galleryItems"].([]any); ok {
+				for _, g := range gal {
+					if gm, ok := g.(map[string]any); ok {
+						title, _ := gm["title"].(string)
+						cat, _ := gm["category"].(string)
+						if cat == "" {
+							cat = "gallery"
+						}
+						if u, ok := gm["imageUrl"].(string); ok {
+							addImageRef(u, strings.ToLower(cat), title)
+						}
+					}
+				}
+			}
+		}
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]any{
 		"success": true,
@@ -832,7 +937,7 @@ func (h *Handler) HandleImagesCategories(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	staticImagesDir := filepath.Join(".", "static", "images")
+	staticImagesDir := h.getStaticImagesDir()
 	categories := map[string][]string{}
 
 	if entries, err := os.ReadDir(staticImagesDir); err == nil {
@@ -893,7 +998,7 @@ func (h *Handler) HandleImagesMove(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	staticImagesDir := filepath.Join(".", "static", "images")
+	staticImagesDir := h.getStaticImagesDir()
 	destCategoryDir := filepath.Join(staticImagesDir, req.TargetCategory)
 	_ = os.MkdirAll(destCategoryDir, 0o755)
 
@@ -1009,7 +1114,7 @@ func (h *Handler) HandleImagesDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	staticImagesDir := filepath.Join(".", "static", "images")
+	staticImagesDir := h.getStaticImagesDir()
 	categories := []string{"profile", "carousel", "projects", "experience", "education", "gallery", "events", "certifications", "achievements", "mentoring", "general"}
 	var deleted []string
 
@@ -1089,7 +1194,7 @@ func (h *Handler) HandleImagesDeduplicate(w http.ResponseWriter, r *http.Request
 		IsRoot   bool
 	}
 
-	staticImagesDir := filepath.Join(".", "static", "images")
+	staticImagesDir := h.getStaticImagesDir()
 	var fileList []FileEntry
 
 	// Scan entries in staticImagesDir

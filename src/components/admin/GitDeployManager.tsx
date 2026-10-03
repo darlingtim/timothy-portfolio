@@ -17,6 +17,7 @@ import {
 import { 
   testGitHubRepoConnection, 
   commitFileToGitHub, 
+  commitBinaryFileToGitHub,
   GitHubRepoInfo 
 } from '../../utils/githubSync';
 
@@ -129,6 +130,43 @@ export const GitDeployManager: React.FC<GitDeployManagerProps> = ({
     const contentString = JSON.stringify(portfolioData, null, 2);
     const commitMessage = `chore(cms): update portfolio content [${new Date().toISOString().split('T')[0]}]`;
 
+    // 1. Identify all uploaded images referenced in portfolio content
+    const imageMatches = contentString.match(/\/static\/images\/[a-zA-Z0-9_\-\.\/]+/g) || [];
+    const uniqueImageUrls = Array.from(new Set(imageMatches));
+
+    let uploadedImagesCount = 0;
+    for (const imgUrl of uniqueImageUrls) {
+      try {
+        const imgRes = await fetch(imgUrl);
+        if (imgRes.ok) {
+          const contentType = imgRes.headers.get('content-type') || '';
+          if (contentType.startsWith('image/')) {
+            const blob = await imgRes.blob();
+            const base64Data = await new Promise<string>((resolve) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result as string);
+              reader.readAsDataURL(blob);
+            });
+            if (base64Data) {
+              const gitPath = imgUrl.replace(/^\/+/, '');
+              await commitBinaryFileToGitHub(
+                owner,
+                repo,
+                token,
+                gitPath,
+                base64Data,
+                `chore(cms): sync uploaded media asset [${gitPath}]`,
+                branch
+              );
+              uploadedImagesCount++;
+            }
+          }
+        }
+      } catch (imgErr) {
+        console.warn(`[GitDeploy] Could not sync asset ${imgUrl} to GitHub:`, imgErr);
+      }
+    }
+
     const result = await commitFileToGitHub(
       owner,
       repo,
@@ -150,9 +188,9 @@ export const GitDeployManager: React.FC<GitDeployManagerProps> = ({
       localStorage.setItem('git_last_commit', JSON.stringify(commitInfo));
       setConnectionStatus({
         success: true,
-        message: `Committed successfully (${result.sha?.substring(0, 7) || 'HEAD'})! CI/CD auto-deploy triggered.`,
+        message: `Committed successfully (${result.sha?.substring(0, 7) || 'HEAD'})! CI/CD auto-deploy triggered.${uploadedImagesCount > 0 ? ` (${uploadedImagesCount} media files synced)` : ''}`,
       });
-      showToast('🚀 Changes committed directly to GitHub repo! CI/CD auto-deploy triggered.');
+      showToast(`🚀 Changes committed directly to GitHub repo! ${uploadedImagesCount > 0 ? `(${uploadedImagesCount} media files synced) ` : ''}CI/CD auto-deploy triggered.`);
     } else {
       setConnectionStatus({
         success: false,

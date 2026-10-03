@@ -85,17 +85,25 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
   const [loading, setLoading] = useState(true);
   const [selectedUrl, setSelectedUrl] = useState<string>('');
   const [selectedItem, setSelectedItem] = useState<MediaImageItem | null>(null);
+  const resolveCategory = (filter?: string): ImageCategory => {
+    if (filter && filter !== 'all') {
+      const lower = filter.toLowerCase().trim() as ImageCategory;
+      if (ALL_CATEGORY_OPTIONS.includes(lower)) return lower;
+    }
+    return 'general';
+  };
+
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>(defaultCategoryFilter);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadCategory, setUploadCategory] = useState<ImageCategory>('general');
+  const [uploadCategory, setUploadCategory] = useState<ImageCategory>(() => resolveCategory(defaultCategoryFilter));
   const [showUploadDrawer, setShowUploadDrawer] = useState(false);
   const [hasCopiedUrl, setHasCopiedUrl] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Multi-select for batch actions
   const [checkedUrls, setCheckedUrls] = useState<Set<string>>(new Set());
-  const [batchTargetCategory, setBatchTargetCategory] = useState<ImageCategory>('general');
+  const [batchTargetCategory, setBatchTargetCategory] = useState<ImageCategory>(() => resolveCategory(defaultCategoryFilter));
   const [isBatchOperating, setIsBatchOperating] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
   const [confirmDeleteUrls, setConfirmDeleteUrls] = useState<string[] | null>(null);
@@ -127,8 +135,12 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
   };
 
   useEffect(() => {
+    setActiveCategory(defaultCategoryFilter);
+    const resolved = resolveCategory(defaultCategoryFilter);
+    setUploadCategory(resolved);
+    setBatchTargetCategory(resolved);
     loadPhotos();
-  }, [isOpen]);
+  }, [isOpen, defaultCategoryFilter]);
 
   const showNotification = (type: 'success' | 'error' | 'info', text: string) => {
     setStatusMessage({ type, text });
@@ -274,6 +286,17 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
     }
   };
 
+  const handleSelectCategory = (cat: string) => {
+    setActiveCategory(cat);
+    if (cat !== 'all') {
+      const lower = cat.toLowerCase().trim() as ImageCategory;
+      if (ALL_CATEGORY_OPTIONS.includes(lower)) {
+        setUploadCategory(lower);
+        setBatchTargetCategory(lower);
+      }
+    }
+  };
+
   const handleDirectUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -282,44 +305,57 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
     try {
       const res = await uploadImageFile(file, { category: uploadCategory });
       if (res.url) {
+        const assignedCat = (res.category || uploadCategory).toLowerCase();
         const newItem: MediaImageItem = {
           url: res.url,
           filename: res.filename || file.name,
-          category: res.category || uploadCategory,
+          category: assignedCat,
           source: 'uploaded',
           modified: new Date().toISOString()
         };
-        setImages((prev) => [newItem, ...prev]);
+        setImages((prev) => [newItem, ...prev.filter((item) => item.url !== res.url)]);
         setSelectedUrl(res.url);
         setSelectedItem(newItem);
         setShowUploadDrawer(false);
-        showNotification('success', `Uploaded "${res.filename || file.name}" to "${res.category || uploadCategory}".`);
+
+        // Ensure user sees the newly uploaded image immediately in the assigned folder
+        if (activeCategory !== 'all' && activeCategory.toLowerCase() !== assignedCat) {
+          setActiveCategory(assignedCat);
+        }
+
+        showNotification('success', `Uploaded "${res.filename || file.name}" to folder "${assignedCat}".`);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to upload image:', err);
-      showNotification('error', 'Failed to upload photo');
+      showNotification('error', err?.message || 'Failed to upload photo');
     } finally {
       setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
-  // Category counts
+  // Category counts (case-insensitive)
   const categoryCounts = images.reduce<Record<string, number>>((acc, img) => {
-    const cat = img.category || 'general';
+    const cat = (img.category || 'general').toLowerCase();
     acc[cat] = (acc[cat] || 0) + 1;
     return acc;
   }, {});
 
-  const availableCategories = ['all', ...Object.keys(categoryCounts).sort()];
+  // Always show all recognized folders so an admin can always view and upload to any assigned folder
+  const standardSet = new Set<string>(['all', ...ALL_CATEGORY_OPTIONS]);
+  Object.keys(categoryCounts).forEach((c) => standardSet.add(c.toLowerCase()));
+  const availableCategories = Array.from(standardSet);
 
-  // Filter images
+  // Filter images (case-insensitive match for category)
   const filteredImages = images.filter((img) => {
-    const matchesCategory = activeCategory === 'all' || img.category === activeCategory;
+    const imgCat = (img.category || 'general').toLowerCase();
+    const filterCat = activeCategory.toLowerCase();
+    const matchesCategory = filterCat === 'all' || imgCat === filterCat;
     const term = searchTerm.toLowerCase().trim();
     const matchesSearch = !term || 
       img.filename.toLowerCase().includes(term) || 
       img.url.toLowerCase().includes(term) ||
-      (img.category && img.category.toLowerCase().includes(term));
+      imgCat.includes(term);
     return matchesCategory && matchesSearch;
   });
 
@@ -508,7 +544,7 @@ export const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({
                 <button
                   key={cat}
                   type="button"
-                  onClick={() => setActiveCategory(cat)}
+                  onClick={() => handleSelectCategory(cat)}
                   className={`px-3 py-1 rounded-lg font-medium whitespace-nowrap transition-all flex items-center gap-1.5 ${
                     isActive
                       ? 'bg-sky-600 text-white shadow-sm'

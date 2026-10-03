@@ -91,7 +91,44 @@ func main() {
 	staticImagesDir := filepath.Join(staticDir, "images")
 	_ = os.MkdirAll(staticImagesDir, 0o755)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir))))
-	mux.Handle("/images/", http.StripPrefix("/images/", http.FileServer(http.Dir(staticImagesDir))))
+
+	// Resilient image resolver: if an image was moved or requested across folders, locate and serve it
+	categories := []string{"profile", "carousel", "projects", "experience", "education", "gallery", "events", "certifications", "achievements", "mentoring", "general"}
+	resilientImageHandler := func(prefix string) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			rel := strings.TrimPrefix(r.URL.Path, prefix)
+			rel = strings.TrimPrefix(rel, "/")
+			if rel == "" {
+				http.NotFound(w, r)
+				return
+			}
+			// 1. Direct path check
+			directPath := filepath.Join(staticImagesDir, rel)
+			if info, err := os.Stat(directPath); err == nil && !info.IsDir() {
+				http.ServeFile(w, r, directPath)
+				return
+			}
+			// 2. Fallback check across root and all category subdirectories
+			baseName := filepath.Base(rel)
+			if baseName != "" && baseName != "." {
+				inRoot := filepath.Join(staticImagesDir, baseName)
+				if info, err := os.Stat(inRoot); err == nil && !info.IsDir() {
+					http.ServeFile(w, r, inRoot)
+					return
+				}
+				for _, cat := range categories {
+					candidate := filepath.Join(staticImagesDir, cat, baseName)
+					if info, err := os.Stat(candidate); err == nil && !info.IsDir() {
+						http.ServeFile(w, r, candidate)
+						return
+					}
+				}
+			}
+			http.NotFound(w, r)
+		}
+	}
+	mux.HandleFunc("/static/images/", resilientImageHandler("/static/images/"))
+	mux.HandleFunc("/images/", resilientImageHandler("/images/"))
 
 	mux.HandleFunc("/health", h.Health)
 	mux.HandleFunc("/api/health", h.Health)

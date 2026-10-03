@@ -185,3 +185,102 @@ export async function commitFileToGitHub(
     return { success: false, error: err.message || 'Unexpected commit error' };
   }
 }
+
+/**
+ * Commits a binary file (data URL or raw base64 string) directly to a GitHub repository using GitHub's REST API.
+ */
+export async function commitBinaryFileToGitHub(
+  owner: string,
+  repo: string,
+  token: string,
+  filePath: string,
+  dataUrlOrBase64: string,
+  commitMessage: string,
+  branch: string = 'main'
+): Promise<CommitResult> {
+  try {
+    const cleanOwner = owner.trim();
+    const cleanRepo = repo.trim();
+    const cleanToken = token.trim();
+    const cleanBranch = branch.trim() || 'main';
+
+    if (!cleanOwner || !cleanRepo || !cleanToken) {
+      return {
+        success: false,
+        error: 'Owner, repo, and Personal Access Token (PAT) are required to commit.',
+      };
+    }
+
+    const headers: Record<string, string> = {
+      'Accept': 'application/vnd.github.v3+json',
+      'Authorization': `token ${cleanToken}`,
+      'Content-Type': 'application/json',
+    };
+
+    // 1. Fetch current file SHA if it exists
+    let currentSha: string | undefined;
+    try {
+      const getFileRes = await fetch(
+        `https://api.github.com/repos/${cleanOwner}/${cleanRepo}/contents/${filePath}?ref=${cleanBranch}`,
+        { headers }
+      );
+      if (getFileRes.ok) {
+        const fileData = await getFileRes.json();
+        currentSha = fileData.sha;
+      }
+    } catch {
+      // File may not exist yet in the repo
+    }
+
+    // 2. Extract raw base64 string from data URL if needed
+    let base64Content = dataUrlOrBase64;
+    const base64Marker = ';base64,';
+    const markerIndex = dataUrlOrBase64.indexOf(base64Marker);
+    if (markerIndex !== -1) {
+      base64Content = dataUrlOrBase64.substring(markerIndex + base64Marker.length);
+    }
+
+    // 3. Prepare PUT payload
+    const putPayload: any = {
+      message: commitMessage,
+      content: base64Content,
+      branch: cleanBranch,
+    };
+    if (currentSha) {
+      putPayload.sha = currentSha;
+    }
+
+    // 4. Commit file via GitHub Contents API
+    const putRes = await fetch(
+      `https://api.github.com/repos/${cleanOwner}/${cleanRepo}/contents/${filePath}`,
+      {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(putPayload),
+      }
+    );
+
+    if (!putRes.ok) {
+      let errMsg = `Commit failed (${putRes.status})`;
+      try {
+        const errJson = await putRes.json();
+        errMsg = errJson.message || errMsg;
+      } catch {
+        const errText = await putRes.text();
+        errMsg = errText || errMsg;
+      }
+      return { success: false, error: errMsg };
+    }
+
+    const resData = await putRes.json();
+    return {
+      success: true,
+      sha: resData.commit?.sha,
+      htmlUrl: resData.commit?.html_url,
+      message: resData.commit?.message,
+    };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Unexpected commit error' };
+  }
+}
+

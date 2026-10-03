@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { utf8ToBase64, testGitHubRepoConnection, commitFileToGitHub } from '../../src/utils/githubSync';
+import { utf8ToBase64, testGitHubRepoConnection, commitFileToGitHub, commitBinaryFileToGitHub } from '../../src/utils/githubSync';
 
 describe('GitHub Synchronization Utility (githubSync)', () => {
   beforeEach(() => {
@@ -100,4 +100,52 @@ describe('GitHub Synchronization Utility (githubSync)', () => {
       expect(res.sha).toBe('new_commit_sha_456');
     });
   });
+
+  describe('commitBinaryFileToGitHub', () => {
+    it('requires owner, repo and token', async () => {
+      const res = await commitBinaryFileToGitHub('timothyododo', 'portfolio', '', 'static/images/test.png', 'data:image/png;base64,abc==', 'commit');
+      expect(res.success).toBe(false);
+      expect(res.error).toContain('required');
+    });
+
+    it('strips data URL prefix and commits raw base64 content', async () => {
+      let passedBody: any = null;
+      global.fetch = vi.fn()
+        // 1st call: GET existing file
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 404,
+        } as any)
+        // 2nd call: PUT binary file
+        .mockImplementationOnce(async (_url, options: any) => {
+          passedBody = JSON.parse(options.body);
+          return {
+            ok: true,
+            json: async () => ({
+              commit: {
+                sha: 'binary_sha_789',
+                html_url: 'https://github.com/timothyododo/portfolio/commit/binary_sha_789',
+                message: 'chore(cms): sync media asset',
+              },
+            }),
+          };
+        });
+
+      const res = await commitBinaryFileToGitHub(
+        'timothyododo',
+        'portfolio',
+        'ghp_sampletoken',
+        'static/images/profile/avatar.png',
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==',
+        'chore(cms): sync media asset',
+        'main'
+      );
+
+      expect(res.success).toBe(true);
+      expect(res.sha).toBe('binary_sha_789');
+      // The prefix "data:image/png;base64," must be stripped
+      expect(passedBody.content).toBe('iVBORw0KGgoAAAANSUhEUg==');
+    });
+  });
 });
+

@@ -418,6 +418,15 @@ func (h *Handler) getContentDir() string {
 	return "content"
 }
 
+func (h *Handler) getStaticImagesDir() string {
+	staticDir := os.Getenv("STATIC_DIR")
+	if staticDir == "" {
+		staticDir = "static"
+	}
+	staticDir, _ = filepath.Abs(staticDir)
+	return filepath.Join(staticDir, "images")
+}
+
 func (h *Handler) persistContactMessage(sub models.ContactSubmission) map[string]any {
 	contentDir := h.getContentDir()
 	now := time.Now().UTC().Format(time.RFC3339)
@@ -644,9 +653,17 @@ func (h *Handler) HandleUploadPhoto(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 				finalFilename = fmt.Sprintf("%s-%d%s", baseName, time.Now().UnixNano(), ext)
-				categoryDir := filepath.Join(".", "static", "images", category)
+				categoryDir := filepath.Join(h.getStaticImagesDir(), category)
 				_ = os.MkdirAll(categoryDir, 0o755)
 				_ = os.WriteFile(filepath.Join(categoryDir, finalFilename), decoded, 0o644)
+
+				// Also sync to dist/static/images if dist directory exists
+				distCategoryDir := filepath.Join(".", "dist", "static", "images", category)
+				if _, err := os.Stat(filepath.Join(".", "dist")); err == nil {
+					_ = os.MkdirAll(distCategoryDir, 0o755)
+					_ = os.WriteFile(filepath.Join(distCategoryDir, finalFilename), decoded, 0o644)
+				}
+
 				finalURL = fmt.Sprintf("/static/images/%s/%s", category, finalFilename)
 			}
 		}
