@@ -189,7 +189,7 @@
       ],
       "github": "",
       "liveUrl": "",
-      "imageUrl": "/static/images/experience/Buildathon_trainees-1790980491091684136.jpg",
+      "imageUrl": "/static/images/projects/Buildathon_trainees-1791066374016038874.jpg",
       "overview": "Curriculum codebases, hardware schematics, and interactive MicroPython modules developed to introduce secondary school students to physical computing.",
       "problem": "Young people in rural areas have little or no computer programming knowledge and they lack access to necessary learning resources which includes but is not limited to smart devices, advanced trainers and the fund to access qualitative Tech education hence their inability to measure up with their counterparts in urban areas when it comes to technology .",
       "solution": "Timothy Ododo was selected as a trainer in Anambra state, Nigeria to introduce and train young people on hardware programming using Pico-H micro device and Python programming language.\nRaspberry Pi foundation and MTN Nigeria donated the Pico-H device that each student.",
@@ -236,7 +236,7 @@
       ],
       "github": "https://github.com/darlingtim/timothy-portfolio",
       "liveUrl": "https://timothyododo.onrender.com",
-      "imageUrl": "/static/images/projects/timothy_Ododo_Portfolio_WebApp-1790983379541487765.png",
+      "imageUrl": "/static/images/projects/timothy_Ododo_Portfolio_WebApp-1791066411939076647.png",
       "overview": "A lightweight, robust web service and API showcasing idiomatic Go architecture, structured logging with log/slog, and secure HTTP middleware.",
       "problem": "The works, expertise and impacts made by Timothy ododo are scattered all over various platforms and storages, in bits and pieces: There is no singular platform to refer prospective collaborators, employers, admirers or followers  despite his high result-oriented works which tends to grow at a very high geometric scale.",
       "solution": "A web app was proposed to house and showcase Timothy Ododo's past, present and future work.  ",
@@ -306,7 +306,7 @@
         "Public Speaking"
       ],
       "companyUrl": "",
-      "imageUrl": "/static/images/experience/tech_advocacy-1790987182823428411.jpg",
+      "imageUrl": "/static/images/experience/tech_advocacy-1791066592963284548.jpg",
       "customFields": []
     },
     {
@@ -416,12 +416,12 @@
             "tag": "Database"
           },
           {
-            "name": "PHP ( Laravel )",
-            "level": "Strong",
+            "customFields": [],
             "highlight": "Rest APIs, Authentication, Authorization",
-            "tag": "Backend",
+            "level": "Strong",
+            "name": "PHP ( Laravel )",
             "proficiency": 85,
-            "customFields": []
+            "tag": "Backend"
           }
         ]
       },
@@ -558,20 +558,20 @@
   ],
   "education": [
     {
-      "id": "edu-1790985618995",
+      "credentialUrl": "",
+      "customFields": [],
       "degree": "B.Sc",
+      "fieldOfStudy": "Computer Science",
+      "grade": "",
+      "highlights": [],
+      "id": "edu-1790985618995",
+      "imageUrl": "",
       "institution": "IU International University of Applied Sciences",
+      "isScholarship": true,
       "location": "Germany",
       "period": "2025-Present",
-      "isScholarship": true,
-      "scholarshipDetail": "Full Tuition Scholarship",
-      "grade": "",
-      "fieldOfStudy": "Computer Science",
-      "credentialUrl": "",
-      "imageUrl": "",
       "photos": [],
-      "highlights": [],
-      "customFields": []
+      "scholarshipDetail": "Full Tuition Scholarship"
     }
   ],
   "events": [
@@ -938,31 +938,31 @@
     "mode": "carousel",
     "photos": [
       {
-        "id": "photo-1790967190290",
-        "url": "/static/images/carousel/timothyododoPassport-1790967190081659821.jpg",
+        "id": "photo-1791065883451",
+        "url": "/static/images/carousel/timothyododoPassport-1791065883286250832.jpg",
         "caption": "Timothy Ododo",
         "tag": "Carousel",
         "isIncludedInCarousel": true,
-        "order": 5,
-        "dateAdded": "2026-10-02T18:53:10.290Z"
+        "order": 4,
+        "dateAdded": "2026-10-03T22:18:03.451Z"
       },
       {
-        "id": "photo-1790967048061",
-        "url": "/static/images/carousel/hardware_programming_trainer-1790967047910834223.jpg",
+        "id": "photo-1791065966453",
+        "url": "/static/images/carousel/hardware_programming_trainer-1791065966315361129.jpg",
         "caption": "FMYSD Hardware Programming Trainer  at Buildathon Holiday Camp.",
         "tag": "Carousel",
         "isIncludedInCarousel": true,
         "order": 4,
-        "dateAdded": "2026-10-02T18:50:48.061Z"
+        "dateAdded": "2026-10-03T22:19:26.453Z"
       },
       {
-        "id": "photo-1790968174568",
-        "url": "/static/images/carousel/EduTech_Soulution_Pitch-1790968174319447851.jpg",
+        "id": "photo-1791066067294",
+        "url": "/static/images/carousel/EduTech_Soulution_Pitch-1791066067108549021.jpg",
         "caption": "EduTech Solution Pitch with Benue state Government and JICA",
         "tag": "Carousel",
         "isIncludedInCarousel": true,
-        "order": 3,
-        "dateAdded": "2026-10-02T19:09:34.568Z"
+        "order": 4,
+        "dateAdded": "2026-10-03T22:21:07.294Z"
       }
     ],
     "showArrows": true,
