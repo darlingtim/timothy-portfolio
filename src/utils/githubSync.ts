@@ -284,3 +284,225 @@ export async function commitBinaryFileToGitHub(
   }
 }
 
+export interface GitFileCommit {
+  path: string;
+  content: string; // text string or raw base64 string
+  encoding?: 'utf-8' | 'base64';
+}
+
+/**
+ * Atomically commits multiple files (both text and binary) to a GitHub repository
+ * using GitHub's Git Database API (Blobs, Trees, Commits, and Refs).
+ * This supports binary files up to 100 MB and commits all files in a single atomic Git commit.
+ */
+export async function commitFilesAtomicToGitHub(
+  owner: string,
+  repo: string,
+  token: string,
+  files: GitFileCommit[],
+  commitMessage: string,
+  branch: string = 'main'
+): Promise<CommitResult> {
+  try {
+    const cleanOwner = owner.trim();
+    const cleanRepo = repo.trim();
+    const cleanToken = token.trim();
+    const cleanBranch = branch.trim() || 'main';
+
+    if (!cleanOwner || !cleanRepo || !cleanToken) {
+      return {
+        success: false,
+        error: 'Owner, repo, and Personal Access Token (PAT) are required to commit.',
+      };
+    }
+
+    if (!files || files.length === 0) {
+      return {
+        success: false,
+        error: 'No files provided for commit.',
+      };
+    }
+
+    const headers: Record<string, string> = {
+      'Accept': 'application/vnd.github.v3+json',
+      'Authorization': `Bearer ${cleanToken}`,
+      'Content-Type': 'application/json',
+    };
+
+    // 1. Get latest commit SHA on the target branch
+    let refRes = await fetch(
+      `https://api.github.com/repos/${cleanOwner}/${cleanRepo}/git/ref/heads/${cleanBranch}`,
+      { headers }
+    );
+    if (!refRes.ok) {
+      refRes = await fetch(
+        `https://api.github.com/repos/${cleanOwner}/${cleanRepo}/git/refs/heads/${cleanBranch}`,
+        { headers }
+      );
+    }
+    if (!refRes.ok) {
+      let msg = `Failed to get branch "${cleanBranch}" ref (${refRes.status})`;
+      try {
+        const j = await refRes.json();
+        msg = j.message || msg;
+      } catch {
+        // ignore
+      }
+      return { success: false, error: msg };
+    }
+    const refData = await refRes.json();
+    const latestCommitSha = refData.object?.sha;
+    if (!latestCommitSha) {
+      return { success: false, error: `Could not determine latest commit on branch "${cleanBranch}".` };
+    }
+
+    // 2. Get the base tree SHA of the latest commit
+    const commitRes = await fetch(
+      `https://api.github.com/repos/${cleanOwner}/${cleanRepo}/git/commits/${latestCommitSha}`,
+      { headers }
+    );
+    if (!commitRes.ok) {
+      return { success: false, error: `Failed to fetch base commit (${commitRes.status}).` };
+    }
+    const commitData = await commitRes.json();
+    const baseTreeSha = commitData.tree?.sha;
+
+    // 3. Create a Git Blob for each file (supports binary files up to 100 MB)
+    const treeItems: Array<{ path: string; mode: string; type: string; sha: string }> = [];
+    for (const file of files) {
+      const cleanPath = file.path.replace(/^\/+/, '');
+      let base64Content = file.content;
+      const encoding = file.encoding || 'utf-8';
+
+      if (encoding === 'base64') {
+        const base64Marker = ';base64,';
+        const markerIndex = base64Content.indexOf(base64Marker);
+        if (markerIndex !== -1) {
+          base64Content = base64Content.substring(markerIndex + base64Marker.length);
+        }
+      } else {
+        base64Content = utf8ToBase64(file.content);
+      }
+
+      const blobRes = await fetch(
+        `https://api.github.com/repos/${cleanOwner}/${cleanRepo}/git/blobs`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            content: base64Content,
+            encoding: 'base64',
+          }),
+        }
+      );
+
+      if (!blobRes.ok) {
+        let errMsg = `Failed to upload blob for ${cleanPath} (${blobRes.status})`;
+        try {
+          const errJson = await blobRes.json();
+          errMsg = `${cleanPath}: ${errJson.message || errMsg}`;
+        } catch {
+          // ignore
+        }
+        return { success: false, error: errMsg };
+      }
+
+      const blobData = await blobRes.json();
+      treeItems.push({
+        path: cleanPath,
+        mode: '100644',
+        type: 'blob',
+        sha: blobData.sha,
+      });
+    }
+
+    // 4. Create new Git tree incorporating all new blobs
+    const treePayload: any = {
+      tree: treeItems,
+    };
+    if (baseTreeSha) {
+      treePayload.base_tree = baseTreeSha;
+    }
+
+    const newTreeRes = await fetch(
+      `https://api.github.com/repos/${cleanOwner}/${cleanRepo}/git/trees`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(treePayload),
+      }
+    );
+    if (!newTreeRes.ok) {
+      let errMsg = `Failed to create Git tree (${newTreeRes.status})`;
+      try {
+        const errJson = await newTreeRes.json();
+        errMsg = errJson.message || errMsg;
+      } catch {
+        // ignore
+      }
+      return { success: false, error: errMsg };
+    }
+    const newTreeData = await newTreeRes.json();
+    const newTreeSha = newTreeData.sha;
+
+    // 5. Create new Git commit
+    const newCommitRes = await fetch(
+      `https://api.github.com/repos/${cleanOwner}/${cleanRepo}/git/commits`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          message: commitMessage,
+          tree: newTreeSha,
+          parents: [latestCommitSha],
+        }),
+      }
+    );
+    if (!newCommitRes.ok) {
+      let errMsg = `Failed to create commit (${newCommitRes.status})`;
+      try {
+        const errJson = await newCommitRes.json();
+        errMsg = errJson.message || errMsg;
+      } catch {
+        // ignore
+      }
+      return { success: false, error: errMsg };
+    }
+    const newCommitData = await newCommitRes.json();
+    const newCommitSha = newCommitData.sha;
+
+    // 6. Update target branch reference to new commit
+    const updateRefRes = await fetch(
+      `https://api.github.com/repos/${cleanOwner}/${cleanRepo}/git/refs/heads/${cleanBranch}`,
+      {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({
+          sha: newCommitSha,
+          force: false,
+        }),
+      }
+    );
+    if (!updateRefRes.ok) {
+      let errMsg = `Failed to update branch ${cleanBranch} (${updateRefRes.status})`;
+      try {
+        const errJson = await updateRefRes.json();
+        errMsg = errJson.message || errMsg;
+      } catch {
+        // ignore
+      }
+      return { success: false, error: errMsg };
+    }
+
+    return {
+      success: true,
+      sha: newCommitSha,
+      htmlUrl: `https://github.com/${cleanOwner}/${cleanRepo}/commit/${newCommitSha}`,
+      message: commitMessage,
+    };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Unexpected atomic commit error' };
+  }
+}
+
+

@@ -123,6 +123,34 @@ func main() {
 						return
 					}
 				}
+
+				// 3. Fallback prefix check: if filename has timestamp suffix (e.g. name-12345.jpg),
+				// search for any file starting with "name-" across category directories
+				if lastDash := strings.LastIndex(baseName, "-"); lastDash > 0 {
+					prefixPattern := baseName[:lastDash+1]
+					for _, cat := range categories {
+						matches, _ := filepath.Glob(filepath.Join(staticImagesDir, cat, prefixPattern+"*"))
+						if len(matches) > 0 {
+							http.ServeFile(w, r, matches[len(matches)-1])
+							return
+						}
+					}
+					matches, _ := filepath.Glob(filepath.Join(staticImagesDir, prefixPattern+"*"))
+					if len(matches) > 0 {
+						http.ServeFile(w, r, matches[len(matches)-1])
+						return
+					}
+				}
+
+				// 4. Avatar fallback for passport/avatar/profile queries
+				lowerName := strings.ToLower(baseName)
+				if strings.Contains(lowerName, "avatar") || strings.Contains(lowerName, "passport") || strings.Contains(lowerName, "profile") {
+					avatarFallback := filepath.Join(staticImagesDir, "profile", "profile-avatar.jpg")
+					if info, err := os.Stat(avatarFallback); err == nil && !info.IsDir() {
+						http.ServeFile(w, r, avatarFallback)
+						return
+					}
+				}
 			}
 			http.NotFound(w, r)
 		}

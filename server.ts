@@ -586,7 +586,22 @@ async function startServer() {
       if (fs.existsSync(candidate)) return res.sendFile(candidate);
     }
 
-    // 4. If still not found, check if a profile avatar fallback is available for avatar/profile queries
+    // 4. Prefix fallback: if filename has timestamp suffix (e.g. name-12345.jpg),
+    // search for any file starting with "name-" across category directories
+    const lastDash = filename.lastIndexOf('-');
+    if (lastDash > 0) {
+      const basePrefix = filename.substring(0, lastDash + 1);
+      for (const cat of IMAGE_CATEGORIES) {
+        const catDir = path.join(STATIC_IMAGES_DIR, cat);
+        if (fs.existsSync(catDir)) {
+          const files = fs.readdirSync(catDir);
+          const match = files.find(f => f.startsWith(basePrefix));
+          if (match) return res.sendFile(path.join(catDir, match));
+        }
+      }
+    }
+
+    // 5. If still not found, check if a profile avatar fallback is available for avatar/profile queries
     const lowerName = filename.toLowerCase();
     if (lowerName.includes('avatar') || lowerName.includes('passport') || lowerName.includes('profile')) {
       const avatarFallback = path.join(STATIC_IMAGES_DIR, 'profile', 'profile-avatar.jpg');

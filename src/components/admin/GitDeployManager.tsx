@@ -18,8 +18,11 @@ import {
   testGitHubRepoConnection, 
   commitFileToGitHub, 
   commitBinaryFileToGitHub,
+  commitFilesAtomicToGitHub,
+  GitFileCommit,
   GitHubRepoInfo 
 } from '../../utils/githubSync';
+import { getCachedUploadedMedia } from '../../utils/imageUpload';
 
 interface GitDeployManagerProps {
   portfolioData: any;
@@ -30,8 +33,14 @@ export const GitDeployManager: React.FC<GitDeployManagerProps> = ({
   portfolioData,
   showToast,
 }) => {
-  const [owner, setOwner] = useState(() => localStorage.getItem('git_owner') || 'timothyododo');
-  const [repo, setRepo] = useState(() => localStorage.getItem('git_repo') || 'portfolio');
+  const [owner, setOwner] = useState(() => {
+    const saved = localStorage.getItem('git_owner');
+    return (saved && saved !== 'timothyododo') ? saved : 'darlingtim';
+  });
+  const [repo, setRepo] = useState(() => {
+    const saved = localStorage.getItem('git_repo');
+    return (saved && saved !== 'portfolio') ? saved : 'timothy-portfolio';
+  });
   const [branch, setBranch] = useState(() => localStorage.getItem('git_branch') || 'main');
   const [token, setToken] = useState(() => localStorage.getItem('git_token') || '');
   const [autoCommit, setAutoCommit] = useState(() => localStorage.getItem('git_auto_commit') === 'true');
@@ -130,13 +139,36 @@ export const GitDeployManager: React.FC<GitDeployManagerProps> = ({
     const contentString = JSON.stringify(portfolioData, null, 2);
     const commitMessage = `chore(cms): update portfolio content [${new Date().toISOString().split('T')[0]}]`;
 
-    // 1. Identify all uploaded images referenced in portfolio content
+    // 1. Prepare files for single atomic commit
+    const filesToCommit: GitFileCommit[] = [
+      {
+        path: 'content/portfolio_data.json',
+        content: contentString,
+        encoding: 'utf-8',
+      },
+    ];
+
+    // 2. Identify all uploaded images referenced in portfolio content
     const imageMatches = contentString.match(/\/static\/images\/[a-zA-Z0-9_\-\.\/]+/g) || [];
     const uniqueImageUrls = Array.from(new Set(imageMatches));
 
     let uploadedImagesCount = 0;
     for (const imgUrl of uniqueImageUrls) {
       try {
+        const gitPath = imgUrl.replace(/^\/+/, '');
+        // Check client-side media cache first (highest quality, exact original upload)
+        const cachedBase64 = getCachedUploadedMedia(imgUrl);
+        if (cachedBase64) {
+          filesToCommit.push({
+            path: gitPath,
+            content: cachedBase64,
+            encoding: 'base64',
+          });
+          uploadedImagesCount++;
+          continue;
+        }
+
+        // Fallback: fetch binary asset from local server
         const imgRes = await fetch(imgUrl);
         if (imgRes.ok) {
           const contentType = imgRes.headers.get('content-type') || '';
@@ -148,31 +180,26 @@ export const GitDeployManager: React.FC<GitDeployManagerProps> = ({
               reader.readAsDataURL(blob);
             });
             if (base64Data) {
-              const gitPath = imgUrl.replace(/^\/+/, '');
-              await commitBinaryFileToGitHub(
-                owner,
-                repo,
-                token,
-                gitPath,
-                base64Data,
-                `chore(cms): sync uploaded media asset [${gitPath}]`,
-                branch
-              );
+              filesToCommit.push({
+                path: gitPath,
+                content: base64Data,
+                encoding: 'base64',
+              });
               uploadedImagesCount++;
             }
           }
         }
       } catch (imgErr) {
-        console.warn(`[GitDeploy] Could not sync asset ${imgUrl} to GitHub:`, imgErr);
+        console.warn(`[GitDeploy] Could not prepare asset ${imgUrl} for commit:`, imgErr);
       }
     }
 
-    const result = await commitFileToGitHub(
+    // 3. Atomically commit all files in a single Git commit using GitHub Git Database API
+    const result = await commitFilesAtomicToGitHub(
       owner,
       repo,
       token,
-      'content/portfolio_data.json',
-      contentString,
+      filesToCommit,
       commitMessage,
       branch
     );
