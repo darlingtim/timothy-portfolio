@@ -334,19 +334,20 @@
       "type": "IT Consulting & Development"
     },
     {
+      "id": "buildathon-trainer",
+      "role": "Technology Trainer — Hardware Programming & Creative Computing",
+      "organization": "Buildathon Holiday Camp",
+      "period": "August – September 2024",
+      "location": "Anambra State, Nigeria",
+      "type": "Technical Education & Hardware",
+      "isFeatured": true,
+      "summary": "Lead technical trainer for a multi-track computing boot camp supported by Raspberry Pi and MTN in collaboration with government educational initiatives.",
       "highlights": [
         "Trained 200+ secondary-school students in embedded systems, hardware programming, and creative computing.",
         "Mastered Raspberry Pi Pico / Pico H microcontroller architecture and MicroPython hardware programming within 3 days prior to camp launch to deliver the Senior Secondary curriculum.",
         "Instructed Junior Secondary track in Scratch computational thinking, event-driven animation, and logic constructs.",
         "Guided students from zero hardware experience to building working sensor-actuator projects and automated prototypes."
       ],
-      "id": "buildathon-trainer",
-      "isFeatured": true,
-      "location": "Anambra State, Nigeria",
-      "organization": "Buildathon Holiday Camp",
-      "period": "August – September 2024",
-      "role": "Technology Trainer — Hardware Programming & Creative Computing",
-      "summary": "Lead technical trainer for a multi-track computing boot camp supported by Raspberry Pi and MTN in collaboration with government educational initiatives.",
       "technologies": [
         "Raspberry Pi Pico / Pico H",
         "Python / MicroPython",
@@ -354,7 +355,8 @@
         "Physical Computing",
         "STEM Pedagogy"
       ],
-      "type": "Technical Education & Hardware"
+      "companyUrl": "",
+      "customFields": []
     },
     {
       "highlights": [
@@ -947,22 +949,22 @@
         "dateAdded": "2026-10-04T00:52:45.385Z"
       },
       {
+        "id": "photo-1791076349883",
+        "url": "/static/images/carousel/hardware_programming_trainer-1791076349732059844.jpg",
         "caption": "FMYSD Hardware Programming Trainer  at Buildathon Holiday Camp.",
-        "dateAdded": "2026-10-03T22:19:26.453Z",
-        "id": "photo-1791065966453",
-        "isIncludedInCarousel": true,
-        "order": 4,
         "tag": "Carousel",
-        "url": "/static/images/carousel/hardware_programming_trainer-1791065966315361129.jpg"
+        "isIncludedInCarousel": true,
+        "order": 3,
+        "dateAdded": "2026-10-04T01:12:29.883Z"
       },
       {
+        "id": "photo-1791076423415",
+        "url": "/static/images/carousel/EduTech_Soulution_Pitch-1791076423083814553.jpg",
         "caption": "EduTech Solution Pitch with Benue state Government and JICA",
-        "dateAdded": "2026-10-03T22:21:07.294Z",
-        "id": "photo-1791066067294",
-        "isIncludedInCarousel": true,
-        "order": 4,
         "tag": "Carousel",
-        "url": "/static/images/carousel/EduTech_Soulution_Pitch-1791066067108549021.jpg"
+        "isIncludedInCarousel": true,
+        "order": 3,
+        "dateAdded": "2026-10-04T01:13:43.415Z"
       }
     ],
     "showArrows": true,
