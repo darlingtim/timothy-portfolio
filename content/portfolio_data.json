@@ -260,6 +260,24 @@
   ],
   "experiences": [
     {
+      "companyUrl": "",
+      "customFields": [],
+      "highlights": [],
+      "id": "exp-1791114066646",
+      "imageUrl": "/static/images/experience/Youth_consultation_on_climate_change_anchor-1791113948851664770.jpg",
+      "isFeatured": true,
+      "location": "Nigeria / Remote",
+      "organization": "NIgeria Youth SDGs Network, United Nations, WMO",
+      "period": "2021",
+      "role": "Anchor - Nigeria Youth Consultation On Climate Change",
+      "summary": "Engaged youths on key climate issues, opportunities and solutions in Nigeria",
+      "technologies": [
+        "Zoom",
+        "Slides"
+      ],
+      "type": "Leadership & Public Speaking"
+    },
+    {
       "highlights": [
         "Building high-performance backend services using Go, structured logging, and robust RESTful API architecture.",
         "Advocating AI-assisted developer workflows and modern software engineering practices across peer cohorts.",
@@ -310,44 +328,44 @@
       "type": "Public Sector Innovation & Community"
     },
     {
+      "companyUrl": "",
+      "customFields": [],
       "highlights": [
-        "Diagnosed and resolved complex hardware, OS, and networking issues with structured root-cause analysis.",
-        "Maintained client workstations, performed automated system backups, and hardened security configurations.",
-        "Developed web modules and automation scripts to streamline internal client operations.",
-        "Trained non-technical client staff on cybersecurity best practices and cloud collaboration tools."
+        "Pitched an EduTech solution that solves an SDG 4 problem tackling Teachers shortage",
+        "Tech Advocacy",
+        "Sensitized, Identified and Mentored Would-be Tech Talents especially at grass-roots / rural areas."
       ],
       "id": "protalento-consult",
+      "imageUrl": "/static/images/experience/protalento_it_consult_and_solutions_logo-1791113364604788158.jpg",
       "isFeatured": true,
-      "location": "Nigeria / Hybrid",
+      "location": "Nigeria",
       "organization": "ProTalento IT Consult & Solutions",
-      "period": "2024 – 2025",
-      "role": "IT Support & Software Engineer",
-      "summary": "Delivered technical support, network configuration, client workstation setup, and bespoke software features for commercial and institutional clients.",
+      "period": " 2025 - Present ",
+      "role": "Founder / CTO",
+      "summary": "ProTalento IT Consult & Solutions is a registered Business in Nigeria that has been founded to Identify SDGs related problems and to ensure the right solutions are provided to tackle them especially when digital solutions are the best fit.",
       "technologies": [
-        "IT Support",
-        "Windows/Linux Administration",
-        "Networking",
-        "Python",
-        "JavaScript",
-        "Security"
+        "Computer Programming",
+        "Digital Transformation",
+        "IT Consulting"
       ],
-      "type": "IT Consulting & Development"
+      "type": "Engineering"
     },
     {
-      "id": "buildathon-trainer",
-      "role": "Technology Trainer — Hardware Programming & Creative Computing",
-      "organization": "Buildathon Holiday Camp",
-      "period": "August – September 2024",
-      "location": "Anambra State, Nigeria",
-      "type": "Technical Education & Hardware",
-      "isFeatured": true,
-      "summary": "Lead technical trainer for a multi-track computing boot camp supported by Raspberry Pi and MTN in collaboration with government educational initiatives.",
+      "companyUrl": "",
+      "customFields": [],
       "highlights": [
         "Trained 200+ secondary-school students in embedded systems, hardware programming, and creative computing.",
         "Mastered Raspberry Pi Pico / Pico H microcontroller architecture and MicroPython hardware programming within 3 days prior to camp launch to deliver the Senior Secondary curriculum.",
         "Instructed Junior Secondary track in Scratch computational thinking, event-driven animation, and logic constructs.",
         "Guided students from zero hardware experience to building working sensor-actuator projects and automated prototypes."
       ],
+      "id": "buildathon-trainer",
+      "isFeatured": true,
+      "location": "Anambra State, Nigeria",
+      "organization": "Buildathon Holiday Camp",
+      "period": "August – September 2024",
+      "role": "Technology Trainer — Hardware Programming & Creative Computing",
+      "summary": "Lead technical trainer for a multi-track computing boot camp supported by Raspberry Pi and MTN in collaboration with government educational initiatives.",
       "technologies": [
         "Raspberry Pi Pico / Pico H",
         "Python / MicroPython",
@@ -355,8 +373,7 @@
         "Physical Computing",
         "STEM Pedagogy"
       ],
-      "companyUrl": "",
-      "customFields": []
+      "type": "Technical Education & Hardware"
     },
     {
       "highlights": [
@@ -404,9 +421,10 @@
             "tag": "Backend & Hardware"
           },
           {
+            "customFields": [],
             "highlight": "Modern ES6+, React, Node.js, asynchronous flows",
             "level": "Practical Experience",
-            "name": "JavaScript / TypeScript",
+            "name": "JavaScript",
             "proficiency": 82,
             "tag": "Full Stack"
           },
@@ -480,12 +498,13 @@
   },
   "certifications": [
     {
-      "credentialUrl": "https://coursera.org/verify/professional-cert/google-it-support",
-      "description": "Comprehensive 5-course professional program covering hardware, networking, operating systems, system administration, and IT security.",
       "id": "google-it-support",
-      "imageUrl": "/static/images/certifications/google-it-support-cert.svg",
-      "issuer": "Google",
       "name": "Google IT Support Professional Certificate",
+      "issuer": "Google",
+      "year": "2024",
+      "track": "Technical",
+      "credentialUrl": "https://coursera.org/verify/professional-cert/5WJKJM4CKAHC",
+      "description": "Comprehensive 5-course professional program covering hardware, networking, operating systems, system administration, and IT security.",
       "skillsCovered": [
         "Hardware Troubleshooting",
         "Linux/Windows Administration",
@@ -493,69 +512,43 @@
         "Security Best Practices",
         "Customer Service"
       ],
-      "track": "Technical",
-      "year": "2024"
+      "imageUrl": "/static/images/certifications/IT_support_certificate-1791117160657978801.jpg",
+      "customFields": []
     },
     {
-      "credentialUrl": "https://raspberrypi.org",
-      "description": "Specialized certification demonstrating competence in microcontrollers, sensor integration, and computational thinking pedagogy.",
-      "id": "rpi-educator",
-      "imageUrl": "/static/images/certifications/rpi-educator-cert.svg",
-      "issuer": "Raspberry Pi Foundation",
-      "name": "Raspberry Pi Certified Physical Computing Educator",
-      "skillsCovered": [
-        "Raspberry Pi Pico",
-        "MicroPython",
-        "GPIO Electronics",
-        "STEM Curriculum Design"
-      ],
-      "track": "Technical",
-      "year": "2024"
-    },
-    {
-      "credentialUrl": "https://learn.microsoft.com",
-      "description": "Cloud concepts, Azure architecture and services, management, security, and governance principles.",
       "id": "azure-fundamentals",
-      "issuer": "Microsoft Learn",
-      "name": "Microsoft Azure Fundamentals (AZ-900 Prep)",
+      "name": "Microsoft Azure Infrastructure Solution Certificate of Training",
+      "issuer": "Microsoft / Hashem Network Services LTD",
+      "year": "2018",
+      "track": "Technical",
+      "credentialUrl": "",
+      "description": "Cloud concepts, Azure architecture and services, management, security, and governance principles.",
       "skillsCovered": [
         "Cloud Computing",
         "Virtual Machines",
         "Azure Storage",
         "Identity & Access"
       ],
-      "track": "Technical",
-      "year": "2025"
+      "imageUrl": "/static/images/certifications/Microsoft_sponsored_Azure_training_cert-1791117430937874635.jpg",
+      "customFields": []
     },
     {
-      "credentialUrl": "https://youthsdgs.org",
-      "description": "Accredited leadership program on Sustainable Development Goals implementation, youth advocacy, and social impact metrics.",
       "id": "sdg-fellowship",
-      "issuer": "Nigeria Youth SDGs Network",
-      "name": "UN SDGs Leadership & Community Champion",
+      "name": "Facebook BuildForSDGs Challenge Participation",
+      "issuer": "Facebook / Andela",
+      "year": "2020",
+      "track": "Technical",
+      "credentialUrl": "",
+      "description": "Formed a team, Identified SDGs challenges, brain stormed on solutions, and built a prototype.",
       "skillsCovered": [
-        "SDG Advocacy",
         "Project Management",
-        "Youth Mobilization",
-        "Community Leadership"
+        "Git",
+        "Technical Team Leadership",
+        "Computer Programming",
+        "Collaboration"
       ],
-      "track": "Non-Technical",
-      "year": "2024"
-    },
-    {
-      "credentialUrl": "https://globalpeace.org",
-      "description": "International peace leadership certificate verifying participation in dialogue moderation, conflict resolution, and youth capacity building.",
-      "id": "peace-fellow",
-      "issuer": "Global Peace Foundation",
-      "name": "Global Peace Ambassador Certificate",
-      "skillsCovered": [
-        "Peacebuilding",
-        "Cross-Cultural Communication",
-        "Youth Empowerment",
-        "Ethics"
-      ],
-      "track": "Non-Technical",
-      "year": "2024"
+      "imageUrl": "/static/images/certifications/BuildForSDGs_certificate_of_participation-1791117809943718348.jpg",
+      "customFields": []
     }
   ],
   "education": [
@@ -630,193 +623,46 @@
       ],
       "title": "Buildathon Holiday Camp: Hardware & Creative Computing",
       "track": "Technical"
-    },
-    {
-      "badge": "National Tech Fellowship",
-      "category": "Developer Conference",
-      "date": "2024",
-      "highlights": [
-        "Elected Cohort 2 Captain, coordinating technical meetups, peer coding labs, and study groups across Anambra State",
-        "Delivered practical sessions on Linux system administration, Docker containerization, and Git/GitHub collaboration workflows",
-        "Facilitated group capstone project reviews and cloud deployment demonstrations on Microsoft Azure and Google Cloud"
-      ],
-      "id": "event-3",
-      "imageUrl": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80",
-      "impactMetric": "Coordinated 100+ cohort fellows",
-      "location": "Anambra State, Nigeria",
-      "organization": "Federal Ministry of Communications, Innovation & Digital Economy (3MTT)",
-      "role": "Cohort 2 Captain & DevOps Peer Facilitator",
-      "summary": "Nigeria’s premier technical talent development program aimed at building 3 million technical talents across cloud computing and engineering.",
-      "technologies": [
-        "Linux CLI",
-        "Docker",
-        "Git / GitHub",
-        "Microsoft Azure",
-        "DevOps Principles"
-      ],
-      "title": "3MTT Nigeria — Cohort 2 Assembly & Cloud DevOps Workshops",
-      "track": "Technical"
-    },
-    {
-      "badge": "Civic Tech Advocacy",
-      "category": "Community & Advocacy",
-      "date": "2023 – 2024",
-      "highlights": [
-        "Led grassroots voter sensitization campaigns across tertiary campuses and youth community hubs",
-        "Organized public workshops countering electoral misinformation and driving civic responsibility"
-      ],
-      "id": "event-4",
-      "imageUrl": "",
-      "impactMetric": "Reached thousands of first-time voters",
-      "location": "Nigeria",
-      "organization": "GoVote Nigeria",
-      "role": "State Champion (Anambra State)",
-      "summary": "Non-partisan civic advocacy campaign leveraging digital tools and on-ground youth networks to educate citizens on democratic participation.",
-      "technologies": [
-        "Civic Leadership",
-        "Youth Mobilization",
-        "Grassroots Advocacy"
-      ],
-      "title": "GoVote Nigeria Youth Civic Engagement & Digital Mobilization",
-      "track": "Non-Technical"
-    },
-    {
-      "badge": "Global Peace Ambassador",
-      "category": "Community & Advocacy",
-      "date": "2023 – 2025",
-      "highlights": [
-        "Represented youth leaders in state-level peacebuilding assemblies and community conflict resolution roundtables",
-        "Advocated for education and youth empowerment as key drivers for sustainable community peace"
-      ],
-      "id": "event-5",
-      "imageUrl": "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80",
-      "impactMetric": "Facilitated state youth dialogue panels",
-      "location": "Nigeria",
-      "organization": "Global Peace Foundation",
-      "role": "Peace Ambassador / Youth Builder",
-      "summary": "International youth leadership summit fostering intercultural collaboration, social cohesion, and ethical leadership.",
-      "technologies": [
-        "Peacebuilding",
-        "Youth Leadership",
-        "Cross-Cultural Dialogue"
-      ],
-      "title": "Global Peace Youth Summit & Dialogue Series",
-      "track": "Non-Technical"
-    },
-    {
-      "badge": "UN SDG Champion",
-      "category": "Community & Advocacy",
-      "date": "2023 – Present",
-      "highlights": [
-        "Assisted in planning youth empowerment workshops aligning local grassroots initiatives with SDG 4 (Education) and SDG 8 (Decent Work)",
-        "Organized community outreach programs promoting youth self-reliance and vocational empowerment"
-      ],
-      "id": "event-6",
-      "imageUrl": "https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=800&q=80",
-      "impactMetric": "Organized SDG education and skills roundtables",
-      "location": "Anambra State, Nigeria",
-      "organization": "Nigeria Youth SDGs Network",
-      "role": "Anambra Champion — Assistant",
-      "summary": "State-wide action forum advancing UN Sustainable Development Goals, specifically Quality Education (SDG 4) and Decent Work (SDG 8).",
-      "technologies": [
-        "SDG Frameworks",
-        "Youth Empowerment",
-        "Community Organizing"
-      ],
-      "title": "Nigeria Youth SDGs State Assembly & Action Forum",
-      "track": "Non-Technical"
     }
   ],
   "achievements": [
     {
-      "category": "Certification",
-      "description": "Rigorous credential covering troubleshooting, customer service, networking, operating systems, systems administration, and security.",
-      "icon": "award",
-      "id": "ach-1",
-      "issuer": "Google / Coursera",
-      "title": "Google IT Support Professional",
-      "track": "Technical",
-      "year": "2024"
-    },
-    {
-      "category": "Recognition",
-      "description": "Recognized for community efforts promoting Quality Education (SDG 4) and Decent Work & Economic Growth (SDG 8) through youth mentorship.",
-      "icon": "globe",
-      "id": "ach-2",
-      "issuer": "United Nations SDG Advocates",
-      "title": "SDG Digital Champion",
-      "track": "Non-Technical",
-      "year": "2025"
-    },
-    {
-      "category": "Award",
-      "description": "Awarded top technical educator honor for exceptional pedagogical delivery and 100% student project completion in hardware programming.",
-      "icon": "trophy",
-      "id": "ach-3",
-      "issuer": "Buildathon STEM Initiative",
-      "title": "Best Mentor Award",
-      "track": "Technical",
-      "year": "2024"
-    },
-    {
-      "category": "Fellowship",
-      "description": "Appointed as fellowship ambassador for high technical performance in Go engineering and commitment to peer mentorship.",
-      "icon": "star",
-      "id": "ach-4",
-      "issuer": "Learn2Earn NG",
-      "title": "Learn2Earn Fellowship Ambassador",
-      "track": "Technical",
-      "year": "2026"
-    },
-    {
-      "category": "Recognition",
-      "description": "Elected State Cohort Captain leading hundreds of technical fellows through federal tech training programs.",
-      "icon": "users",
       "id": "ach-5",
-      "issuer": "Federal Ministry of Communications, Innovation & Digital Economy",
-      "title": "3MTT Cohort 2 Captain",
-      "track": "Technical",
-      "year": "2024"
+      "title": "3MTT Cohort 2 Captain (Certificate of Contribution)",
+      "issuer": "3MTT, Federal Ministry of Communications, Innovation & Digital Economy",
+      "year": "2024",
+      "track": "Hybrid",
+      "category": "Recognition",
+      "description": "Certificate of contribution as the elected Anambra State 3MTT Cohort 2 Captain: leading hundreds of co-fellows through the 3 Million Technical Training (3MTT)  program in various tracks under the leadership of the Anambra community Manager, Somto Akujurobi.",
+      "icon": "users",
+      "date": "",
+      "imageUrl": "/static/images/achievements/3MTT_certificate_of_recognition-1791118656890877771.jpg",
+      "customFields": []
     },
     {
-      "category": "Certification",
-      "description": "Certified to instruct computational thinking and physical electronics on Raspberry Pi & MicroPython platforms.",
-      "icon": "cpu",
-      "id": "ach-6",
-      "issuer": "Raspberry Pi Foundation",
-      "title": "Raspberry Pi Certified Educator",
-      "track": "Technical",
-      "year": "2024"
-    },
-    {
-      "category": "Award",
-      "description": "Official commendation for operational excellence and participant technical support during Anambra Innovation Week 2024.",
-      "icon": "shield",
       "id": "ach-7",
-      "issuer": "Solution Innovation District (SID)",
-      "title": "Anambra Innovation Week Commendation",
-      "track": "Technical",
-      "year": "2024"
+      "title": "Anambra Innovation Week Certificate of Appreciation and Commendation",
+      "issuer": "Solution Innovation District (SID)- Anambra state Government",
+      "year": "2024",
+      "track": "Hybrid",
+      "category": "Award",
+      "description": "Official appreciation, commendation and recognition for volunteering, operational excellence, diligence and commitment during planning and execution of the Anambra Innovation Week 2024.\n",
+      "icon": "shield",
+      "date": "",
+      "customFields": []
     },
     {
+      "id": "ach-8",
+      "title": "Peace Builder",
+      "issuer": "Global Peace Foundation",
+      "year": "2021",
+      "track": "Non-Technical",
       "category": "Recognition",
       "description": "Honored for civic youth mobilization, peace dialogue facilitation, and youth leadership across community councils.",
       "icon": "award",
-      "id": "ach-8",
-      "issuer": "Global Peace Foundation",
-      "title": "Global Peace Ambassador Recognition",
-      "track": "Non-Technical",
-      "year": "2024"
-    },
-    {
-      "category": "Scholarship",
-      "description": "Scholarship honor awarded for outstanding academic excellence in computing and technology studies.",
-      "icon": "star",
-      "id": "ach-9",
-      "issuer": "Federal University / Polytechnic",
-      "title": "Academic Merit Recognition",
-      "track": "Non-Technical",
-      "year": "2023"
+      "date": "",
+      "imageUrl": "/static/images/achievements/peace_builder_certificate_of_recognition-1791118002236222833.png",
+      "customFields": []
     }
   ],
   "galleryItems": [
@@ -940,31 +786,31 @@
     "mode": "carousel",
     "photos": [
       {
-        "id": "photo-1791075165385",
-        "url": "/static/images/carousel/timothyododoPassport-1791075165216411187.jpg",
         "caption": "Timothy Ododo",
-        "tag": "Carousel",
+        "dateAdded": "2026-10-04T00:52:45.385Z",
+        "id": "photo-1791075165385",
         "isIncludedInCarousel": true,
         "order": 3,
-        "dateAdded": "2026-10-04T00:52:45.385Z"
+        "tag": "Carousel",
+        "url": "/static/images/carousel/timothyododoPassport-1791075165216411187.jpg"
       },
       {
-        "id": "photo-1791076349883",
-        "url": "/static/images/carousel/hardware_programming_trainer-1791076349732059844.jpg",
         "caption": "FMYSD Hardware Programming Trainer  at Buildathon Holiday Camp.",
-        "tag": "Carousel",
+        "dateAdded": "2026-10-04T01:12:29.883Z",
+        "id": "photo-1791076349883",
         "isIncludedInCarousel": true,
         "order": 3,
-        "dateAdded": "2026-10-04T01:12:29.883Z"
+        "tag": "Carousel",
+        "url": "/static/images/carousel/hardware_programming_trainer-1791076349732059844.jpg"
       },
       {
-        "id": "photo-1791076423415",
-        "url": "/static/images/carousel/EduTech_Soulution_Pitch-1791076423083814553.jpg",
         "caption": "EduTech Solution Pitch with Benue state Government and JICA",
-        "tag": "Carousel",
+        "dateAdded": "2026-10-04T01:13:43.415Z",
+        "id": "photo-1791076423415",
         "isIncludedInCarousel": true,
         "order": 3,
-        "dateAdded": "2026-10-04T01:13:43.415Z"
+        "tag": "Carousel",
+        "url": "/static/images/carousel/EduTech_Soulution_Pitch-1791076423083814553.jpg"
       }
     ],
     "showArrows": true,
@@ -974,17 +820,16 @@
   },
   "mentoring": [
     {
+      "customFields": [],
       "description": "Designed and delivered an immersive 4-week physical computing program for junior and senior secondary school students across Anambra State.",
       "focus": "Raspberry Pi Pico, MicroPython, Scratch & Sensor Prototyping",
       "highlights": [
-        "Rapidly developed and deployed hands-on curriculum within 72 hours of camp kick-off",
         "Guided students from zero coding experience to building working sensor-actuator projects",
         "Achieved 100% project completion rate and positive feedback from school principals and sponsors"
       ],
       "id": "prog-1",
-      "imageUrl": "",
       "learnersCount": "200+ Students",
-      "organization": "Buildathon Holiday Camp (Supported by Raspberry Pi & MTN)",
+      "organization": "Federal Ministry of Youth and Sports Development (Supported by Raspberry Pi & MTN)",
       "period": "August – September 2024",
       "technologies": [
         "Raspberry Pi Pico",
@@ -999,48 +844,42 @@
           "role": "Senior Secondary Student"
         }
       ],
-      "title": "Buildathon Physical Computing Boot Camp"
+      "title": "Buildathon Holiday Camp"
     },
     {
-      "description": "Leading peer study circles, code review sessions, and architectural design deep dives for aspiring backend software developers.",
-      "focus": "Go (Golang), REST APIs, Docker, and Production Engineering",
-      "highlights": [
-        "Conducted weekly live code review workshops on idiomatic Go and concurrency",
-        "Mentored peers on building production-ready Docker containers and CI/CD pipelines",
-        "Fostered a supportive, disciplined learning community with structured debugging exercises"
-      ],
+      "customFields": [],
+      "description": "Guiding, unblocking and mentoring intending fellows of Learn2Earn",
+      "focus": "Go (Golang), Python, Git, Linux",
+      "highlights": [],
       "id": "prog-2",
-      "learnersCount": "50+ Fellows",
+      "learnersCount": "100+ Fellows",
       "organization": "Learn2Earn NG",
-      "period": "2026 – Present",
+      "period": "2025 – Present",
       "technologies": [
         "Go",
-        "Docker",
         "Git/GitHub",
         "Linux",
-        "REST APIs"
+        "Python"
       ],
-      "title": "Learn2Earn Peer Engineering Mentorship"
+      "testimonials": [],
+      "title": "Learn2Earn Piscine/Trials"
     },
     {
-      "description": "Hosting free community workshops across regional hubs to introduce youth to in-demand technology careers.",
-      "focus": "Digital Literacy, Problem Solving & Career Pathways",
-      "highlights": [
-        "Demystified software development and cloud career paths for non-technical youth",
-        "Facilitated hands-on Python exercises in public ICT laboratories",
-        "Connected talented participants to government skilling programs and scholarships"
-      ],
+      "customFields": [],
+      "description": "Visited secondary and tertiary institutions to sensitize and  introduce young people to in-demand technology careers.",
+      "focus": "Digital Literacy, Digital Transformation, Problem Solving & Career Pathways in Tech",
+      "highlights": [],
       "id": "prog-3",
-      "learnersCount": "100+ Youth",
+      "learnersCount": "10,000+ Youth",
       "organization": "Techies4Solution / SID",
-      "period": "2024 – Present",
+      "period": "2024 – 2025",
       "technologies": [
-        "Python",
-        "Web Fundamentals",
         "IT Literacy",
-        "Career Mentoring"
+        "Career Mentoring",
+        "Career Pathways"
       ],
-      "title": "Grassroots Digital Literacy & Python Seminars"
+      "testimonials": [],
+      "title": "Grassroots Digital Literacy & School Outreach"
     }
   ]
 }
