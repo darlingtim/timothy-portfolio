@@ -33,6 +33,42 @@ export interface MediaImageItem {
   size?: number;
 }
 
+const memoryMediaCache = new Map<string, string>();
+
+/**
+ * Caches an uploaded image's base64 data URL in memory and sessionStorage
+ * so GitDeployManager can commit the exact original high-quality binary asset to GitHub.
+ */
+export function cacheUploadedMedia(url: string, dataUrl: string): void {
+  if (!url || !dataUrl) return;
+  memoryMediaCache.set(url, dataUrl);
+  if (typeof window !== 'undefined') {
+    try {
+      sessionStorage.setItem(`media_cache_${url}`, dataUrl);
+    } catch {
+      // ignore storage quota limits
+    }
+  }
+}
+
+/**
+ * Retrieves the cached base64 data URL for an image by its public URL.
+ */
+export function getCachedUploadedMedia(url: string): string | null {
+  if (!url) return null;
+  if (memoryMediaCache.has(url)) {
+    return memoryMediaCache.get(url)!;
+  }
+  if (typeof window !== 'undefined') {
+    try {
+      return sessionStorage.getItem(`media_cache_${url}`);
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
 /**
  * Helper to build auth headers with current admin session token
  */
@@ -141,6 +177,7 @@ export async function uploadImageFile(
         if (response.ok) {
           const resData = await parseResponseSafely<any>(response, 'upload image');
           if (resData.success && resData.url) {
+            cacheUploadedMedia(resData.url, dataUrl);
             resolve({
               url: resData.url,
               filename: resData.filename || file.name,
@@ -154,6 +191,7 @@ export async function uploadImageFile(
       }
 
       // Safe fallback to dataUrl if network request fails
+      cacheUploadedMedia(dataUrl, dataUrl);
       resolve({
         url: dataUrl,
         filename: file.name,

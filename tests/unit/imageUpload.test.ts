@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { uploadImageFile } from '../../src/utils/imageUpload';
+import { uploadImageFile, cacheUploadedMedia, getCachedUploadedMedia } from '../../src/utils/imageUpload';
 import { PROFILE, initialCarouselConfig } from '../../src/data';
 
 describe('Image Architecture & Static Storage', () => {
@@ -83,5 +83,39 @@ describe('Image Architecture & Static Storage', () => {
     const result = await uploadImageFile(fakeFile);
     expect(result.url).toBeTruthy();
     expect(result.filename).toBe('offline.png');
+  });
+
+  it('cacheUploadedMedia and getCachedUploadedMedia correctly store and retrieve base64 data', () => {
+    const testUrl = '/static/images/profile/test-avatar-999.png';
+    const testData = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+
+    expect(getCachedUploadedMedia(testUrl)).toBeNull();
+    expect(getCachedUploadedMedia('')).toBeNull();
+
+    cacheUploadedMedia(testUrl, testData);
+    expect(getCachedUploadedMedia(testUrl)).toBe(testData);
+  });
+
+  it('uploadImageFile caches uploaded media in memory for atomic Git sync', async () => {
+    const fakeFile = new File(['avatar-raw-bytes'], 'avatar.png', { type: 'image/png' });
+    const uploadedUrl = '/static/images/profile/avatar-live-123.png';
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        url: uploadedUrl,
+        filename: 'avatar-live-123.png',
+        category: 'profile',
+      }),
+    });
+
+    const result = await uploadImageFile(fakeFile, { category: 'profile' });
+    expect(result.url).toBe(uploadedUrl);
+
+    // Verify cache has the base64 content
+    const cached = getCachedUploadedMedia(uploadedUrl);
+    expect(cached).toBeTruthy();
+    expect(cached?.startsWith('data:image/')).toBe(true);
   });
 });
