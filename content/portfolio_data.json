@@ -260,22 +260,24 @@
   ],
   "experiences": [
     {
-      "companyUrl": "",
-      "customFields": [],
-      "highlights": [],
       "id": "exp-1791114066646",
-      "imageUrl": "/static/images/experience/Youth_consultation_on_climate_change_anchor-1791113948851664770.jpg",
-      "isFeatured": true,
-      "location": "Nigeria / Remote",
+      "role": "Anchor - Nigeria Youth Consultation On Climate Change",
       "organization": "NIgeria Youth SDGs Network, United Nations, WMO",
       "period": "2021",
-      "role": "Anchor - Nigeria Youth Consultation On Climate Change",
+      "location": "Nigeria / Remote",
+      "type": "Leadership & Public Speaking",
+      "isFeatured": true,
       "summary": "Engaged youths on key climate issues, opportunities and solutions in Nigeria",
+      "highlights": [
+        "Ensured smooth and seamless moderation of the panel discussions and the entire consultation."
+      ],
       "technologies": [
         "Zoom",
         "Slides"
       ],
-      "type": "Leadership & Public Speaking"
+      "companyUrl": "",
+      "imageUrl": "/static/images/experience/Youth_consultation_on_climate_change_anchor-1791113948851664770.jpg",
+      "customFields": []
     },
     {
       "highlights": [
